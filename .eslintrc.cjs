@@ -1,26 +1,26 @@
-"use strict";
+'use strict';
 
 module.exports = {
   root: true,
   parserOptions: {
     ecmaVersion: 2020,
-    sourceType: "module",
+    sourceType: 'module',
   },
-  plugins: ["prettier"],
-  extends: ["eslint:recommended", "plugin:prettier/recommended"],
+  plugins: ['prettier'],
+  extends: ['eslint:recommended', 'plugin:prettier/recommended'],
   rules: {},
   overrides: [
     // node files
     {
-      files: ["**/*.cjs"],
+      files: ['**/*.cjs'],
       parserOptions: {
-        sourceType: "script",
+        sourceType: 'script',
       },
       env: {
         node: true,
       },
-      plugins: ["node"],
-      extends: ["plugin:node/recommended"],
+      plugins: ['node'],
+      extends: ['plugin:node/recommended'],
     },
   ],
 };
