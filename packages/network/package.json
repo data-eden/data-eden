@@ -6,12 +6,15 @@
     "url": "git+https://github.com/data-eden/data-eden.git",
     "directory": "packages/network"
   },
+  "type": "module",
   "scripts": {
     "test": "echo huzzah!"
   },
   "dependencies": {},
+  "publishConfig": {
+    "access": "public"
+  },
   "volta": {
     "extends": "../../package.json"
-  },
-  "type": "module"
+  }
 }

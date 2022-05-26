@@ -1,36 +1,59 @@
 {
   "name": "data-eden",
-  "private": true,
   "version": "0.5.0",
-  "scripts": {
-    "test": "npm-run-all lint test:*",
-    "test:workspaces": "npm test --workspaces",
-    "lint": "npm-run-all lint:*",
-    "lint:ts": "eslint ."
+  "private": true,
+  "homepage": "https://github.com/data-eden/data-eden#readme",
+  "bugs": {
+    "url": "https://github.com/data-eden/data-eden/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/data-eden/data-eden.git"
   },
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/data-eden/data-eden/issues"
-  },
-  "homepage": "https://github.com/data-eden/data-eden#readme",
-  "volta": {
-    "node": "16.15.0",
-    "npm": "8.11.0"
-  },
   "type": "module",
   "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "test": "npm-run-all lint test:*",
+    "test:workspaces": "npm test --workspaces",
+    "lint": "npm-run-all lint:*",
+    "lint:ts": "eslint ."
+  },
   "devDependencies": {
     "eslint": "^8.16.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.0.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "^2.6.2"
+    "prettier": "^2.6.2",
+    "release-it": "^14.2.1",
+    "release-it-lerna-changelog": "^3.1.0",
+    "release-it-yarn-workspaces": "^2.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
+  "release-it": {
+    "plugins": {
+      "release-it-lerna-changelog": {
+        "infile": "CHANGELOG.md",
+        "launchEditor": true
+      },
+      "release-it-yarn-workspaces": true
+    },
+    "git": {
+      "tagName": "v${version}"
+    },
+    "github": {
+      "release": true,
+      "tokenRef": "GITHUB_AUTH"
+    },
+    "npm": false
+  },
+  "volta": {
+    "node": "16.15.0",
+    "npm": "8.11.0"
   }
 }
