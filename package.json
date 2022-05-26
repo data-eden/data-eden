@@ -1,0 +1,20 @@
+{
+  "name": "data-eden",
+  "private": true,
+  "version": "0.5.0",
+  "scripts": { },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/data-eden/data-eden.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/data-eden/data-eden/issues"
+  },
+  "homepage": "https://github.com/data-eden/data-eden#readme",
+  "volta": {
+    "node": "16.15.0",
+    "npm": "8.11.0"
+  },
+  "workspaces": ["packages/*"]
+}
