@@ -1,3 +1,174 @@
 # @data-eden/network
 
-TODO: writeme
+## Features
+
+* **fetch-compatible** Create a middleware-enabled `fetch` with the same API as [`window.fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), compatible with anything that understands `fetch`.
+* **request & response aware** Supports middlewares for observing or altering requests or responses, alone or together.
+* **streaming-compatible** Adds middleware support without eager body consumption, so can be used with streaming, as long as your middlewares are written to be streaming-aware.
+* **composable** Middleware can be composible (e.g. you can author a middleware _in terms_ of other middlewares)
+
+### Example use Cases
+
+* **CSRF Injection** - add a CSRF header before every request
+* **Query Tuneling** - seamlessly encode requests with long URLs as `POST` requests
+* **Analytics** - send client-analytics for request,response pairs
+* **Response Transformation** - seamlessly transform responses, e.g. for compatibility
+
+## API
+
+```typescript
+export type Middleware = (request: Request, fetch: Fetch) => ReturnType<Fetch>;
+
+export interface BuildFetchOptions {
+  // Whether to force earlier built fetches to error making the most recent //
+  // invokation the authoritive fetch. You will typically only want to set this to
+  // false for testing. Defaults to true.
+  disablePrior?: boolean;
+  // What message to throw if a user tries to invoke a disabled fetch. Useful
+  // to help users know where to import fetch from rather than build it //
+  // themselves.
+  disableMessage?: string;
+};
+
+export function buildFetch(middlewares: Middleware[], options?: BuildFetchOptions): typeof fetch;
+```
+
+## Middleware Examples
+
+```typescript
+type Fetch = typeof fetch;
+
+async function noopMiddleware(request: Request, fetch: Fetch) : ReturnType<Fetch> {
+  return fetch(request);
+}
+
+async function csrfMiddleware(request: Request, fetch: Fetch) : ReturnType<Fetch> {
+  request.headers.set('X-CSRF', 'a totally legit request');
+
+  return fetch(request);
+}
+
+// e.g. fetch('https://example.com?foo=1&bar=two
+async function queryTunneling(request: Request, fetch: Fetch) : ReturnType<Fetch> {
+  if (request.url.length <= MaxURLLength) {
+    // no tunneling needed
+    return await fetch(request);
+  }
+
+  let url = new URL(request.url);
+  request.headers.set('X-HTTP-Method-Override', request.method);
+  let tunneledRequest = new Request(`${url.protocol}//${url.hostname}${url.pathname}`, {
+    method: 'POST',
+    headers: request.headers,
+    body: url.searchParams,
+  });
+  return fetch(tunneledRequest);
+}
+
+function analyticsMiddleware(request: Request, fetch: Fetch) : ReturnType<Fetch> {
+  let response = await fetch(request);
+
+  let requestHeaders = [...request.headers.keys()]
+  let responseHeaders = [...response.headers.keys()];
+  let status = response.status;
+  let contentType = response.headers.get('content-type'); // Headers.get is case-insensitive
+  let analyticsEntries = [];
+  if (/^application\/json/.test(contentType)) {
+    // Response.clone exists to handle this kind of use case
+    let responseJson = await response.clone().json();
+    if (responseJson.has_interesting_property) {
+      analyticsEntries.push('interesting')
+    }
+  }
+
+  scheduleAnalytics({ requestHeaders, responseHeaders, status, analyticsEntries });
+
+  return response;
+}
+
+function batchCreateEmbedResource(request: Request, fetch: Fetch) : ReturnType<Fetch> {
+  if (/target\/url\/pattern/.test(request.url)) {
+    // Only transform certain kinds of requests
+    return fetch(request);
+  }
+
+  let stashedRequest = request.clone();
+  let rawResponse = await fetch(request);
+
+  let contentType = rawResponse.headers.get('content-type');
+  if (!/^application\/json/.test(contentType)) {
+    // Only transform JSON responses
+    return rawResponse;
+  }
+
+
+  let transformedResponse = rawResponse.clone();
+  // also overwrite .text &c. or return a Proxy to avoid cloning.
+  transformedResponse.json = async function() {
+    // Read the requested body from a cloned request as request bodies can only be read once
+    let requestBody = await stashedRequest.json();
+    // Read the response lazily. This implementation does not handle 
+    let responseBody = await rawResponse.json();
+
+    for(let i=0; i<responseBody.elements.length; ++i) {
+      // combine the request and response bodies for downstream users.
+      responseBody.elements[i].resource = requestBody.elements[i];
+    }
+  }
+
+  return transformedResponse;
+}
+
+function badMiddleware(request: Request, fetch: Fetch): ReturnType<Fetch> {
+  let response = await fetch(request);
+
+  // ⛔ Error! ⛔ Don't do this -- it interferes with streaming responses as
+  // well as subsequent middlewares
+  //
+  // use response.clone() to read the body from a middleware
+  let responseJson = await response.json();
+  if(responseJson.something) {
+    // do something...
+  }
+
+  return response;
+}
+```
+
+## Middleware Composition
+
+Composing middleware is as easy as composing normal functions.
+
+```typescript
+// Use another middleware conditionally (e.g. only for `/api` requests)
+function limitedAnalytics(request: Request, fetch: Fetch): Middleware {
+  if (request.url.startsWith('/api')) {
+    return analyticsMiddleware(request, fetch);
+  }
+
+  return fetch(request);
+}
+```
+
+## Fetch Usage
+
+```typescript
+// Creating and invoking a middleware-enabled fetch
+import { buildFetch } from '@data-eden/network'
+
+let fetch = buildFetch([
+  csrfMiddleware,
+  queryTunneling,
+  limitedAnalytics,
+  batchCreateEbmedResource,
+]);
+
+await fetch('///api');
+
+let response = await fetch('/my-api');
+```
+
+## Prior Art
+
+* [fetch-wrap](https://github.com/benjamine/fetch-wrap)
+* [node-fetch-middleware](https://github.com/lev-kuznetsov/node-fetch-middleware)
