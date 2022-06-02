@@ -7,6 +7,14 @@
     "directory": "packages/network"
   },
   "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
   "scripts": {
     "test": "echo huzzah!"
   },
