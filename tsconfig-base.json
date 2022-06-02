@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "module": "node16",
+    "moduleResolution": "node",
+    "strict": true,
+    "target": "es2020",
+    "baseUrl": ".",
+    "paths": {
+      "*": ["./types/*"]
+    },
+    "typeRoots": ["node_modules/@types"]
+  },
+  "exclude": ["**/node_modules/**"]
+}
