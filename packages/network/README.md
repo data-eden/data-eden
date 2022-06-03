@@ -17,7 +17,7 @@
 ## API
 
 ```typescript
-export type Middleware = (request: Request, fetch: Fetch) => ReturnType<Fetch>;
+export type Middleware = async (request: Request, fetch: Fetch) => ReturnType<Fetch>;
 
 export interface BuildFetchOptions {
   // Whether to force earlier built fetches to error making the most recent //
@@ -62,10 +62,11 @@ async function queryTunneling(request: Request, fetch: Fetch) : ReturnType<Fetch
     headers: request.headers,
     body: url.searchParams,
   });
+
   return fetch(tunneledRequest);
 }
 
-function analyticsMiddleware(request: Request, fetch: Fetch) : ReturnType<Fetch> {
+async function analyticsMiddleware(request: Request, fetch: Fetch) : ReturnType<Fetch> {
   let response = await fetch(request);
 
   let requestHeaders = [...request.headers.keys()]
@@ -86,7 +87,7 @@ function analyticsMiddleware(request: Request, fetch: Fetch) : ReturnType<Fetch>
   return response;
 }
 
-function batchCreateEmbedResource(request: Request, fetch: Fetch) : ReturnType<Fetch> {
+async function batchCreateEmbedResource(request: Request, fetch: Fetch) : ReturnType<Fetch> {
   if (/target\/url\/pattern/.test(request.url)) {
     // Only transform certain kinds of requests
     return fetch(request);
@@ -119,7 +120,7 @@ function batchCreateEmbedResource(request: Request, fetch: Fetch) : ReturnType<F
   return transformedResponse;
 }
 
-function badMiddleware(request: Request, fetch: Fetch): ReturnType<Fetch> {
+async function badMiddleware(request: Request, fetch: Fetch): ReturnType<Fetch> {
   let response = await fetch(request);
 
   // ⛔ Error! ⛔ Don't do this -- it interferes with streaming responses as
@@ -141,12 +142,12 @@ Composing middleware is as easy as composing normal functions.
 
 ```typescript
 // Use another middleware conditionally (e.g. only for `/api` requests)
-function limitedAnalytics(request: Request, fetch: Fetch): Middleware {
+async function limitedAnalytics(request: Request, fetch: Fetch): Middleware {
   if (request.url.startsWith('/api')) {
-    return analyticsMiddleware(request, fetch);
+    return await analyticsMiddleware(request, fetch);
   }
 
-  return fetch(request);
+  return await fetch(request);
 }
 ```
 
