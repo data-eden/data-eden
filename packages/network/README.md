@@ -17,7 +17,7 @@
 ## API
 
 ```typescript
-export type Middleware = (request: Request, fetch: Fetch) => ReturnType<Fetch>;
+export type Middleware = (request: Request, next: (request: RequestInfo) => void) : Promise<void>;
 
 export interface BuildFetchOptions {
   // Whether to force earlier built fetches to error making the most recent //
@@ -38,18 +38,18 @@ export function buildFetch(middlewares: Middleware[], options?: BuildFetchOption
 ```typescript
 type Fetch = typeof fetch;
 
-async function noopMiddleware(request: Request, fetch: Fetch) : ReturnType<Fetch> {
+async function noopMiddleware(request: Request, next: (request: RequestInfo) => void) : Promise<void> {
   return fetch(request);
 }
 
-async function csrfMiddleware(request: Request, fetch: Fetch) : ReturnType<Fetch> {
+async function csrfMiddleware(request: Request, next: (request: RequestInfo) => void) : Promise<void> {
   request.headers.set('X-CSRF', 'a totally legit request');
 
   return fetch(request);
 }
 
 // e.g. fetch('https://example.com?foo=1&bar=two
-async function queryTunneling(request: Request, fetch: Fetch) : ReturnType<Fetch> {
+async function queryTunneling(request: Request, next: (request: RequestInfo) => void) : Promise<void> {
   if (request.url.length <= MaxURLLength) {
     // no tunneling needed
     return await fetch(request);
@@ -66,7 +66,7 @@ async function queryTunneling(request: Request, fetch: Fetch) : ReturnType<Fetch
   return fetch(tunneledRequest);
 }
 
-async function analyticsMiddleware(request: Request, fetch: Fetch) : ReturnType<Fetch> {
+async function analyticsMiddleware(request: Request, next: (request: RequestInfo) => void) : Promise<void> {
   let response = await fetch(request);
 
   let requestHeaders = [...request.headers.keys()]
@@ -87,7 +87,7 @@ async function analyticsMiddleware(request: Request, fetch: Fetch) : ReturnType<
   return response;
 }
 
-async function batchCreateEmbedResource(request: Request, fetch: Fetch) : ReturnType<Fetch> {
+async function batchCreateEmbedResource(request: Request, next: (request: RequestInfo) => void) : Promise<void> {
   if (/target\/url\/pattern/.test(request.url)) {
     // Only transform certain kinds of requests
     return fetch(request);

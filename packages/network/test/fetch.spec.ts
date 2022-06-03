@@ -20,14 +20,14 @@ afterEach(() => server.resetHandlers())
 test('basic middleware',  async () => {
     expect.assertions(2);
 
-    async function noopMiddleware(request: Request, fetch: Fetch) : ReturnType<Fetch> {
-        return fetch(request);
+    async function noopMiddleware(request: Request, next: (request: RequestInfo) => void) : Promise<void> {
+        return next(request);
     }
     
-    async function csrfMiddleware(request: Request, fetch: Fetch) : ReturnType<Fetch> {
+    async function csrfMiddleware(request: Request, next: (request: RequestInfo) => void) : Promise<void> {
         request.headers.set('X-CSRF', 'a totally legit request');
         
-        return fetch(request);
+        return next(request);
     }
 
     const fetch = buildFetch([
