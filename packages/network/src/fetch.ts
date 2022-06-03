@@ -13,9 +13,13 @@ export interface BuildFetchOptions {
   // to help users know where to import fetch from rather than build it //
   // themselves.
   disableMessage?: string;
+  // override the default cross-fetch implementation
+  fetch: Fetch;
 };
 
 export function buildFetch(middleware: Middleware[], options?: BuildFetchOptions): Fetch {
+    const _fetch = options?.fetch || fetch;
+
     return async (input: RequestInfo, init?: RequestInit) => {
         const request = new Request(input, init);
 
@@ -33,6 +37,6 @@ export function buildFetch(middleware: Middleware[], options?: BuildFetchOptions
             });
         }
         
-        return fetch(request);
+        return _fetch(request);
     }
 }
