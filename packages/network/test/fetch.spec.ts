@@ -3,10 +3,10 @@ import { beforeAll, afterAll, afterEach, expect, test, assert } from 'vitest'
 import { setupServer } from 'msw/node'
 import { rest } from 'msw'
 
-import { Fetch, buildFetch } from '../src';
+import { buildFetch, Fetch } from '../src/fetch';
 
 export const restHandlers = [
-    rest.get('http://www.foo.com/resource', (req, res, ctx) => {
+    rest.get('http://www.example.com/resource', (req, res, ctx) => {
         return res(ctx.status(200), ctx.json({ status: 'success', headers: req.headers }))
     }),
 ]
@@ -35,7 +35,7 @@ test('basic middleware',  async () => {
         csrfMiddleware,
     ]);
 
-    const response = await fetch('http://www.foo.com/resource');
+    const response = await fetch('http://www.example.com/resource');
 
     expect(response.status).toEqual(200);
     expect(await response.json()).toMatchInlineSnapshot(`
@@ -45,7 +45,7 @@ test('basic middleware',  async () => {
             "accept": "*/*",
             "accept-encoding": "gzip,deflate",
             "connection": "close",
-            "host": "www.foo.com",
+            "host": "www.example.com",
             "user-agent": "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
             "x-csrf": "a totally legit request",
           },
