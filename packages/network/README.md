@@ -17,7 +17,7 @@
 ## API
 
 ```typescript
-export type Middleware = async (request: Request, fetch: Fetch) => ReturnType<Fetch>;
+export type Middleware = (request: Request, fetch: Fetch) => ReturnType<Fetch>;
 
 export interface BuildFetchOptions {
   // Whether to force earlier built fetches to error making the most recent //
