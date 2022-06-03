@@ -142,7 +142,7 @@ Composing middleware is as easy as composing normal functions.
 
 ```typescript
 // Use another middleware conditionally (e.g. only for `/api` requests)
-async function limitedAnalytics(request: Request, fetch: Fetch): Middleware {
+async function limitedAnalytics(request: Request, fetch: Fetch): ReturnType<Fetch> {
   if (request.url.startsWith('/api')) {
     return await analyticsMiddleware(request, fetch);
   }
