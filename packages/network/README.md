@@ -17,7 +17,7 @@
 ## API
 
 ```typescript
-export type Middleware = (request: Request, fetch: Fetch) => ReturnType<Fetch>;
+export type Middleware = (request: Request, next: (request: Request) => Promise<Response>) : Promise<Response>;
 
 export interface BuildFetchOptions {
   // Whether to force earlier built fetches to error making the most recent //
@@ -43,28 +43,28 @@ type Fetch = typeof fetch;
 
 async function noopMiddleware(
   request: Request,
-  fetch: Fetch
-): ReturnType<Fetch> {
-  return fetch(request);
+  next: (request: Request) => Promise<Response>
+): Promise<Response> {
+  return next(request);
 }
 
 async function csrfMiddleware(
   request: Request,
-  fetch: Fetch
-): ReturnType<Fetch> {
+  next: (request: Request) => Promise<Response>
+): Promise<Response> {
   request.headers.set('X-CSRF', 'a totally legit request');
 
-  return fetch(request);
+  return next(request);
 }
 
 // e.g. fetch('https://example.com?foo=1&bar=two
 async function queryTunneling(
   request: Request,
-  fetch: Fetch
-): ReturnType<Fetch> {
+  next: (request: Request) => Promise<Response>
+): Promise<Response> {
   if (request.url.length <= MaxURLLength) {
     // no tunneling needed
-    return await fetch(request);
+    return next(request);
   }
 
   let url = new URL(request.url);
@@ -77,13 +77,14 @@ async function queryTunneling(
       body: url.searchParams,
     }
   );
-  return fetch(tunneledRequest);
+
+  return next(tunneledRequest);
 }
 
 async function analyticsMiddleware(
   request: Request,
-  fetch: Fetch
-): ReturnType<Fetch> {
+  next: (request: Request) => Promise<Response>
+): Promise<Response> {
   let response = await fetch(request);
 
   let requestHeaders = [...request.headers.keys()];
@@ -106,16 +107,16 @@ async function analyticsMiddleware(
     analyticsEntries,
   });
 
-  return response;
+  return next(response);
 }
 
 async function batchCreateEmbedResource(
   request: Request,
-  fetch: Fetch
-): ReturnType<Fetch> {
+  next: (request: Request) => Promise<Response>
+): Promise<Response> {
   if (/target\/url\/pattern/.test(request.url)) {
     // Only transform certain kinds of requests
-    return fetch(request);
+    return next(request);
   }
 
   let stashedRequest = request.clone();
@@ -141,13 +142,13 @@ async function batchCreateEmbedResource(
     }
   };
 
-  return transformedResponse;
+  return next(transformedResponse);
 }
 
 async function badMiddleware(
   request: Request,
-  fetch: Fetch
-): ReturnType<Fetch> {
+  next: NormalizedFetch
+): Promise<Response> {
   let response = await fetch(request);
 
   // ⛔ Error! ⛔ Don't do this -- it interferes with streaming responses as
@@ -159,7 +160,7 @@ async function badMiddleware(
     // do something...
   }
 
-  return response;
+  return next(response);
 }
 ```
 
@@ -171,13 +172,13 @@ Composing middleware is as easy as composing normal functions.
 // Use another middleware conditionally (e.g. only for `/api` requests)
 async function limitedAnalytics(
   request: Request,
-  fetch: Fetch
-): ReturnType<Fetch> {
+  next: NormalizedFetch
+): Promise<Response> {
   if (request.url.startsWith('/api')) {
-    return analyticsMiddleware(request, fetch);
+    return await analyticsMiddleware(request, fetch);
   }
 
-  return fetch(request);
+  return await next(request);
 }
 ```
 
