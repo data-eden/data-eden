@@ -4,24 +4,24 @@ import { Response } from 'cross-fetch';
 import { setupServer } from 'msw/node';
 import { rest } from 'msw';
 
-import { buildFetch, Fetch, Middleware, NormalizedFetch } from '../src/fetch';
-
-export const restHandlers = [
-  rest.get('http://www.example.com/resource', (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({ status: 'success', headers: req.headers })
-    );
-  }),
-];
-
-const server = setupServer(...restHandlers);
-
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-afterAll(() => server.close());
-afterEach(() => server.resetHandlers());
+import { buildFetch, Middleware, NormalizedFetch } from '../src/fetch';
 
 describe('@data-eden/fetch', function() {
+  const restHandlers = [
+    rest.get('http://www.example.com/resource', (req, res, ctx) => {
+      return res(
+        ctx.status(200),
+        ctx.json({ status: 'success', headers: req.headers })
+      );
+    }),
+  ];
+  
+  const server = setupServer(...restHandlers);
+  
+  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+  afterAll(() => server.close());
+  afterEach(() => server.resetHandlers());
+
   const noopMiddleware: Middleware = async (
     request: Request,
     next: NormalizedFetch
