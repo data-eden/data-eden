@@ -3,6 +3,6 @@
   "references": [
     { "path": "./packages/athena" },
     { "path": "./packages/network" },
-    { "path": "./packages/cache" },
+    { "path": "./packages/cache" }
   ]
 }
