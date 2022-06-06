@@ -41,18 +41,27 @@ export function buildFetch(
 ```typescript
 type Fetch = typeof fetch;
 
-async function noopMiddleware(request: Request, next: (request: Request) => Promise<Response>) : Promise<Response> {
+async function noopMiddleware(
+  request: Request,
+  next: (request: Request) => Promise<Response>
+): Promise<Response> {
   return next(request);
 }
 
-async function csrfMiddleware(request: Request, next: (request: Request) => Promise<Response>) : Promise<Response> {
+async function csrfMiddleware(
+  request: Request,
+  next: (request: Request) => Promise<Response>
+): Promise<Response> {
   request.headers.set('X-CSRF', 'a totally legit request');
 
   return next(request);
 }
 
 // e.g. fetch('https://example.com?foo=1&bar=two
-async function queryTunneling(request: Request, next: (request: Request) => Promise<Response>) : Promise<Response> {
+async function queryTunneling(
+  request: Request,
+  next: (request: Request) => Promise<Response>
+): Promise<Response> {
   if (request.url.length <= MaxURLLength) {
     // no tunneling needed
     return next(request);
@@ -60,16 +69,22 @@ async function queryTunneling(request: Request, next: (request: Request) => Prom
 
   let url = new URL(request.url);
   request.headers.set('X-HTTP-Method-Override', request.method);
-  let tunneledRequest = new Request(`${url.protocol}//${url.hostname}${url.pathname}`, {
-    method: 'POST',
-    headers: request.headers,
-    body: url.searchParams,
-  });
+  let tunneledRequest = new Request(
+    `${url.protocol}//${url.hostname}${url.pathname}`,
+    {
+      method: 'POST',
+      headers: request.headers,
+      body: url.searchParams,
+    }
+  );
 
   return next(tunneledRequest);
 }
 
-async function analyticsMiddleware(request: Request, next: (request: Request) => Promise<Response>) : Promise<Response> {
+async function analyticsMiddleware(
+  request: Request,
+  next: (request: Request) => Promise<Response>
+): Promise<Response> {
   let response = await fetch(request);
 
   let requestHeaders = [...request.headers.keys()];
@@ -95,7 +110,10 @@ async function analyticsMiddleware(request: Request, next: (request: Request) =>
   return next(response);
 }
 
-async function batchCreateEmbedResource(request: Request, next: (request: Request) => Promise<Response>) : Promise<Response> {
+async function batchCreateEmbedResource(
+  request: Request,
+  next: (request: Request) => Promise<Response>
+): Promise<Response> {
   if (/target\/url\/pattern/.test(request.url)) {
     // Only transform certain kinds of requests
     return next(request);
@@ -127,7 +145,10 @@ async function batchCreateEmbedResource(request: Request, next: (request: Reques
   return next(transformedResponse);
 }
 
-async function badMiddleware(request: Request, next: NormalizedFetch): Promise<Response> {
+async function badMiddleware(
+  request: Request,
+  next: NormalizedFetch
+): Promise<Response> {
   let response = await fetch(request);
 
   // ⛔ Error! ⛔ Don't do this -- it interferes with streaming responses as
@@ -149,7 +170,10 @@ Composing middleware is as easy as composing normal functions.
 
 ```typescript
 // Use another middleware conditionally (e.g. only for `/api` requests)
-async function limitedAnalytics(request: Request, next: NormalizedFetch): Promise<Response> {
+async function limitedAnalytics(
+  request: Request,
+  next: NormalizedFetch
+): Promise<Response> {
   if (request.url.startsWith('/api')) {
     return await analyticsMiddleware(request, fetch);
   }
