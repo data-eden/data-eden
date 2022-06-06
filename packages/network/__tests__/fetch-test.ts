@@ -67,11 +67,11 @@ describe('@data-eden/fetch', function () {
   test('should be able to override fetch', async () => {
     expect.assertions(1);
 
-    const customFetch = async (
-      input: RequestInfo,
-      init?: RequestInit
+    const customFetch = (
+      _input: RequestInfo,
+      _init?: RequestInit
     ): Promise<Response> => {
-      return new Response('We overrode fetch!');
+      return Promise.resolve(new Response('We overrode fetch!'));
     };
 
     const fetch = buildFetch([noopMiddleware], {

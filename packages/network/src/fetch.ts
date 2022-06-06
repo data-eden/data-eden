@@ -60,7 +60,7 @@ export function buildFetch(
     .reduce(combine, _fetch);
 
   return async (rawRequest: RequestInfo | URL, init?: RequestInit) => {
-    let normalizedRequest = new Request(rawRequest, init);
+    const normalizedRequest = new Request(rawRequest, init);
     return curriedMiddlewares(normalizedRequest);
   };
 }
