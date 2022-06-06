@@ -2,17 +2,17 @@
 
 ## Features
 
-* **fetch-compatible** Create a middleware-enabled `fetch` with the same API as [`window.fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), compatible with anything that understands `fetch`.
-* **request & response aware** Supports middlewares for observing or altering requests or responses, alone or together.
-* **streaming-compatible** Adds middleware support without eager body consumption, so can be used with streaming, as long as your middlewares are written to be streaming-aware.
-* **composable** Middleware can be composible (e.g. you can author a middleware _in terms_ of other middlewares)
+- **fetch-compatible** Create a middleware-enabled `fetch` with the same API as [`window.fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), compatible with anything that understands `fetch`.
+- **request & response aware** Supports middlewares for observing or altering requests or responses, alone or together.
+- **streaming-compatible** Adds middleware support without eager body consumption, so can be used with streaming, as long as your middlewares are written to be streaming-aware.
+- **composable** Middleware can be composible (e.g. you can author a middleware _in terms_ of other middlewares)
 
 ### Example use Cases
 
-* **CSRF Injection** - add a CSRF header before every request
-* **Query Tuneling** - seamlessly encode requests with long URLs as `POST` requests
-* **Analytics** - send client-analytics for request,response pairs
-* **Response Transformation** - seamlessly transform responses, e.g. for compatibility
+- **CSRF Injection** - add a CSRF header before every request
+- **Query Tuneling** - seamlessly encode requests with long URLs as `POST` requests
+- **Analytics** - send client-analytics for request,response pairs
+- **Response Transformation** - seamlessly transform responses, e.g. for compatibility
 
 ## API
 
@@ -28,9 +28,12 @@ export interface BuildFetchOptions {
   // to help users know where to import fetch from rather than build it //
   // themselves.
   disableMessage?: string;
-};
+}
 
-export function buildFetch(middlewares: Middleware[], options?: BuildFetchOptions): typeof fetch;
+export function buildFetch(
+  middlewares: Middleware[],
+  options?: BuildFetchOptions
+): typeof fetch;
 ```
 
 ## Middleware Examples
@@ -69,7 +72,7 @@ async function queryTunneling(request: Request, next: (request: Request) => Prom
 async function analyticsMiddleware(request: Request, next: (request: Request) => Promise<Response>) : Promise<Response> {
   let response = await fetch(request);
 
-  let requestHeaders = [...request.headers.keys()]
+  let requestHeaders = [...request.headers.keys()];
   let responseHeaders = [...response.headers.keys()];
   let status = response.status;
   let contentType = response.headers.get('content-type'); // Headers.get is case-insensitive
@@ -78,11 +81,16 @@ async function analyticsMiddleware(request: Request, next: (request: Request) =>
     // Response.clone exists to handle this kind of use case
     let responseJson = await response.clone().json();
     if (responseJson.has_interesting_property) {
-      analyticsEntries.push('interesting')
+      analyticsEntries.push('interesting');
     }
   }
 
-  scheduleAnalytics({ requestHeaders, responseHeaders, status, analyticsEntries });
+  scheduleAnalytics({
+    requestHeaders,
+    responseHeaders,
+    status,
+    analyticsEntries,
+  });
 
   return next(response);
 }
@@ -102,20 +110,19 @@ async function batchCreateEmbedResource(request: Request, next: (request: Reques
     return rawResponse;
   }
 
-
   let transformedResponse = rawResponse.clone();
   // also overwrite .text &c. or return a Proxy to avoid cloning.
-  transformedResponse.json = async function() {
+  transformedResponse.json = async function () {
     // Read the requested body from a cloned request as request bodies can only be read once
     let requestBody = await stashedRequest.json();
-    // Read the response lazily. This implementation does not handle 
+    // Read the response lazily. This implementation does not handle
     let responseBody = await rawResponse.json();
 
-    for(let i=0; i<responseBody.elements.length; ++i) {
+    for (let i = 0; i < responseBody.elements.length; ++i) {
       // combine the request and response bodies for downstream users.
       responseBody.elements[i].resource = requestBody.elements[i];
     }
-  }
+  };
 
   return next(transformedResponse);
 }
@@ -128,7 +135,7 @@ async function badMiddleware(request: Request, next: NormalizedFetch): Promise<R
   //
   // use response.clone() to read the body from a middleware
   let responseJson = await response.json();
-  if(responseJson.something) {
+  if (responseJson.something) {
     // do something...
   }
 
@@ -155,7 +162,7 @@ async function limitedAnalytics(request: Request, next: NormalizedFetch): Promis
 
 ```typescript
 // Creating and invoking a middleware-enabled fetch
-import { buildFetch } from '@data-eden/network'
+import { buildFetch } from '@data-eden/network';
 
 let fetch = buildFetch([
   csrfMiddleware,
@@ -171,5 +178,5 @@ let response = await fetch('/my-api');
 
 ## Prior Art
 
-* [fetch-wrap](https://github.com/benjamine/fetch-wrap)
-* [node-fetch-middleware](https://github.com/lev-kuznetsov/node-fetch-middleware)
+- [fetch-wrap](https://github.com/benjamine/fetch-wrap)
+- [node-fetch-middleware](https://github.com/lev-kuznetsov/node-fetch-middleware)
