@@ -22,7 +22,8 @@
     "test:workspaces": "npm test --workspaces",
     "lint": "npm-run-all lint:*",
     "lint:ts": "eslint .",
-    "lint:tsc": "tsc --noEmit"
+    "lint:tsc": "tsc --noEmit",
+    "lint:prettier": "prettier --check ."
   },
   "devDependencies": {
     "eslint": "^8.16.0",
