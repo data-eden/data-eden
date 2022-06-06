@@ -6,7 +6,7 @@ import { rest } from 'msw';
 
 import { buildFetch, Middleware, NormalizedFetch } from '../src/fetch';
 
-describe('@data-eden/fetch', function() {
+describe('@data-eden/fetch', function () {
   const restHandlers = [
     rest.get('http://www.example.com/resource', (req, res, ctx) => {
       return res(
@@ -15,9 +15,9 @@ describe('@data-eden/fetch', function() {
       );
     }),
   ];
-  
+
   const server = setupServer(...restHandlers);
-  
+
   beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
   afterAll(() => server.close());
   afterEach(() => server.resetHandlers());

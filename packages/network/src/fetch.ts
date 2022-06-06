@@ -44,7 +44,7 @@ function combine(
 }
 
 /**
- * 
+ *
  * @param middlewares {Middleware[]} array of middlewares
  * @param options {BuildFetchOptions=} optional options for overriding buildFetch configuration
  * @returns Fetch
