@@ -2,7 +2,12 @@ import { Request, fetch } from 'cross-fetch';
 
 export type Fetch = typeof fetch;
 
-export type Middleware = (request: Request, next: (request: RequestInfo) => void) => Promise<void>;
+export type NormalizedFetch = (request: Request) => Promise<Response>;
+
+export type Middleware = (
+  request: Request,
+  next: NormalizedFetch
+) => Promise<Response>;
 
 export interface BuildFetchOptions {
   // Whether to force earlier built fetches to error making the most recent //
@@ -15,28 +20,29 @@ export interface BuildFetchOptions {
   disableMessage?: string;
   // override the default cross-fetch implementation
   fetch: Fetch;
-};
+}
 
-export function buildFetch(middleware: Middleware[], options?: BuildFetchOptions): Fetch {
-    const _fetch = options?.fetch || fetch;
+function combine(
+  next: NormalizedFetch,
+  middleware: Middleware
+): NormalizedFetch {
+  return async (request: Request) => {
+    return middleware(request, next);
+  };
+}
 
-    return async (input: RequestInfo, init?: RequestInit) => {
-        const request = new Request(input, init);
+export function buildFetch(
+  middlewares: Middleware[],
+  options?: BuildFetchOptions
+): Fetch {
+  const _fetch: NormalizedFetch = options?.fetch || fetch;
 
-        for(const ware of middleware) {
-            await new Promise((resolve, reject) => {
-                try {
-                    ware(request, (request: RequestInfo) => {
-                        request = request;
-    
-                        resolve(request)
-                    });
-                } catch(ex) {
-                    reject(ex);
-                }
-            });
-        }
-        
-        return _fetch(request);
-    }
+  const curriedMiddlewares: NormalizedFetch = [...middlewares]
+    .reverse()
+    .reduce(combine, _fetch);
+
+  return async (rawRequest: RequestInfo | URL, init?: RequestInit) => {
+    let normalizedRequest = new Request(rawRequest, init);
+    return curriedMiddlewares(normalizedRequest);
+  };
 }

@@ -1,46 +1,52 @@
-import { beforeAll, afterAll, afterEach, expect, test, describe } from 'vitest'
+import { beforeAll, afterAll, afterEach, expect, test, describe } from 'vitest';
 
 import { Response } from 'cross-fetch';
-import { setupServer } from 'msw/node'
-import { rest } from 'msw'
+import { setupServer } from 'msw/node';
+import { rest } from 'msw';
 
-import { buildFetch, Fetch } from '../src/fetch';
+import { buildFetch, Fetch, Middleware, NormalizedFetch } from '../src/fetch';
 
 export const restHandlers = [
-    rest.get('http://www.example.com/resource', (req, res, ctx) => {
-        return res(ctx.status(200), ctx.json({ status: 'success', headers: req.headers }))
-    }),
-]
+  rest.get('http://www.example.com/resource', (req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json({ status: 'success', headers: req.headers })
+    );
+  }),
+];
 
-const server = setupServer(...restHandlers)
+const server = setupServer(...restHandlers);
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-afterAll(() => server.close())
-afterEach(() => server.resetHandlers())
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterAll(() => server.close());
+afterEach(() => server.resetHandlers());
 
 describe('@data-eden/fetch', function() {
-  test('basic middleware',  async () => {
-      expect.assertions(2);
+  const noopMiddleware: Middleware = async (
+    request: Request,
+    next: NormalizedFetch
+  ) => {
+    return next(request);
+  };
 
-      async function noopMiddleware(request: Request, next: (request: RequestInfo) => void) : Promise<void> {
-          return next(request);
-      }
-      
-      async function csrfMiddleware(request: Request, next: (request: RequestInfo) => void) : Promise<void> {
-          request.headers.set('X-CSRF', 'a totally legit request');
-          
-          return next(request);
-      }
+  const csrfMiddleware: Middleware = async (
+    request: Request,
+    next: NormalizedFetch
+  ) => {
+    request.headers.set('X-CSRF', 'a totally legit request');
 
-      const fetch = buildFetch([
-          noopMiddleware,
-          csrfMiddleware,
-      ]);
+    return next(request);
+  };
 
-      const response = await fetch('http://www.example.com/resource');
+  test('basic middleware', async () => {
+    expect.assertions(2);
 
-      expect(response.status).toEqual(200);
-      expect(await response.json()).toMatchInlineSnapshot(`
+    const fetch = buildFetch([noopMiddleware, csrfMiddleware]);
+
+    const response = await fetch('http://www.example.com/resource');
+
+    expect(response.status).toEqual(200);
+    expect(await response.json()).toMatchInlineSnapshot(`
         {
           "headers": {
             "headers": {
@@ -61,18 +67,15 @@ describe('@data-eden/fetch', function() {
   test('should be able to override fetch', async () => {
     expect.assertions(1);
 
-    const customFetch = async (input: RequestInfo, init?: RequestInit): Promise<Response> => {
+    const customFetch = async (
+      input: RequestInfo,
+      init?: RequestInit
+    ): Promise<Response> => {
       return new Response('We overrode fetch!');
-    }
+    };
 
-      async function noopMiddleware(request: Request, next: (request: RequestInfo) => void) : Promise<void> {
-          return next(request);
-      }
-
-      const fetch = buildFetch([
-        noopMiddleware,
-    ], {
-      fetch: customFetch
+    const fetch = buildFetch([noopMiddleware], {
+      fetch: customFetch,
     });
 
     const response = await fetch('https://www.example.com');
