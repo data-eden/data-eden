@@ -120,40 +120,6 @@ describe('@data-eden/fetch', function () {
     expect(await response.text()).toMatchInlineSnapshot('"We overrode fetch!"');
   });
 
-  test('should be able to handle errors in middlewares and continuing', async () => {
-    expect.assertions(2);
-
-    const failingMiddleware: Middleware = () => {
-      throw new Error('oh man something happened');
-    };
-
-    const fetch = buildFetch([
-      csrfMiddleware,
-      failingMiddleware,
-      noopMiddleware,
-    ]);
-
-    const response = await fetch('http://www.example.com/resource');
-
-    expect(response.status).toEqual(200);
-    expect(await response.json()).toMatchInlineSnapshot(`
-        {
-          "headers": {
-            "headers": {
-              "accept": "*/*",
-              "accept-encoding": "gzip,deflate",
-              "connection": "close",
-              "host": "www.example.com",
-              "user-agent": "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
-              "x-csrf": "a totally legit request",
-            },
-            "names": {},
-          },
-          "status": "success",
-        }
-      `);
-  });
-
   test('should be able to change the http method for a given request', async () => {
     expect.assertions(2);
 
@@ -208,14 +174,17 @@ describe('@data-eden/fetch', function () {
   });
 
   test('should be able to maintain order of middlewares passed', async () => {
-    expect.assertions(6);
+    expect.assertions(5);
 
     const middlewareOne: Middleware = async (
       request: Request,
       next: NormalizedFetch
     ) => {
-      expect(request.headers.get('two')).toBeFalsy();
-      expect(request.headers.get('three')).toBeFalsy();
+      expect(request.headers).toMatchInlineSnapshot(`
+        Headers {
+          Symbol(map): {},
+        }
+      `);
 
       return next(request);
     };
@@ -224,7 +193,11 @@ describe('@data-eden/fetch', function () {
       request: Request,
       next: NormalizedFetch
     ) => {
-      expect(request.headers.get('three')).toBeFalsy();
+      expect(request.headers).toMatchInlineSnapshot(`
+        Headers {
+          Symbol(map): {},
+        }
+      `);
 
       request.headers.set('two', 'true');
 
@@ -235,7 +208,15 @@ describe('@data-eden/fetch', function () {
       request: Request,
       next: NormalizedFetch
     ) => {
-      expect(request.headers.get('two')).toEqual('true');
+      expect(request.headers).toMatchInlineSnapshot(`
+        Headers {
+          Symbol(map): {
+            "two": [
+              "true",
+            ],
+          },
+        }
+      `);
 
       request.headers.set('three', 'true');
 
