@@ -26,6 +26,8 @@ describe('@data-eden/fetch', function () {
 
   server.events.on('request:unhandled', (req) => {
     console.log('%s %s has no handler', req.method, req.url.href)
+
+    throw new Error('handle unhandled request!');
   })
 
   beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
@@ -48,7 +50,32 @@ describe('@data-eden/fetch', function () {
     return next(request);
   };
 
-  test('basic middleware', async () => {
+  test('should be able to return fetch without middlewares passed', async () => {
+    expect.assertions(2);
+
+    const fetch = buildFetch([]);
+
+    const response = await fetch('http://www.example.com/resource');
+
+    expect(response.status).toEqual(200);
+    expect(await response.json()).toMatchInlineSnapshot(`
+      {
+        "headers": {
+          "headers": {
+            "accept": "*/*",
+            "accept-encoding": "gzip,deflate",
+            "connection": "close",
+            "host": "www.example.com",
+            "user-agent": "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
+          },
+          "names": {},
+        },
+        "status": "success",
+      }
+    `);
+  });
+
+  test('should be able to handle basic middleware', async () => {
     expect.assertions(2);
 
     const fetch = buildFetch([noopMiddleware, csrfMiddleware]);
@@ -145,8 +172,6 @@ describe('@data-eden/fetch', function () {
           body: url.searchParams,
         }
       );
-
-      console.log(tunneledRequest);
     
       return next(tunneledRequest);
     };
