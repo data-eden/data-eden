@@ -46,9 +46,8 @@
     "registry": "https://registry.npmjs.org"
   },
   "lint-staged": {
-    "*.(json|md)": "prettier --write",
+    "*": "prettier --ignore-unknown --write",
     "*.ts": [
-      "prettier --write",
       "eslint --fix"
     ]
   },
