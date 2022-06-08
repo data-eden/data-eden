@@ -1,4 +1,4 @@
-import { beforeAll, afterAll, afterEach, expect, test, describe, assert } from 'vitest';
+import { beforeAll, afterAll, afterEach, expect, test, describe } from 'vitest';
 
 import { Response, Request } from 'cross-fetch';
 import { setupServer } from 'msw/node';
@@ -25,10 +25,10 @@ describe('@data-eden/fetch', function () {
   const server = setupServer(...restHandlers);
 
   server.events.on('request:unhandled', (req) => {
-    console.log('%s %s has no handler', req.method, req.url.href)
+    console.log('%s %s has no handler', req.method, req.url.href);
 
     throw new Error('handle unhandled request!');
-  })
+  });
 
   beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
   afterAll(() => server.close());
@@ -123,14 +123,15 @@ describe('@data-eden/fetch', function () {
   test('should be able to handle errors in middlewares and continuing', async () => {
     expect.assertions(2);
 
-    const failingMiddleware: Middleware = async (
-      request: Request,
-      next: NormalizedFetch
-    ) => {
+    const failingMiddleware: Middleware = () => {
       throw new Error('oh man something happened');
     };
 
-    const fetch = buildFetch([csrfMiddleware, failingMiddleware, noopMiddleware]);
+    const fetch = buildFetch([
+      csrfMiddleware,
+      failingMiddleware,
+      noopMiddleware,
+    ]);
 
     const response = await fetch('http://www.example.com/resource');
 
@@ -164,10 +165,10 @@ describe('@data-eden/fetch', function () {
         // no tunneling needed
         return next(request);
       }
-    
-      let url = new URL(request.url);
+
+      const url = new URL(request.url);
       request.headers.set('X-HTTP-Method-Override', request.method);
-      let tunneledRequest = new Request(
+      const tunneledRequest = new Request(
         `${url.protocol}//${url.hostname}${url.pathname}`,
         {
           method: 'POST',
@@ -175,7 +176,7 @@ describe('@data-eden/fetch', function () {
           body: url.searchParams,
         }
       );
-    
+
       return next(tunneledRequest);
     };
 
@@ -261,6 +262,6 @@ describe('@data-eden/fetch', function () {
         },
         "status": "success",
       }
-    `)
+    `);
   });
 });
