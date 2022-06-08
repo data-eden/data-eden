@@ -22,8 +22,11 @@
     "test:workspaces": "npm test --workspaces",
     "lint": "npm-run-all lint:*",
     "lint:ts": "eslint .",
+    "lint:ts:fix": "eslint . --fix",
     "lint:tsc": "tsc --noEmit",
-    "lint:prettier": "prettier --check ."
+    "lint:prettier": "prettier --check .",
+    "lint:prettier:fix": "prettier . --write",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.27.1",
@@ -39,7 +42,8 @@
     "release-it-yarn-workspaces": "^2.0.0",
     "typescript": "^4.7.3",
     "vite": "^2.9.9",
-    "vitest": "^0.13.1"
+    "vitest": "^0.13.1",
+    "husky": "^8.0.0"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
