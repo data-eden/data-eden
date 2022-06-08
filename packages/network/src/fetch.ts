@@ -39,7 +39,12 @@ function combine(
   middleware: Middleware
 ): NormalizedFetch {
   return async (request: Request) => {
-    return middleware(request, next);
+    return middleware(request, next)
+      .catch((ex: unknown) => {
+        console.error('Middleware failed with the following error', ex);
+      }).then(() => {
+        return next(request);
+      });
   };
 }
 

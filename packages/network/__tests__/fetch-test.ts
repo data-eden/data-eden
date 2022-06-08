@@ -82,4 +82,36 @@ describe('@data-eden/fetch', function () {
 
     expect(await response.text()).toMatchInlineSnapshot('"We overrode fetch!"');
   });
+
+  test('should be able to handle errors in middlewares and continuing', async () => {
+
+    const failingMiddleware: Middleware = async (
+      request: Request,
+      next: NormalizedFetch
+    ) => {
+      throw new Error('oh man something happened');
+    };
+
+    const fetch = buildFetch([csrfMiddleware, failingMiddleware, noopMiddleware]);
+
+    const response = await fetch('http://www.example.com/resource');
+
+    expect(response.status).toEqual(200);
+    expect(await response.json()).toMatchInlineSnapshot(`
+        {
+          "headers": {
+            "headers": {
+              "accept": "*/*",
+              "accept-encoding": "gzip,deflate",
+              "connection": "close",
+              "host": "www.example.com",
+              "user-agent": "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
+              "x-csrf": "a totally legit request",
+            },
+            "names": {},
+          },
+          "status": "success",
+        }
+      `);
+  })
 });
