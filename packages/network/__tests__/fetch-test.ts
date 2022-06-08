@@ -1,4 +1,4 @@
-import { beforeAll, afterAll, afterEach, expect, test, describe } from 'vitest';
+import { beforeAll, afterAll, afterEach, expect, test, describe, assert } from 'vitest';
 
 import { Response, Request } from 'cross-fetch';
 import { setupServer } from 'msw/node';
@@ -121,6 +121,7 @@ describe('@data-eden/fetch', function () {
   });
 
   test('should be able to handle errors in middlewares and continuing', async () => {
+    expect.assertions(2);
 
     const failingMiddleware: Middleware = async (
       request: Request,
@@ -153,6 +154,8 @@ describe('@data-eden/fetch', function () {
   });
 
   test('should be able to change the http method for a given request', async () => {
+    expect.assertions(2);
+
     const queryTunneling: Middleware = async (
       request: Request,
       next: NormalizedFetch
@@ -201,5 +204,63 @@ describe('@data-eden/fetch', function () {
         "status": "success",
       }
     `);
+  });
+
+  test('should be able to maintain order of middlewares passed', async () => {
+    expect.assertions(6);
+
+    const middlewareOne: Middleware = async (
+      request: Request,
+      next: NormalizedFetch
+    ) => {
+      expect(request.headers.get('two')).toBeFalsy();
+      expect(request.headers.get('three')).toBeFalsy();
+
+      return next(request);
+    };
+
+    const middlewareTwo: Middleware = async (
+      request: Request,
+      next: NormalizedFetch
+    ) => {
+      expect(request.headers.get('three')).toBeFalsy();
+
+      request.headers.set('two', 'true');
+
+      return next(request);
+    };
+
+    const middlewareThree: Middleware = async (
+      request: Request,
+      next: NormalizedFetch
+    ) => {
+      expect(request.headers.get('two')).toEqual('true');
+
+      request.headers.set('three', 'true');
+
+      return next(request);
+    };
+
+    const fetch = buildFetch([middlewareOne, middlewareTwo, middlewareThree]);
+
+    const response = await fetch('http://www.example.com/resource');
+    expect(response.status).toEqual(200);
+    expect(await response.json()).toMatchInlineSnapshot(`
+      {
+        "headers": {
+          "headers": {
+            "accept": "*/*",
+            "accept-encoding": "gzip,deflate",
+            "connection": "close",
+            "host": "www.example.com",
+            "three": "true",
+            "two": "true",
+            "user-agent": "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
+          },
+          "names": {},
+        },
+        "status": "success",
+      }
+    `)
   });
 });
