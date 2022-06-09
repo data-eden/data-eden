@@ -20,10 +20,13 @@
     "build:watch": "tsc --watch",
     "test": "npm-run-all lint test:*",
     "test:workspaces": "npm test --workspaces",
-    "lint": "npm-run-all lint:*",
+    "lint": "npm-run-all \"lint:!(fix)\"",
+    "lint:fix": "npm-run-all lint:*:fix",
     "lint:ts": "eslint .",
+    "lint:ts:fix": "eslint . --fix",
     "lint:tsc": "tsc --noEmit",
-    "lint:prettier": "prettier --check ."
+    "lint:prettier": "prettier --ignore-unknown --check .",
+    "lint:prettier:fix": "prettier --write --ignore-unknown ."
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.27.1",
