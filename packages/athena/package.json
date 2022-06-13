@@ -19,10 +19,10 @@
     "test": "vitest run"
   },
   "dependencies": {},
-  "publishConfig": {
-    "access": "public"
-  },
   "volta": {
     "extends": "../../package.json"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
