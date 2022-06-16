@@ -20,6 +20,13 @@ describe('@data-eden/fetch', function () {
         ctx.json({ status: 'success', method: 'POST', headers: req.headers })
       );
     }),
+    rest.get('http://www.example.com/analytics', (req, res, ctx) => {
+      return res(
+        ctx.set('x-call-id', '1234567'),
+        ctx.status(200),
+        ctx.json({ status: 'success' })
+      );
+    }),
   ];
 
   const server = setupServer(...restHandlers);
@@ -241,6 +248,46 @@ describe('@data-eden/fetch', function () {
           },
           "names": {},
         },
+        "status": "success",
+      }
+    `);
+  });
+
+  test('should be able to introspect on the response as a middleware', async () => {
+    expect.assertions(4);
+
+    async function analyticsMiddleware(
+      request: Request,
+      next: (request: Request) => Promise<Response>
+    ): Promise<Response> {
+      const response = await next(request);
+
+      expect(response.headers).toMatchInlineSnapshot(`
+        Headers {
+          Symbol(map): {
+            "content-type": [
+              "application/json",
+            ],
+            "x-call-id": [
+              "1234567",
+            ],
+            "x-powered-by": [
+              "msw",
+            ],
+          },
+        }
+      `);
+      expect(response.status).toEqual(200);
+
+      return response;
+    }
+
+    const fetch = buildFetch([analyticsMiddleware]);
+
+    const response = await fetch('http://www.example.com/analytics');
+    expect(response.status).toEqual(200);
+    expect(await response.json()).toMatchInlineSnapshot(`
+      {
         "status": "success",
       }
     `);

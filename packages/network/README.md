@@ -85,7 +85,7 @@ async function analyticsMiddleware(
   request: Request,
   next: (request: Request) => Promise<Response>
 ): Promise<Response> {
-  let response = await fetch(request);
+  let response = await next(request);
 
   let requestHeaders = [...request.headers.keys()];
   let responseHeaders = [...response.headers.keys()];
@@ -107,7 +107,7 @@ async function analyticsMiddleware(
     analyticsEntries,
   });
 
-  return next(response);
+  return response;
 }
 
 async function batchCreateEmbedResource(
@@ -120,7 +120,7 @@ async function batchCreateEmbedResource(
   }
 
   let stashedRequest = request.clone();
-  let rawResponse = await fetch(request);
+  let rawResponse = await next(request);
 
   let contentType = rawResponse.headers.get('content-type');
   if (!/^application\/json/.test(contentType)) {
@@ -142,14 +142,14 @@ async function batchCreateEmbedResource(
     }
   };
 
-  return next(transformedResponse);
+  return transformedResponse;
 }
 
 async function badMiddleware(
   request: Request,
   next: NormalizedFetch
 ): Promise<Response> {
-  let response = await fetch(request);
+  let response = await next(request);
 
   // ⛔ Error! ⛔ Don't do this -- it interferes with streaming responses as
   // well as subsequent middlewares
@@ -160,7 +160,7 @@ async function badMiddleware(
     // do something...
   }
 
-  return next(response);
+  return response;
 }
 ```
 
@@ -178,7 +178,7 @@ async function limitedAnalytics(
     return await analyticsMiddleware(request, fetch);
   }
 
-  return await next(request);
+  return next(request);
 }
 ```
 
