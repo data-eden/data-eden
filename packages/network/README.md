@@ -147,7 +147,7 @@ async function batchCreateEmbedResource(
 
 async function badMiddleware(
   request: Request,
-  next: NormalizedFetch
+  next: (request: Request) => Promise<Response>
 ): Promise<Response> {
   let response = await next(request);
 
@@ -172,7 +172,7 @@ Composing middleware is as easy as composing normal functions.
 // Use another middleware conditionally (e.g. only for `/api` requests)
 async function limitedAnalytics(
   request: Request,
-  next: NormalizedFetch
+  next: (request: Request) => Promise<Response>
 ): Promise<Response> {
   if (request.url.startsWith('/api')) {
     return await analyticsMiddleware(request, fetch);
