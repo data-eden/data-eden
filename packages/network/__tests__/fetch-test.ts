@@ -6,7 +6,7 @@ import { rest } from 'msw';
 
 import { buildFetch, Middleware, NormalizedFetch } from '../src/fetch';
 
-describe('@data-eden/fetch', function () {
+describe('@data-eden/fetch', function() {
   const restHandlers = [
     rest.get('http://www.example.com/resource', (req, res, ctx) => {
       return res(
@@ -20,7 +20,7 @@ describe('@data-eden/fetch', function () {
         ctx.json({ status: 'success', method: 'POST', headers: req.headers })
       );
     }),
-    rest.get('http://www.example.com/analytics', (req, res, ctx) => {
+    rest.get('http://www.example.com/analytics', (_req, res, ctx) => {
       return res(
         ctx.set('x-call-id', '1234567'),
         ctx.status(200),
