@@ -200,6 +200,52 @@ await fetch('///api');
 let response = await fetch('/my-api');
 ```
 
+## Middleware Configuration
+
+There are two patterns for configuring middleware:
+
+- Factory functions
+- Middleware HTTP headers
+
+If your middleware has setup-time configuration, use a factory function:
+
+```typescript
+export function buildAnalyticsMiddleware(analyticsUrl) {
+  return new async (
+    request: Request,
+    next: (request: Request) => Promise<Response>
+  ) => {
+    // ...
+    let analytics = extractAnalytics(request);
+    scheduleAnalytics(analyticsUrl, analytics);
+
+    return next(request);
+  }
+};
+```
+
+If your middleware requires per-request user configuration, you can use custom
+HTTP headers as a means of communicating from the user's `fetch` call to your
+middleware. If needed, your middleware can transform these headers to provide
+better APIs to your users than what your server may allow.
+
+```typescript
+async function analyticsMiddleware(
+  request: Request,
+  next: (request: Request) => Promise<Response>
+): Promise<Response> {
+  let useCase = request.headers.get('X-Use-Case');
+  if(useCase !== undefined) {
+    request.headers.delete('X-Use-Case');
+    request.headers.set('X-Server-Header-Tracking-abc123': useCase);
+  }
+
+  return next(request);
+}
+```
+
+For highly configurable middlewares these techniques can be combined.
+
 ## Prior Art
 
 - [fetch-wrap](https://github.com/benjamine/fetch-wrap)
