@@ -20,7 +20,7 @@ describe('@data-eden/fetch', function () {
         ctx.json({ status: 'success', method: 'POST', headers: req.headers })
       );
     }),
-    rest.get('http://www.example.com/analytics', (req, res, ctx) => {
+    rest.get('http://www.example.com/analytics', (_req, res, ctx) => {
       return res(
         ctx.set('x-call-id', '1234567'),
         ctx.status(200),
@@ -286,6 +286,66 @@ describe('@data-eden/fetch', function () {
 
     const response = await fetch('http://www.example.com/analytics');
     expect(response.status).toEqual(200);
+    expect(await response.json()).toMatchInlineSnapshot(`
+      {
+        "status": "success",
+      }
+    `);
+  });
+
+  test('can read and mutate request headers', async function () {
+    expect.assertions(2);
+
+    server.use(
+      rest.get('http://www.example.com/foo', (req, res, ctx) => {
+        expect(req.headers).toMatchInlineSnapshot(`
+          HeadersPolyfill {
+            "headers": {
+              "accept": "*/*",
+              "accept-encoding": "gzip,deflate",
+              "connection": "close",
+              "host": "www.example.com",
+              "user-agent": "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
+              "x-track": "signup",
+            },
+            "names": Map {
+              "x-track" => "x-track",
+              "accept" => "accept",
+              "user-agent" => "user-agent",
+              "accept-encoding" => "accept-encoding",
+              "connection" => "connection",
+              "host" => "host",
+            },
+          }
+        `);
+        return res(ctx.status(200), ctx.json({ status: 'success' }));
+      })
+    );
+
+    // A middleware might provide a header-based API (perhaps with sugar
+    // functions) to let users annotate requests, e.g. for requests that should
+    // be grouped according to a product use case.
+    //
+    // In the general case a middleware would need to be able to consume and
+    // modify the headers as a way of providing a seamless API.
+    async function headerTransformationMiddleware(
+      request: Request,
+      next: NormalizedFetch
+    ): Promise<Response> {
+      let useCaseAnnotation = request.headers.get('X-Use-Case');
+
+      if (useCaseAnnotation) {
+        request.headers.set('X-Track', useCaseAnnotation);
+        request.headers.delete('X-Use-Case');
+      }
+
+      return next(request);
+    }
+
+    let fetch = buildFetch([headerTransformationMiddleware]);
+    let response = await fetch('http://www.example.com/foo', {
+      headers: { 'X-Use-Case': 'signup' },
+    });
     expect(await response.json()).toMatchInlineSnapshot(`
       {
         "status": "success",
