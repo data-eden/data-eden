@@ -2,58 +2,57 @@
 
 ## Principles
 
-* **Configurable**: Configuration to allow for application wide default
+- **Configurable**: Configuration to allow for application wide default
   settings as well as per-query settings (e.g. handling non-standard API
   endpoints, opting out of [cached entity](#definitions) merging per query).
-* **Extensible & Layered**: Supplies extension points allowing custom caching
+- **Extensible & Layered**: Supplies extension points allowing custom caching
   implementations (e.g. persistent caching via IndexDB). Users are _not_ limited to
   out of the box caching configurations.
-* **Zero Config**: Works with sensible default settings "out of the box" with
+- **Zero Config**: Works with sensible default settings "out of the box" with
   minimal user setup.
-* **Independent**: Caching system is not "aware" of GraphQL semantics or the
+- **Independent**: Caching system is not "aware" of GraphQL semantics or the
   specifics of how data is loaded (e.g. `fetch` layer, websockets, etc).
-* **Ergonomic Invalidation**: Cache invalidation is notoriously difficult. This
+- **Ergonomic Invalidation**: Cache invalidation is notoriously difficult. This
   system attempts to make invalidation as easy as possible. APIs are designed
   up front to enable the cache to absorb the complexities of invalidation (and
   _not_ force that complexity onto the user).
-* **Debuggable**: Exposes the ability to debug caching details. Understanding
+- **Debuggable**: Exposes the ability to debug caching details. Understanding
   the sources of the _contents_ of the cache (e.g. [entities](#definitions) being merged as a
   result of multiple queries) or the reason specific entities are being
   retained due to caching configuration should not require deep understanding
   of the cache internals.
-* **Consistent**: A specific [cached entities](#definitions) Identical cached entities loaded across multiple queries are
+- **Consistent**: A specific [cached entities](#definitions) Identical cached entities loaded across multiple queries are
   updated "live". Extension points exist to trigger rerendering for various
   frameworks (e.g. Ember, Glimmer, React, etc).
 
 ## Features
 
-* All cache layer APIs must be async
-* Can be extended and composed (e.g. an application could implement persistent caching _on top_ of our default caching system without having to re-implement [entity](#definitions) merging)
-* Supports layered caching
-* Supports merging [cached entities](#definitions)
+- All cache layer APIs must be async
+- Can be extended and composed (e.g. an application could implement persistent caching _on top_ of our default caching system without having to re-implement [entity](#definitions) merging)
+- Supports layered caching
+- Supports merging [cached entities](#definitions)
   - enable/disable per-request
   - customizable merging strategies
   - ID field is configurable by app and by query
-* Supports intelligent merging (implementable in application / infra)
+- Supports intelligent merging (implementable in application / infra)
   - retain as much information as is feasible about the sources of data (likely more information available in development than in production, but _some_ information should still be included in production)
   - in development/test mode: can identify each of the responses that are merged into a given [entity](#definitions) (including as much information about where those requests actually come from)
   - provides that information to an application level configurable "[entity](#definitions) merging hook"
   - can be used to aide debugging
-* [Cached entities](#definitions) and queries can be unloaded in a configurable way with resonable defaults
-* Support caching expiration via multiple mechanisms:
+- [Cached entities](#definitions) and queries can be unloaded in a configurable way with resonable defaults
+- Support caching expiration via multiple mechanisms:
   - time based (e.g. entities are released after a specific amount of time)
   - least recently used (e.g. hold on to at least X entities)
   - ....???
-* Expose low-level API to expire cache entries
-* Expose low-level API for manual cache eviction
-* Exposes public API's to access cache contents for debugging
+- Expose low-level API to expire cache entries
+- Expose low-level API for manual cache eviction
+- Exposes public API's to access cache contents for debugging
   - should this be development mode only??
-* Exposes API for exporting the full cache contents
-
+- Exposes API for exporting the full cache contents
 
 ## Features
 
-* **Zero-Cost Debugging** Powerful debugging and introspection utilities, discoverable through `cache.$debug` that are stripped in production builds, but are lazily loadable.
+- **Zero-Cost Debugging** Powerful debugging and introspection utilities, discoverable through `cache.$debug` that are stripped in production builds, but are lazily loadable.
 
 ## API
 
@@ -308,33 +307,36 @@ export function defaultMergeStrategy(): MergeStrategy;
 // TODO: re-write as a tutorial + example
 // TODO: explain how to do type-aware cache registry; see https://tsplay.dev/NrnDlN
 
-
 ```javascript
 // query 1
 let query1 = {
   data: {
     bookstore: {
       id: 'urn:bookstore:1',
-      books: [{
-        metadata: 'urn:author:1',
-        // soldInBookstores: ['urn:li:bookstore:1']
-        soldInBookstores: [{
-          id: 'urn:bookstore:1',
-          city: 'London',
-        }],
-        // author: 'urn:author:1',
-        author: {
-          id: 'urn:author:1',
-          name: 'JK Rowling',
-        }
-      }],
+      books: [
+        {
+          metadata: 'urn:author:1',
+          // soldInBookstores: ['urn:li:bookstore:1']
+          soldInBookstores: [
+            {
+              id: 'urn:bookstore:1',
+              city: 'London',
+            },
+          ],
+          // author: 'urn:author:1',
+          author: {
+            id: 'urn:author:1',
+            name: 'JK Rowling',
+          },
+        },
+      ],
       topSellingAuthor: {
         id: 'urn:author:1',
         name: 'JK Rowling',
-      }
-    }
-  }
-}
+      },
+    },
+  },
+};
 
 // query 2
 let query2 = {
@@ -342,9 +344,9 @@ let query2 = {
     author: {
       id: 'urn:author:1',
       name: 'Winston Churchill',
-    }
-  }
-}
+    },
+  },
+};
 
 let doc1 = executeQuery(query1);
 let bookAuthor = doc1.data.bookstore.books[0].author;
@@ -373,7 +375,7 @@ let globalRevisionCounter = 0;
 
 async function handleGraphQLResponse(
   requestUrl: string,
-  responseBody: object, 
+  responseBody: object,
   parseEntities: (document) => TimestampedEntity[]
   entityId: (entity: object) => string,
   queryMetaData: QueryMetaData,
