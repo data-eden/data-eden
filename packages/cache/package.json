@@ -1,6 +1,6 @@
 {
   "name": "@data-eden/cache",
-  "version": "0.5.0",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/data-eden/data-eden.git",
