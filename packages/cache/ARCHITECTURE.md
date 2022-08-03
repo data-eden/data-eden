@@ -17,7 +17,7 @@
 
 - 🔥🐉 When cache entries (key,value pairs) are added to the cache (i.e. via `tx.commit()`) particular care is needed.
   1. The main cache is a `Map<String, WeakRef<ValueType>>`.
-  2. There are additional caches that are `Map<string,ValueType>` to handle the
+  2. There are additional caches that are `Map<string,ValueType>` (see [below](#ValueType)) to handle the
      Least-Recently-Used (LRU) and Time-to-Live (TTL) expiration features.
   3. This means that keys are always strongly held (more on this in a minute) and
      values are strongly held until they expire, after which they are weakly
@@ -54,3 +54,13 @@ There are some particular use cases to make sure are ergonomic & have good examp
 ## Open Questions
 
 - Should we deeply freeze all cache values & revisions in non-production modes?
+
+## Appendix
+
+### ValueType
+
+`ValueType` here is a shorthand for readability. The actual types are usually written `CacheKeyRegistry[Key]`, as in `get`
+
+```ts
+async get<Key extends keyof CacheKeyRegistry>(cacheKey: Key): CacheKeyRegistry[Key] | undefined;
+```
