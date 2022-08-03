@@ -35,12 +35,11 @@
   - customizable merging strategies
   - ID field is configurable by app and by query
 - Supports intelligent merging (implementable in application / infra)
-  - retain as much information as is feasible about the sources of data (likely more information available in development than in production, but _some_ information should still be included in production)
-  - in development/test mode: can identify each of the responses that are merged into a given [entity](#definitions) (including as much information about where those requests actually come from)
+- retain as much information as is feasible about the sources of data (likely more information available in development than in production, but _some_ information should still be included in production)
+- in development/test mode: can identify each of the responses that are merged into a given [entity](#definitions) (including as much information about where those requests actually come from)
   - provides that information to an application level configurable "[entity](#definitions) merging hook"
   - can be used to aide debugging
-- [Cached entities](#definitions) and queries can be unloaded in a configurable way with resonable defaults
-- Support caching expiration via multiple mechanisms:
+- [Cached entities](#definitions) and queries can be unloaded in a configurable way with resonable defaults Support caching expiration via multiple mechanisms:
   - time based (e.g. entities are released after a specific amount of time)
   - least recently used (e.g. hold on to at least X entities)
   - ....???
