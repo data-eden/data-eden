@@ -524,3 +524,7 @@ async function userTTL(tx) {
   }
 }
 ```
+
+# Definitions
+
+- **Cached Entity**: An object in the cache that is uniquely identifiable, and is kept consistent across cache operations via the cache's (configurable) merging strategy.
