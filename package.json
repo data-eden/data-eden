@@ -18,6 +18,7 @@
   "scripts": {
     "build": "tsc --build",
     "build:watch": "tsc --watch",
+    "prepublish": "npm run build",
     "test": "npm-run-all lint test:*",
     "test:workspaces": "npm test --workspaces",
     "lint": "npm-run-all \"lint:!(fix)\"",
@@ -68,6 +69,9 @@
         "launchEditor": true
       },
       "release-it-yarn-workspaces": true
+    },
+    "hooks": {
+      "before:init": "npm run build"
     },
     "git": {
       "tagName": "v${version}"
