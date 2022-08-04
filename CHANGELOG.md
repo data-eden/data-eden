@@ -1,3 +1,17 @@
+
+## v0.1.1 (2022-08-04)
+
+#### :bug: Bug Fix
+* [#31](https://github.com/data-eden/data-eden/pull/31) bug: adds prepublish to make sure published packages have dist and d.ts file ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :house: Internal
+* [#32](https://github.com/data-eden/data-eden/pull/32) Add `CHANGELOG.md` to `.prettierignore` ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 2
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v0.1.0 (2022-08-01)
 
 #### :rocket: Enhancement
