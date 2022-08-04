@@ -6,6 +6,7 @@
     "url": "git+https://github.com/data-eden/data-eden.git",
     "directory": "packages/cache"
   },
+  "license": "MIT",
   "type": "module",
   "exports": {
     ".": {
