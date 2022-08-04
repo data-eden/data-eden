@@ -1,4 +1,15 @@
 
+
+## v0.1.2 (2022-08-04)
+
+#### :memo: Documentation
+* `athena`, `cache`, `network`
+  * [#33](https://github.com/data-eden/data-eden/pull/33) Add license field to published package.json's ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 1
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v0.1.1 (2022-08-04)
 
 #### :bug: Bug Fix
