@@ -1,5 +1,17 @@
 
 
+
+## v0.1.3 (2022-08-04)
+
+#### :bug: Bug Fix
+* `network`
+  * [#34](https://github.com/data-eden/data-eden/pull/34) feat: export types from fetch to utilize in external middlewares ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 2
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v0.1.2 (2022-08-04)
 
 #### :memo: Documentation
