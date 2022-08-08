@@ -4,10 +4,10 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "module": "es6",
-    "moduleResolution": "node",
+    "module": "es2020",
+    "moduleResolution": "node16",
     "strict": true,
-    "target": "es6",
+    "target": "es2021",
     "baseUrl": ".",
     "paths": {
       "*": ["./types/*"]

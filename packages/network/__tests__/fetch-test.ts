@@ -4,9 +4,9 @@ import { Response, Request } from 'cross-fetch';
 import { setupServer } from 'msw/node';
 import { rest } from 'msw';
 
-import { buildFetch, Middleware, NormalizedFetch } from '../src/fetch';
+import { buildFetch, Middleware, NormalizedFetch } from '@data-eden/network';
 
-describe('@data-eden/fetch', function () {
+describe('@data-eden/fetch', function() {
   const restHandlers = [
     rest.get('http://www.example.com/resource', (req, res, ctx) => {
       return res(
@@ -293,7 +293,7 @@ describe('@data-eden/fetch', function () {
     `);
   });
 
-  test('can read and mutate request headers', async function () {
+  test('can read and mutate request headers', async function() {
     expect.assertions(2);
 
     server.use(

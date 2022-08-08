@@ -1,8 +1,17 @@
 {
   "files": [],
   "references": [
-    { "path": "./packages/athena" },
-    { "path": "./packages/network" },
-    { "path": "./packages/cache" }
+    {
+      "path": "./packages/athena"
+    },
+    {
+      "path": "./packages/network/src"
+    },
+    {
+      "path": "./packages/network/__tests__/"
+    },
+    {
+      "path": "./packages/cache"
+    }
   ]
 }
