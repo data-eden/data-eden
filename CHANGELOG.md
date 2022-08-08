@@ -1,6 +1,18 @@
 
 
 
+
+## v0.1.4 (2022-08-08)
+
+#### :house: Internal
+* [#38](https://github.com/data-eden/data-eden/pull/38) Update typescript related dependencies to latest ([@rwjblue](https://github.com/rwjblue))
+* [#37](https://github.com/data-eden/data-eden/pull/37) Update vite and vitest to latest ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 2
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v0.1.3 (2022-08-04)
 
 #### :bug: Bug Fix
