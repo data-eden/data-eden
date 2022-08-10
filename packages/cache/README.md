@@ -128,9 +128,8 @@ export interface Cache<
     Note: `.load()` does not clear pre-existing entries, if you need to clear
     entries before loading call `.clear()`.
   */
-  async load(entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[]): void;
-  // TODO: needs entries
-  async load(serializer: CacheEntrySerializer): ReturnType<CacheEntrySerializer>[];
+  async load<Key extends keyof CacheKeyRegistry>(entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[]): void;
+  async load<Key extends keyof CacheKeyRegistry>(serializer: CacheEntrySerializer): ReturnType<CacheEntrySerializer>[];
 
   /**
     Evict all entries from the cache.
