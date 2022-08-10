@@ -35,9 +35,13 @@ module.exports = {
       ],
       rules: {
         'prefer-const': 'off',
+        '@typescript-eslint/no-empty-function': 'off',
         '@typescript-eslint/no-unused-vars': [
           'error',
-          { argsIgnorePattern: '^_.*$' },
+          {
+            args: 'none',
+            ignoreRestSiblings: true,
+          },
         ],
       },
     },
