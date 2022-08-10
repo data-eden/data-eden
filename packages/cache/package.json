@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "@data-eden/cache",
   "version": "0.1.4",
   "repository": {
@@ -17,7 +18,8 @@
     }
   },
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:debug": "node --inspect ../../node_modules/.bin/vitest --no-threads"
   },
   "dependencies": {},
   "volta": {
