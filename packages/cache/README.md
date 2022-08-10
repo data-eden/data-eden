@@ -123,7 +123,7 @@ export interface Cache<CacheKeyRegistry, $Debug=unknown, UserExtensionData=unkno
     Note: `.load()` does not clear pre-existing entries, if you need to clear
     entries before loading call `.clear()`.
   */
-  async load<Key extends keyof CacheKeyRegistry>(entries: CacheEntry<CacheKeyRegistry>[]): void;
+  async load<Key extends keyof CacheKeyRegistry>(entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[]): void;
   async load<Key extends keyof CacheKeyRegistry>(serializer: CacheEntrySerializer): ReturnType<CacheEntrySerializer>[];
 
   /**
@@ -183,7 +183,7 @@ export interface RevisionMergeStrategy<CacheKeyRegistry, $Debug=unknown, UserExt
   <Key extends keyof CacheKeyRegistry>(cacheKey: Key, tx: CommittingTransaction<CacheKeyRegistry, $Debug, UserExtensionData>): void;
 }
 
-export interface CacheEntryState<UserExtenionData=unknown> {
+export interface CacheEntryState<UserExtensionData=unknown> {
   retained: {
     lru: boolean;
     ttl: number;
