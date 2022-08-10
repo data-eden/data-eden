@@ -5,7 +5,7 @@
       "path": "./packages/athena"
     },
     {
-      "path": "./packages/network/src"
+      "path": "./packages/network"
     },
     {
       "path": "./packages/network/__tests__/"
