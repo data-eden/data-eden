@@ -1,10 +1,12 @@
 import { beforeAll, afterAll, afterEach, expect, test, describe } from 'vitest';
 
 import { Response, Request } from 'cross-fetch';
-import { setupServer } from 'msw/node';
-import { rest } from 'msw';
+// TODO: this import _should_ use `msw/node`, but the types do not resolve
+// properly when using `moduleResolution: 'node16'`
+import { setupServer } from 'msw/lib/node/index.js';
+import { MockedRequest, rest } from 'msw';
 
-import { buildFetch, Middleware, NormalizedFetch } from '../src/fetch';
+import { buildFetch, Middleware, NormalizedFetch } from '@data-eden/network';
 
 describe('@data-eden/fetch', function () {
   const restHandlers = [
@@ -31,7 +33,7 @@ describe('@data-eden/fetch', function () {
 
   const server = setupServer(...restHandlers);
 
-  server.events.on('request:unhandled', (req) => {
+  server.events.on('request:unhandled', (req: MockedRequest) => {
     console.log('%s %s has no handler', req.method, req.url.href);
 
     throw new Error('handle unhandled request!');
@@ -112,7 +114,7 @@ describe('@data-eden/fetch', function () {
     expect.assertions(1);
 
     const customFetch = (
-      _input: RequestInfo,
+      _input: URL | RequestInfo,
       _init?: RequestInit
     ): Promise<Response> => {
       return Promise.resolve(new Response('We overrode fetch!'));

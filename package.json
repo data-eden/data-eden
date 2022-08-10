@@ -19,6 +19,7 @@
     "build": "tsc --build",
     "build:watch": "tsc --watch",
     "prepublish": "npm run build",
+    "postinstall": "patch-package",
     "test": "npm-run-all lint test:*",
     "test:workspaces": "npm test --workspaces",
     "lint": "npm-run-all \"lint:!(fix)\"",
@@ -39,6 +40,7 @@
     "package.json": "sort-package-json"
   },
   "devDependencies": {
+    "@types/debug": "^4.1.7",
     "@typescript-eslint/eslint-plugin": "^5.33.0",
     "@typescript-eslint/parser": "^5.33.0",
     "eslint": "^8.17.0",
@@ -46,14 +48,15 @@
     "eslint-plugin-node": "^11.1.0",
     "lint-staged": "^13.0.1",
     "npm-run-all": "^4.1.5",
+    "patch-package": "^6.4.7",
     "prettier": "^2.6.2",
     "release-it": "^14.2.1",
     "release-it-lerna-changelog": "^3.1.0",
     "release-it-yarn-workspaces": "^2.0.0",
     "sort-package-json": "^1.57.0",
     "typescript": "^4.7.4",
-    "vite": "^3.0.4",
-    "vitest": "^0.21.0"
+    "vite": "^3.0.5",
+    "vitest": "^0.21.1"
   },
   "volta": {
     "node": "16.15.0",

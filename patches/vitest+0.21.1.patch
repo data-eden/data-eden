@@ -1,0 +1,12 @@
+diff --git a/node_modules/vitest/package.json b/node_modules/vitest/package.json
+index 07c67a7..0ab740f 100644
+--- a/node_modules/vitest/package.json
++++ b/node_modules/vitest/package.json
+@@ -10,6 +10,7 @@
+     "type": "git",
+     "url": "git+https://github.com/vitest-dev/vitest.git"
+   },
++  "type": "module",
+   "bugs": {
+     "url": "https://github.com/vitest-dev/vitest/issues"
+   },
