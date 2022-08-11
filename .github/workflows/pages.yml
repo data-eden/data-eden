@@ -30,8 +30,7 @@ jobs:
         uses: actions/configure-pages@v1
       - uses: volta-cli/action@v1
       - run: npm ci
-      - run: cd internal-packages/website
-      - run: npm run build
+      - run: cd internal-packages/website && npm run build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
