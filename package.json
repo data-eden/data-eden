@@ -13,7 +13,8 @@
   "license": "MIT",
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "website"
   ],
   "scripts": {
     "build": "tsc --build",
@@ -21,7 +22,7 @@
     "prepublish": "npm run build",
     "postinstall": "patch-package",
     "test": "npm-run-all lint test:*",
-    "test:workspaces": "npm test --workspaces",
+    "test:workspaces": "npm test --workspaces --if-present",
     "lint": "npm-run-all \"lint:!(fix)\"",
     "lint:fix": "npm-run-all lint:*:fix",
     "lint:ts": "eslint .",
