@@ -2,6 +2,18 @@
 
 
 
+
+## v0.2.1 (2022-08-11)
+
+#### :bug: Bug Fix
+* `athena`, `cache`, `network`
+  * [#44](https://github.com/data-eden/data-eden/pull/44) Add `main` and `typings` to packages ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 2
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v0.2.0 (2022-08-11)
 
 
