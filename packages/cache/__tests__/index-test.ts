@@ -7,9 +7,9 @@ import { buildCache } from '@data-eden/cache';
 
 // TODO: add tests for types
 
-describe('@data-eden/cache', function() {
-  describe('cache with no user registry', function() {
-    it('can be built', async function() {
+describe('@data-eden/cache', function () {
+  describe('with no user registry', function () {
+    it('can be built', async function () {
       // TODO: this valid call fails if we switch module resolution to node16
       // see #36
       let cache = buildCache();
@@ -17,9 +17,10 @@ describe('@data-eden/cache', function() {
       expect(await cache.get('missing-key')).toBeUndefined();
     });
 
-    it('can load serialized values', async function() {
+    it('can load serialized values', async function () {
       let cache = buildCache();
       // without a serializer, cache.load assumes serialized entries have values that are structured-cloneable
+      // TODO: update to put these in the LRU
       await cache.load([
         ['book:1', { title: 'A History of the English speaking peoples' }],
         ['book:2', { title: 'Marlborough: his life and times' }],
@@ -242,8 +243,8 @@ describe('@data-eden/cache', function() {
     it('can be built', function() { });
   });
 
-  describe('with a user registry and user extension data', function() {
-    it('can be built', function() { });
+  describe('with a user registry and user extension data', function () {
+    it('can be built', function () {});
   });
 
   describe('test live transactions', function() {

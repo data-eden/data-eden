@@ -646,7 +646,7 @@ class LiveCacheTransactionImpl<
 
 class CacheImpl<
   CacheKeyRegistry extends DefaultRegistry,
-  Key extends keyof CacheKeyRegistry,
+  Key extends keyof CacheKeyRegistry = keyof CacheKeyRegistry,
   $Debug = unknown,
   UserExtensionData = unknown
   > implements Cache<CacheKeyRegistry, Key, $Debug, UserExtensionData>

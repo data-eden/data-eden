@@ -21,7 +21,7 @@
   "typings": "./dist/index.d.ts",
   "scripts": {
     "test": "vitest run",
-    "test:debug": "node --inspect ../../node_modules/.bin/vitest --no-threads"
+    "test:debug": "node --inspect --expose-gc ../../node_modules/.bin/vitest --threads=false"
   },
   "dependencies": {},
   "volta": {
