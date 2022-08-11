@@ -9401,8 +9401,8 @@
     "pretty-time" "^1.1.0"
     "std-env" "^3.0.1"
 
-"website@file:/Users/shkrishn/workspace2/data-eden/website":
-  "resolved" "file:website"
+"website@file:/Users/shkrishn/workspace2/data-eden/internal-packages/website":
+  "resolved" "file:internal-packages/website"
   "version" "0.0.0"
   dependencies:
     "@docusaurus/core" "2.0.1"

@@ -14,7 +14,7 @@
   "type": "module",
   "workspaces": [
     "packages/*",
-    "website"
+    "internal-packages/*"
   ],
   "scripts": {
     "build": "tsc --build",
