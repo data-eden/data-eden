@@ -124,6 +124,7 @@ export interface Cache<CacheKeyRegistry, $Debug=unknown, UserExtensionData=unkno
     entries before loading call `.clear()`.
   */
   async load<Key extends keyof CacheKeyRegistry>(entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[]): void;
+  // TODO: needs entries
   async load<Key extends keyof CacheKeyRegistry>(serializer: CacheEntrySerializer): ReturnType<CacheEntrySerializer>[];
 
   /**

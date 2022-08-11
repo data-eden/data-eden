@@ -13,13 +13,13 @@
     ".": {
       "import": {
         "types": "./src/index.ts",
-        "default": "./dist/index.js"
+        "default": "./src/index.ts"
       }
     }
   },
   "scripts": {
     "test": "vitest run",
-    "test:debug": "node --inspect ../../node_modules/.bin/vitest --no-threads"
+    "test:debug": "node --inspect --expose-gc ../../node_modules/.bin/vitest --threads=false"
   },
   "dependencies": {},
   "volta": {
