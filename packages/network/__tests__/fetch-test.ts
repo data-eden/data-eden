@@ -9,8 +9,6 @@ import {
 } from 'vitest';
 import * as http from 'http';
 
-import { Response, Request } from 'cross-fetch';
-
 import { buildFetch, Middleware, NormalizedFetch } from '@data-eden/network';
 import { createServer } from './utils.js';
 
@@ -115,6 +113,23 @@ describe('@data-eden/fetch', async function () {
     return next(request);
   };
 
+  test('throws a helpful error when `fetch` is undefined', async () => {
+    const originalFetch = globalThis.fetch;
+
+    try {
+      /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any*/
+      delete (globalThis as any).fetch;
+
+      expect(() => {
+        buildFetch([]);
+      }).toThrowErrorMatchingInlineSnapshot(
+        '"@data-eden/network requires `fetch` to be available on`globalThis`. Did you forget to setup `cross-fetch/polyfill` before calling @data-eden/network\'s `buildFetch`?"'
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   test('should be able to return fetch without middlewares passed', async () => {
     expect.assertions(2);
 
@@ -218,11 +233,9 @@ describe('@data-eden/fetch', async function () {
       request: Request,
       next: NormalizedFetch
     ) => {
-      expect(request.headers).toMatchInlineSnapshot(`
-        Headers {
-          Symbol(map): {},
-        }
-      `);
+      expect(getPrefixedHeaders(request.headers, 'X-')).toMatchInlineSnapshot(
+        '{}'
+      );
 
       return next(request);
     };
@@ -231,11 +244,9 @@ describe('@data-eden/fetch', async function () {
       request: Request,
       next: NormalizedFetch
     ) => {
-      expect(request.headers).toMatchInlineSnapshot(`
-        Headers {
-          Symbol(map): {},
-        }
-      `);
+      expect(getPrefixedHeaders(request.headers, 'X-')).toMatchInlineSnapshot(
+        '{}'
+      );
 
       request.headers.set('x-two', 'true');
 
@@ -246,13 +257,9 @@ describe('@data-eden/fetch', async function () {
       request: Request,
       next: NormalizedFetch
     ) => {
-      expect(request.headers).toMatchInlineSnapshot(`
-        Headers {
-          Symbol(map): {
-            "x-two": [
-              "true",
-            ],
-          },
+      expect(getPrefixedHeaders(request.headers, 'X-')).toMatchInlineSnapshot(`
+        {
+          "x-two": "true",
         }
       `);
 

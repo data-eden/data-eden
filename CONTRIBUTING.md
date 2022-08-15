@@ -32,3 +32,14 @@ printf '#!'"/bin/sh\n\nnpx lint-staged\n" > .git/hooks/pre-commit
 
 - `npm test` – Runs the test suite for each workspace package
 - `npm test --workspace @data-eden/<workspace name>` – Runs the test suite for a specific workspace
+
+### Node < 18
+
+In order to run tests locally on Node versions older you must ensure that
+`fetch` & `Request` are present on the global context (e.g. `globalThis`). The simplest way to do that is:
+
+```sh
+NODE_OPTIONS="--require=cross-fetch/polyfill" volta run --node=16 --npm=bundled npm test
+```
+
+This ensures that the cross-fetch/polyfill runs first (and therefore sets up the required globals).
