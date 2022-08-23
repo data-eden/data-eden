@@ -41,7 +41,7 @@ export interface CacheEntryState<UserExtensionData = unknown> {
 
 export interface Cache<
   CacheKeyRegistry extends DefaultRegistry,
-  Key extends keyof CacheKeyRegistry = keyof CacheKeyRegistry,
+  Key extends keyof CacheKeyRegistry,
   $Debug = unknown,
   UserExtensionData = unknown
   > {
@@ -58,7 +58,7 @@ export interface Cache<
 
     @see <https://developer.mozilla.org/en-US/docs/Web/API/structuredClone>
   */
-  save<Key extends keyof CacheKeyRegistry>(): Promise<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>][]>;
+  save(): Promise<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData> | undefined][]>;
 
   /**
     Calling `.load()` will add all entries passed to the cache.
@@ -70,18 +70,18 @@ export interface Cache<
     entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[]
   ): Promise<void>;
 
-  [Symbol.asyncIterator]<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]>
+  [Symbol.asyncIterator](): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData> | undefined]>
 
-  entries<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]>;
+  entries(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData> | undefined]>;
 
-  keys<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<Key>;
+  keys(): AsyncIterableIterator<Key>;
 
-  values<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<CacheKeyRegistry[Key]>;
+  values(): AsyncIterableIterator<CacheKeyRegistry[Key]>;
 }
 
 class CacheImpl<
   CacheKeyRegistry extends DefaultRegistry,
-  Key extends keyof CacheKeyRegistry = keyof CacheKeyRegistry,
+  Key extends keyof CacheKeyRegistry,
   $Debug = unknown,
   UserExtensionData = unknown
   > implements Cache<CacheKeyRegistry, Key, $Debug, UserExtensionData>
@@ -120,12 +120,16 @@ class CacheImpl<
     will include both strongly held (unexpired entries) as well as weakly held
     entries.
   */
-  async *[Symbol.asyncIterator]<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]> {
+  async *[Symbol.asyncIterator](): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData> | undefined]> {
     for await (const [key] of this.#weakCache) {
       let ref = this.#weakCache.get(key)?.deref();
       // TODO read CacheEntryState correctly
       let state = undefined;
-      yield [key as unknown as Key, ref as unknown as CacheKeyRegistry[Key], state as unknown as CacheEntryState<UserExtensionData>];
+      if(!ref) {
+        throw new Error('ref is undefined');
+      }
+
+      yield [key, ref, state];
     }
   }
 
@@ -134,25 +138,25 @@ class CacheImpl<
     will include both strongly held (unexpired entries) as well as weakly held
     entries.
   */
-  entries<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]> {
+  entries(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData> | undefined]> {
     return this[Symbol.asyncIterator]();
   }
 
  /**
   * Generator function that yields each of the iterable cache entry Keys.
   */
-  async *keys<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<Key> {
+  async *keys(): AsyncIterableIterator<Key> {
     for await (const [key] of this.entries()) {
-      yield key as Key;
+      yield key;
     } 
   }
 
  /**
   * Generator function that yields each of the iterable cache entry Values.
   */
-  async *values<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<CacheKeyRegistry[Key]> {
+  async *values(): AsyncIterableIterator<CacheKeyRegistry[Key]> {
     for await (const [, value] of this.entries()) {
-       yield value as CacheKeyRegistry[Key];
+       yield value;
     } 
   }
 
@@ -167,11 +171,11 @@ class CacheImpl<
 
     @see <https://developer.mozilla.org/en-US/docs/Web/API/structuredClone>
   */
-  async save<Key extends keyof CacheKeyRegistry>(): Promise<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>][]> {
-    const arrayOfCacheEntryTuples: [Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>][] = [];
+  async save(): Promise<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData> | undefined][]> {
+    const arrayOfCacheEntryTuples: [Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData> | undefined][] = [];
     for await (const [key, value, state] of this.entries()) {
       const structuredClonedValue = structuredClone(value) as CacheKeyRegistry[Key];
-      arrayOfCacheEntryTuples.push([key as Key, structuredClonedValue, state])
+      arrayOfCacheEntryTuples.push([key, structuredClonedValue, state])
     } 
     return arrayOfCacheEntryTuples;
   }

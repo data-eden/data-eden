@@ -67,27 +67,32 @@ export interface CacheEntrySerializer<CacheKeyRegistry, Key extends keyof CacheK
   deserialize(cacheEntry: [Key, SerializedValue, CacheEntryState<UserExtensionData>]): CacheEntry<CacheKeyRegistry>;
 }
 
-export interface Cache<CacheKeyRegistry, $Debug=unknown, UserExtensionData=unknown> {
+export interface Cache<
+  CacheKeyRegistry extends DefaultRegistry,
+  Key extends keyof CacheKeyRegistry,
+  $Debug = unknown,
+  UserExtensionData = unknown
+  > {
   beginTransaction(): CacheTransaction<CacheKeyRegistry, $Debug, UserExtensionData>;
 
-  async get<Key extends keyof CacheKeyRegistry>(cacheKey: Key): CacheKeyRegistry[Key] | undefined;
+  async get(cacheKey: Key): CacheKeyRegistry[Key] | undefined;
 
   /**
     Generator function that yields each of the cache entries. Note that this
     will include both strongly held (unexpired entries) as well as weakly held
     entries.
   */
-  [Symbol.asyncIterator]<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]>
+  [Symbol.asyncIterator](): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]>
 
   /**
     Generator function that yields each of the cache entries. Note that this
     will include both strongly held (unexpired entries) as well as weakly held
     entries.
   */
-  entries<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]>
-  entryRevisions<Key extends keyof CacheKeyRegistry>(cacheKey: Key):  AsyncIterableIterator<[entity: CacheKeyRegistry[Key], revision: number][]>;
-  keys<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<Key>
-  values<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<CacheKeyRegistry[Key]>
+  entries(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]>
+  entryRevisions(cacheKey: Key):  AsyncIterableIterator<[entity: CacheKeyRegistry[Key], revision: number][]>;
+  keys(): AsyncIterableIterator<Key>
+  values(): AsyncIterableIterator<CacheKeyRegistry[Key]>
 
   /**
     Calling `.save()` without a serializer will iterate over the cache entries
@@ -100,7 +105,7 @@ export interface Cache<CacheKeyRegistry, $Debug=unknown, UserExtensionData=unkno
 
     @see <https://developer.mozilla.org/en-US/docs/Web/API/structuredClone>
   */
-  async save<Key extends keyof CacheKeyRegistry>(): [Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>][];
+  async save(): [Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>][];
 
   /**
     Calling `.save()` passing a `CacheEntrySerializer` will iterate over the
@@ -115,7 +120,7 @@ export interface Cache<CacheKeyRegistry, $Debug=unknown, UserExtensionData=unkno
     need to pass a `CacheEntrySerializer` and you can call `.save()` (without
     arguments).
   */
-  async save<Key extends keyof CacheKeyRegistry>(serializer: CacheEntrySerializer): ReturnType<CacheEntrySerializer>[];
+  async save(serializer: CacheEntrySerializer): ReturnType<CacheEntrySerializer>[];
 
   /**
     Calling `.load()` will add all entries passed to the cache.
@@ -123,9 +128,9 @@ export interface Cache<CacheKeyRegistry, $Debug=unknown, UserExtensionData=unkno
     Note: `.load()` does not clear pre-existing entries, if you need to clear
     entries before loading call `.clear()`.
   */
-  async load<Key extends keyof CacheKeyRegistry>(entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[]): void;
+  async load(entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[]): void;
   // TODO: needs entries
-  async load<Key extends keyof CacheKeyRegistry>(serializer: CacheEntrySerializer): ReturnType<CacheEntrySerializer>[];
+  async load(serializer: CacheEntrySerializer): ReturnType<CacheEntrySerializer>[];
 
   /**
     Evict all entries from the cache.
@@ -176,12 +181,22 @@ type ExpirationPolicy = false | {
   ttl: number;
 }
 
-export interface EntityMergeStrategy<CacheKeyRegistry, $Debug=unknown, UserExtensionData=unknown> {
-  <Key extends keyof CacheKeyRegistry>(cacheKey: Key, newEntityRevision: CachedEntityRevision<CacheKeyRegistry[Key]>, current: CacheKeyRegistry[Key] | undefined, tx: CacheTransaction<CacheKeyRegistry, $Debug, UserExtensionData>): CacheKeyValue;
+export interface EntityMergeStrategy<
+  CacheKeyRegistry,
+  Key extends keyof CacheKeyRegistry,
+  $Debug = unknown,
+  UserExtensionData = unknown
+> {
+  (cacheKey: Key, newEntityRevision: CachedEntityRevision<CacheKeyRegistry[Key]>, current: CacheKeyRegistry[Key] | undefined, tx: CacheTransaction<CacheKeyRegistry, $Debug, UserExtensionData>): CacheKeyValue;
 }
 
-export interface RevisionMergeStrategy<CacheKeyRegistry, $Debug=unknown, UserExtensionData=unknown> {
-  <Key extends keyof CacheKeyRegistry>(cacheKey: Key, tx: CommittingTransaction<CacheKeyRegistry, $Debug, UserExtensionData>): void;
+export interface RevisionMergeStrategy<
+  CacheKeyRegistry,
+  Key extends keyof CacheKeyRegistry,
+  $Debug = unknown,
+  UserExtensionData = unknown
+> {
+  (cacheKey: Key, tx: CommittingTransaction<CacheKeyRegistry, $Debug, UserExtensionData>): void;
 }
 
 export interface CacheEntryState<UserExtensionData=unknown> {
@@ -214,47 +229,62 @@ interface CachedEntityRevision<CacheKeyValue> {
   revision: number;
 }
 
-export interface CacheTransaction<CacheKeyRegistry, $Debug=unknown, UserExtensionData=unknown> {
+export interface CacheTransaction<
+  CacheKeyRegistry,
+  Key extends keyof CacheKeyRegistry,
+  $Debug = unknown,
+  UserExtensionData = unknown
+> {
   /**
   Get the value of `cacheKey` in the cache.  If `key` has been modified in this
   transaction (e.g. via `merge` or `set`), `tx.get` will return the updated
   entry in this transaction. The return value can therefore differ from
   `cache.get`.
   */
-  async get<Key extends keyof CacheKeyRegistry>(cacheKey: Key): CacheKeyRegistry[Key] | undefined;
-  localEntries<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState]>
-  entries<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState]>
+  async get(cacheKey: Key): CacheKeyRegistry[Key] | undefined;
+  localEntries(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState]>
+  entries(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState]>
   /**
     Generator function that yields each of the transaction local entries.
   */
-  [Symbol.asyncIterator]<Key extends keyof CacheKeyRegistry>(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]>
+  [Symbol.asyncIterator](): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]>
   /**
   An async generator that produces the revisions of `key` within this transaction.
   */
-  localRevisions<Key extends keyof CacheKeyRegistry>(cacheKey: Key):  AsyncIterableIterator<CachedEntityRevision<CacheKeyRegistry[Key]>>;
+  localRevisions(cacheKey: Key):  AsyncIterableIterator<CachedEntityRevision<CacheKeyRegistry[Key]>>;
   /**
   An async generator that produces the complete list of revisions for `key`,
   from the time the transaction began and including the revisions added in this
   transaction.
   */
-  entryRevisions<Key extends keyof CacheKeyRegistry>(cacheKey: Key):  AsyncIterableIterator<CachedEntityRevision<CacheKeyRegistry[Key]>>;
+  entryRevisions(cacheKey: Key):  AsyncIterableIterator<CachedEntityRevision<CacheKeyRegistry[Key]>>;
 
   $debug: $Debug & CacheTransactionDebugAPIs;
 }
-export interface CommittingTransaction<CacheKeyRegistry, $Debug=unknown, UserExtensionData=unknown> extends CacheTransaction<CacheKeyRegistry, $Debug, UserExtensionData> {
+export interface CommittingTransaction<
+  CacheKeyRegistry,
+  Key extends keyof CacheKeyRegistry,
+  $Debug = unknown,
+  UserExtensionData = unknown
+> extends CacheTransaction<CacheKeyRegistry, $Debug, UserExtensionData> {
   cache: {
-    clearRevisions<Key extends keyof CacheKeyRegistry>(id: Key): void;
-    appendRevisions<Key extends keyof CacheKeyRegistry>(id: Key, revisions: CachedEntityRevision<CacheKeyRegistry[Key]>[]): void;
+    clearRevisions(id: Key): void;
+    appendRevisions(id: Key, revisions: CachedEntityRevision<CacheKeyRegistry[Key]>[]): void;
   }
 }
-export interface LiveCacheTransaction<CacheKeyRegistry, $Debug=unknown, UserExtensionData=unknown> extends CacheTransaction<CacheKeyRegistry, $Debug, UserExtensionData> {
-  async merge<Key extends keyof CacheKeyRegistry>(cacheKey: Key, value: CachedEntityRevision<CacheKeyRegistry[Key]>, options?: {
+export interface LiveCacheTransaction<
+  CacheKeyRegistry,
+  Key extends keyof CacheKeyRegistry,
+  $Debug = unknown,
+  UserExtensionData = unknown
+> extends CacheTransaction<CacheKeyRegistry, $Debug, UserExtensionData> {
+  async merge(cacheKey: Key, value: CachedEntityRevision<CacheKeyRegistry[Key]>, options?: {
     entityMergeStrategy: EntityMergeStrategy<CacheKeyRegistry, $Debug, UserExtensionData>;
     revisionMergeStrategy: RevisionMergeStrategy<CacheKeyRegistry, $Debug, UserExtensionData>;
     $debug: $Debug;
   }): Promise<CacheKeyRegistry[Key]>;
-  async set<Key extends keyof CacheKeyRegistry>(cacheKey: Key, value: CacheKeyRegistry[Key]): Promise<CacheKeyRegistry[Key]>;
-  async delete<Key extends keyof CacheKeyRegistry>(cacheKey: Key): Promise<boolean>;
+  async set(cacheKey: Key, value: CacheKeyRegistry[Key]): Promise<CacheKeyRegistry[Key]>;
+  async delete(cacheKey: Key): Promise<boolean>;
 
   /**
 
