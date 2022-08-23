@@ -31,13 +31,115 @@ describe('@data-eden/cache', function () {
       `);
     });
 
-    // TODO: test entries (load then for of cache.entries)
-    // TODO: test cache iterator (load then for of cache)
-    // TODO: test keys iterator
-    // TODO: test values iterator
+    it('test iterable cache.entries', async function () {
+      let cache = buildCache();
 
+      await cache.load([
+        ['book:1', { title: 'A History of the English speaking peoples' }],
+        ['book:2', { title: 'Marlborough: his life and times' }],
+      ]);
+
+      const entries = cache.entries();
+      const entry1 = await entries.next();
+      
+      // TODO validate cache entry state
+      // TODO setup & validate weekly held and strongly held entries
+      expect(entry1.value).toEqual(['book:1', { title: 'A History of the English speaking peoples' }, undefined]);
+
+      const entry2 = await entries.next();
+      expect(entry2.value).toEqual(['book:2', { title: 'Marlborough: his life and times' }, undefined]);
+
+      for await (const [key, value] of cache.entries()) {
+        expect(key).toBeTypeOf('string');
+        expect(value).toBeTypeOf('object');
+      } 
+    });
+
+    it('test keys iterator', async function () {
+      let cache = buildCache();
+
+      await cache.load([
+        ['book:1', { title: 'A History of the English speaking peoples' }],
+        ['book:2', { title: 'Marlborough: his life and times' }],
+      ]);
+
+      const entryKeys = cache.keys();
+
+      const entryKey1 = await entryKeys.next();      
+      expect(entryKey1.value).toEqual('book:1');
+
+      const entryKey2 = await entryKeys.next();
+      expect(entryKey2.value).toEqual('book:2');
+
+      for await (const key of cache.keys()) {
+        expect(key).toBeTypeOf('string');
+      } 
+    });
+
+    it('test values iterator', async function () {
+      let cache = buildCache();
+
+      await cache.load([
+        ['book:1', { title: 'A History of the English speaking peoples' }],
+        ['book:2', { title: 'Marlborough: his life and times' }],
+      ]);
+
+      const entryValues = cache.values();
+
+      const entryValue1 = await entryValues.next();      
+      expect(entryValue1.value).toEqual({ title: 'A History of the English speaking peoples' });
+
+      const entryValue2 = await entryValues.next();
+      expect(entryValue2.value).toEqual({ title: 'Marlborough: his life and times' });
+
+      for await (const value of cache.values()) {
+        expect(value).toBeTypeOf('object');
+      } 
+    });
+
+    it('test cache.save returns array of cache entry tuple', async function () {
+      let cache = buildCache();
+
+      await cache.load([
+        ['book:1', { title: 'A History of the English speaking peoples' }],
+        ['book:2', { title: 'Marlborough: his life and times' }],
+      ]);
+
+      const arrayOfCacheEntryTuples = await cache.save();
+
+      const cacheEntryTuple1 = arrayOfCacheEntryTuples.at(0);
+      const cacheEntryTuple2 = arrayOfCacheEntryTuples.at(1);
+
+      expect(arrayOfCacheEntryTuples.length).toEqual(2);
+
+      expect(cacheEntryTuple1?.length).toEqual(3);
+      expect(cacheEntryTuple1?.at(0)).toEqual('book:1');
+      expect(cacheEntryTuple1?.at(0)).toBeTypeOf('string');
+      expect(cacheEntryTuple1?.at(1)).toEqual({ title: 'A History of the English speaking peoples' });
+      expect(cacheEntryTuple1?.at(1)).toBeTypeOf('object');
+
+      expect(cacheEntryTuple2?.length).toEqual(3);
+      expect(cacheEntryTuple2?.at(0)).toEqual('book:2');
+      expect(cacheEntryTuple2?.at(0)).toBeTypeOf('string');
+      expect(cacheEntryTuple2?.at(1)).toEqual({ title: 'Marlborough: his life and times' });
+      expect(cacheEntryTuple2?.at(1)).toBeTypeOf('object');
+
+      // TODO verify cache entry state
+    });
+
+    it('test cache.save w/o serializer throws error when values are not structured clonable', async  () => {
+      let cache = buildCache();
+
+      await cache.load([
+        ['book:1', function(){}],
+      ]);
+
+      void expect(async() => {
+        await cache.save();
+      }).rejects.toThrow('The cache value is not structured clonable use `save` with serializer');
+    });
+  
     // TODO: test clear (load, get, clear, get)
-
     // TODO: test save (with values, save then clear, then load, values should be restored)
 
     // transaction testing ----------------
