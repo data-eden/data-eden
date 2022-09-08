@@ -1,8 +1,26 @@
 # @data-eden/athena
 
 TODO: writeme
+  * re-render after merging entities
+  * buildAthena options (e.g. cache)
+  * execute options e.g.
+    * freshness/staleness for request
+    * ttl &c. for this particular data
+    * cache overrides, e.g. merge strategy overrides
 
-## Query Metadata
+
+Athena has two components:
+* a build tool
+* a runtime library
+
+
+## Build Tool
+
+The build tool compiles graphql documents into opaque objects with associated metadata that can be passed around in usercode to runtime APIs
+
+TODO: writeme
+
+### Query Metadata
 
 - **Paths of referenced entities** In order to correctly distinguish cache entries like 'urn:author:1' as either strings or references. More advanced cases to handle:
   - arrays of references
