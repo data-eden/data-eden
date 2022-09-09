@@ -7,6 +7,10 @@ TODO: writeme
     * freshness/staleness for request
     * ttl &c. for this particular data
     * cache overrides, e.g. merge strategy overrides
+  * $debug?
+    - calltree
+  * populating cache.$debug
+    - stacktrace of network call sites (1:revision, n:merged models)
 
 
 Athena has two components:

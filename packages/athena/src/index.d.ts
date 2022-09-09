@@ -43,10 +43,28 @@ type QueryOperationToken = unknown;
 type MutateOperationToken = unknown;
 type SubscribeOperationToken = unknown;
 
+interface OperationOptions {
+  request: {
+    maxAge: number | 'default';
+  }
+  response: {
+    // TODO: type from the cache
+    mergeStrategy: void;
+    // TODO: figure out cache retention by type then revisit
+    ttl: void;
+    lru: boolean;
+    // TODO: add lfu as a userland extension retention
+  }
+}
+
+type VariableTypes = unknown;
+// TODO: GraphQLResponse (data, errors, extensions)
+type Response = unknown;
+
 interface Athena {
   /**
 
-
+    Execcute `queryOperation` and resturn the result.
 
     @example
 
@@ -54,6 +72,8 @@ interface Athena {
       # schema.graphql
       type Query {
         searchBooks(query: String!) {
+          isbn
+          title
         }
       }
       ```
@@ -70,18 +90,31 @@ interface Athena {
 
       ```typescript
       import SearchBooks from './queries.graphql';
-      let queryResponse = athena.query(SearchBooks)
-      // TODO: continue
+      let result = await athena.query(SearchBooks)
 
+      // result has a type generated from the SearchBooks query
+      let isbns = query.data.searchBooks.map(b => b.isbn);
       ```
 
     @param  queryOperation - does some stuff i guess
   */
-  query(queryOperation: QueryOperationToken): void;
+  // TODO: add generic parameters to QueryOperationToken, VariableTypes, Response et. al
+  // see e.g. executeMutation
+  // TODO: thread $debug = $Debug & AthenaDebugAPIs on the response
+  query(queryOperation: QueryOperationToken, variables: VariableTypes, options?: OperationOptions): Promise<Response>;
+  query(queryOperation: QueryOperationToken, options?: OperationOptions): Promise<Response>;
+
   mutate(mutateOperation: MutateOperationToken): void;
   // TODO: what exactly does this returns
+
   subscribe(subscribeOperation: SubscribeOperationToken): void;
 }
 
+interface BuildAthenaOptions {
+  // TODO: cache options | false // no cache
+  // TODO: rerender options (starbeam?)
+  foo: void;
+}
+
 // TODO: options
-export default function buildAthena(): Athena;
+export default function buildAthena(options?: BuildAthenaOptions): Athena;
