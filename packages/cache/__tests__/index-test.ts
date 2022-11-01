@@ -4,9 +4,9 @@ import { buildCache } from '@data-eden/cache';
 
 // TODO: add tests for types
 
-describe('@data-eden/cache', function () {
-  describe('with no user registry', function () {
-    it('can be built', async function () {
+describe('@data-eden/cache', function() {
+  describe('with no user registry', function() {
+    it('can be built', async function() {
       // TODO: this valid call fails if we switch module resolution to node16
       // see #36
       let cache = buildCache();
@@ -14,7 +14,7 @@ describe('@data-eden/cache', function () {
       expect(await cache.get('missing-key')).toBeUndefined();
     });
 
-    it('can load serialized values', async function () {
+    it('can load serialized values', async function() {
       let cache = buildCache();
       // without a serializer, cache.load assumes serialized entries have values that are structured-cloneable
       // TODO: update to put these in the LRU
@@ -31,7 +31,7 @@ describe('@data-eden/cache', function () {
       `);
     });
 
-    it('test iterable cache.entries', async function () {
+    it('test iterable cache.entries', async function() {
       let cache = buildCache();
 
       await cache.load([
@@ -41,7 +41,7 @@ describe('@data-eden/cache', function () {
 
       const entries = cache.entries();
       const entry1 = await entries.next();
-      
+
       // TODO validate cache entry state
       // TODO setup & validate weekly held and strongly held entries
       expect(entry1.value).toEqual(['book:1', { title: 'A History of the English speaking peoples' }, undefined]);
@@ -52,10 +52,10 @@ describe('@data-eden/cache', function () {
       for await (const [key, value] of cache.entries()) {
         expect(key).toBeTypeOf('string');
         expect(value).toBeTypeOf('object');
-      } 
+      }
     });
 
-    it('test keys iterator', async function () {
+    it('test keys iterator', async function() {
       let cache = buildCache();
 
       await cache.load([
@@ -65,7 +65,7 @@ describe('@data-eden/cache', function () {
 
       const entryKeys = cache.keys();
 
-      const entryKey1 = await entryKeys.next();      
+      const entryKey1 = await entryKeys.next();
       expect(entryKey1.value).toEqual('book:1');
 
       const entryKey2 = await entryKeys.next();
@@ -73,10 +73,10 @@ describe('@data-eden/cache', function () {
 
       for await (const key of cache.keys()) {
         expect(key).toBeTypeOf('string');
-      } 
+      }
     });
 
-    it('test values iterator', async function () {
+    it('test values iterator', async function() {
       let cache = buildCache();
 
       await cache.load([
@@ -86,7 +86,7 @@ describe('@data-eden/cache', function () {
 
       const entryValues = cache.values();
 
-      const entryValue1 = await entryValues.next();      
+      const entryValue1 = await entryValues.next();
       expect(entryValue1.value).toEqual({ title: 'A History of the English speaking peoples' });
 
       const entryValue2 = await entryValues.next();
@@ -94,10 +94,10 @@ describe('@data-eden/cache', function () {
 
       for await (const value of cache.values()) {
         expect(value).toBeTypeOf('object');
-      } 
+      }
     });
 
-    it('test cache.save returns array of cache entry tuple', async function () {
+    it('test cache.save returns array of cache entry tuple', async function() {
       let cache = buildCache();
 
       await cache.load([
@@ -127,18 +127,18 @@ describe('@data-eden/cache', function () {
       // TODO verify cache entry state
     });
 
-    it('test cache.save w/o serializer throws error when values are not structured clonable', async  () => {
+    it('test cache.save w/o serializer throws error when values are not structured clonable', async () => {
       let cache = buildCache();
 
       await cache.load([
-        ['book:1', function(){}],
+        ['book:1', function() { }],
       ]);
 
-      void expect(async() => {
+      void expect(async () => {
         await cache.save();
       }).rejects.toThrow('The cache value is not structured clonable use `save` with serializer');
     });
-  
+
     // TODO: test clear (load, get, clear, get)
     // TODO: test save (with values, save then clear, then load, values should be restored)
 
@@ -150,16 +150,82 @@ describe('@data-eden/cache', function () {
     // TODO: test ttl?
 
     // TODO: --expose-gc + setTimeout global.gc() + another setTimeout() + assert weakly held things are cleaned up
+
+    // TODO: requires fixing up types &c. but otherwise illustrates how a user
+    // could have a very simple cache that differentiated between types
+    //
+    // it('enables custom user retention -- retention-by-type', function() {
+    //   async function awaitAll(itr: AsyncIterableIterator<unknown>) {
+    //     let result = []
+    //     for await (let item of itr) {
+    //       result.push(item);
+    //     }
+
+    //     return result;
+    //   }
+
+    //   type CachedTypes = 'book' | 'author';
+    //   let typeCacheMap = new Map<CachedTypes, unknown>([
+    //     'book', null,
+    //     'author', null,
+    //   ]);
+
+    //   function typeBasedLRU(tx) {
+    //     for (let [key, value] of tx.entries()) {
+    //       let match = /(book|author):/i.exec(key);
+    //       if (match) {
+    //         // TODO: assert match[1] is a CachedTypes
+    //         typeCacheMap.set(match[1], value);
+    //       }
+    //     }
+    //   }
+
+    //   let cache = buildCache({
+    //     hooks: {
+    //       commit: typeBasedLRU
+    //     }
+    //   });
+
+    //   let tx = cache.beginTransaction();
+    //   tx.set('book:1', { title: 'Marlborough: His Life and Times Volume I' });
+    //   tx.set('book:2', { title: 'Marlborough: His Life and Times Volume II' });
+    //   tx.set('author:1', { name: 'Winston Churchill' });
+    //   tx.set('character:1', { name: 'John Churchill' });
+    //   await tx.commit();
+
+
+    //   expect([...typeCacheMap.values()]).toMatchInlineSnapshot([{
+    //     title: 'Marlborough: His Life and Times Volume II'
+    //   }, {
+    //     name: 'Winston Churchill'
+    //   }]);
+
+    //   expect(awaitAll(cache.values())).toMatchInlineSnapshot([{
+    //     title: 'Marlborough: His Life and Times Volume I'
+    //   }, {
+    //     title: 'Marlborough: His Life and Times Volume II'
+    //   }, {
+    //     name: 'Winston Churchill'
+    //   }, {
+    //     name: 'John Churchill'
+    //   }]);
+    //   // TODO: gc?
+    //   expect(awaitAll(cache.values())).toMatchInlineSnapshot([{
+    //     title: 'Marlborough: His Life and Times Volume II'
+    //   }, {
+    //     name: 'Winston Churchill'
+    //   }]);
+    // });
   });
 
-  describe('with a user registry', function () {
+  describe('with a user registry', function() {
     // let cache = buildCache<UserRegistry>()
     // see https:/tsplay.dev/NrnDlN
     // TODO: try to test the types with expect-type
-    it('can be built', function () {});
+    it('can be built', function() { });
   });
 
-  describe('with a user registry and user extension data', function () {
-    it('can be built', function () {});
+  describe('with a user registry and user extension data', function() {
+    it('can be built', function() { });
   });
 });
