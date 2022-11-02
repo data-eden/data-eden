@@ -17,6 +17,17 @@ Athena has two components:
 * a build tool
 * a runtime library
 
+## System Components
+
+```mermaid
+erDiagram
+    runtime ||--|| cache : populates
+    runtime ||--|| network : uses
+    runtime ||--|| build_metadata : imports
+    user ||--|| runtime : invokes
+
+```
+
 
 ## Build Tool
 
