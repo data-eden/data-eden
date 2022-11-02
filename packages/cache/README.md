@@ -416,6 +416,7 @@ async function handleGraphQLResponse(
       parent[prop] = id;
       cachedEntities.push(mergedEntity);
     }
+    // TODO: maybe insufficient. See #47
     DocumentEntityMap.set(document, cachedEntities);
     // Proxy exists to do at least the following:
     //  1. access referenced cached entities and
