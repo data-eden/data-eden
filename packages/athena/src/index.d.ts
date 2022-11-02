@@ -1,3 +1,10 @@
+// TODO: import these from packages/cache/index.ts
+import type { CacheOptions } from './cache.js';
+
+
+
+
+
 /**
   These tokens are produced by the build system. An operation token represents a single operation (query, mutation or subscription).
 
@@ -47,16 +54,11 @@ interface OperationOptions {
   request: {
     maxAge: number | 'default';
   }
-  response: {
-    // TODO: type from the cache
-    mergeStrategy: void;
-    // TODO: figure out cache retention by type then revisit
-    ttl: void;
-    lru: boolean;
-    // TODO: add lfu as a userland extension retention
-  }
+  response: Omit<CacheOptions, '$debug'>
 }
 
+// TODO: make this depend on QueryOperationToken; will require fancy genericizing
+// see e.g. ember-restli-graphql
 type VariableTypes = unknown;
 // TODO: GraphQLResponse (data, errors, extensions)
 type Response = unknown;
@@ -101,20 +103,28 @@ interface Athena {
   // TODO: add generic parameters to QueryOperationToken, VariableTypes, Response et. al
   // see e.g. executeMutation
   // TODO: thread $debug = $Debug & AthenaDebugAPIs on the response
+  //  to do this correctly we should mock up a larger set of $debug APIs to see which ones belong where
+  //  note the cache types we have in cache.d.ts definitely have some $debug threadding issues
   query(queryOperation: QueryOperationToken, variables: VariableTypes, options?: OperationOptions): Promise<Response>;
   query(queryOperation: QueryOperationToken, options?: OperationOptions): Promise<Response>;
 
-  mutate(mutateOperation: MutateOperationToken): void;
-  // TODO: what exactly does this returns
+  // TODO: add generic parameters to QueryOperationToken, VariableTypes, Response et. al
+  // see e.g. executeMutation
+  mutate(queryOperation: QueryOperationToken, variables: VariableTypes, options?: OperationOptions): Promise<Response>;
+  mutate(queryOperation: QueryOperationToken, options?: OperationOptions): Promise<Response>;
 
+  // TODO: what exactly does subscribe return?
   subscribe(subscribeOperation: SubscribeOperationToken): void;
 }
 
+// TODO: options
+//  options.cache
+//  options.queryLookup (from token)
+//  options.fetch
 interface BuildAthenaOptions {
   // TODO: cache options | false // no cache
   // TODO: rerender options (starbeam?)
   foo: void;
 }
 
-// TODO: options
 export default function buildAthena(options?: BuildAthenaOptions): Athena;
