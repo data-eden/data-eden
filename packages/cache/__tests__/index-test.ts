@@ -528,5 +528,125 @@ describe('@data-eden/cache', function () {
       expect(lru?.at(2)?.at(0)).toEqual('book:5');
     });
   });
+
+      //TODO test live trasaction where original cache has enitiy that is GCd
+      it('test single transaction', async function () {
+        let cache = buildCache();
+  
+        await cache.load([
+          ['book:1', { 'book:1': {title: 'A History of the English speaking peoples'}}],
+          ['book:2', { 'book:2': {title: 'Marlborough: his life and times' }}],
+        ]);
+  
+        // transaction 1 starts
+        let tx = await cache.beginTransaction();  
+  
+        await tx.merge('book:3', {entity: {'book:3': { title: 'New Merged book' }}, revision: 1});
+        await tx.merge('book:1', {entity: {'book:1': { title: 'Conflict', sub:'j3' }}, revision: 1});
+  
+        // Validate Transactional entries
+        expect(tx.get('book:1')).toEqual({ 'book:1': { title: 'Conflict', sub:'j3' } });
+        expect(tx.get('book:2')).toEqual({ 'book:2': {title: 'Marlborough: his life and times' }});
+        expect(tx.get('book:3')).toEqual({ 'book:3': {title: 'New Merged book'} });
+  
+        // Validate Cache before commit
+        expect(await cache.get('book:1')).toEqual({'book:1': {title: 'A History of the English speaking peoples'}});
+        expect(await cache.get('book:2')).toEqual({'book:2': {title: 'Marlborough: his life and times' }});
+        expect(await cache.get('book:3')).toEqual(undefined);
+  
+        const cacheEntriesBeforeCommit = await cache.save();
+        expect(cacheEntriesBeforeCommit.length).toEqual(2);
+  
+        await tx.commit();
+  
+        // Validate Cache after commit
+        expect(await cache.get('book:1')).toEqual({ 'book:1': { title: 'Conflict', sub:'j3' } });
+        expect(await cache.get('book:2')).toEqual({ 'book:2': {title: 'Marlborough: his life and times' }});
+        expect(await cache.get('book:3')).toEqual({ 'book:3': {title: 'New Merged book'} });
+      });
+  
+      it('test cace with multiple transaction commits is masked from trasaction changes', async function () {
+        let cache = buildCache();
+  
+        await cache.load([
+          ['book:1', { 'book:1': {title: 'A History of the English speaking peoples'}}],
+          ['book:2', { 'book:2': {title: 'Marlborough: his life and times' }}],
+        ]);
+  
+        // transaction 1 starts
+        let tx1 = await cache.beginTransaction();
+  
+        // transaction 2 starts
+        let tx2 = await cache.beginTransaction();  
+  
+        // Merge entities from transaction 1
+        await tx1.merge('book:3', {entity: {'book:3': { title: 'New Merged book TX1' }}, revision: 1});
+        await tx1.merge('book:1', {entity: {'book:1': { title: 'original book Conflict', sub:'j3' }}, revision: 1});
+  
+        // Merge entities from transaction 2
+        await tx2.merge('book:3', {entity: {'book:3': { title: 'New Merged book by TX2' }}, revision: 1});
+        await tx2.merge('book:1', {entity: {'book:1': { title: 'Conflict updated by TX2', sub:'j32', sub2: '12' }}, revision: 1});
+        await tx2.merge('book:4', {entity: {'book:4': { title: 'new book 4', sub:'j32', sub2: '12' }}, revision: 1});
+  
+        // Validate entries in Transaction 1
+        expect(tx1.get('book:1')).toEqual({ 'book:1': { title: 'original book Conflict', sub:'j3' } });
+        expect(tx1.get('book:2')).toEqual({ 'book:2': {title: 'Marlborough: his life and times' }});
+        expect(tx1.get('book:3')).toEqual({ 'book:3': {title: 'New Merged book TX1'} });
+
+        // Validate entries in Transaction 2
+        expect(tx2.get('book:1')).toEqual({ 'book:1': { title: 'Conflict updated by TX2', sub:'j32', sub2: '12' } });
+        expect(tx2.get('book:2')).toEqual({ 'book:2': {title: 'Marlborough: his life and times' }});
+        expect(tx2.get('book:3')).toEqual({ 'book:3': {title: 'New Merged book by TX2'} });
+        expect(tx2.get('book:4')).toEqual({ 'book:4': { title: 'new book 4', sub:'j32', sub2: '12' } });
+
+        // Validate entries in original Cache
+        expect(await cache.get('book:1')).toEqual({'book:1': {title: 'A History of the English speaking peoples'}});
+        expect(await cache.get('book:2')).toEqual({'book:2': {title: 'Marlborough: his life and times' }});
+        expect(await cache.get('book:3')).toEqual(undefined);
+  
+        // commit transaction 1
+        await tx1.commit();
+  
+        // Validate entries in original Cache after 1st commit
+        expect(await cache.get('book:1')).toEqual({ 'book:1': { title: 'original book Conflict', sub:'j3' } });
+        expect(await cache.get('book:2')).toEqual({ 'book:2': {title: 'Marlborough: his life and times' }});
+        expect(await cache.get('book:3')).toEqual({ 'book:3': {title: 'New Merged book TX1'} });
+        expect(await cache.get('book:4')).toEqual(undefined);
+
+        // Validate entries in Transaction 2 Cache after 1st transaction commit and it remains masked
+        expect(tx2.get('book:1')).toEqual({ 'book:1': { title: 'Conflict updated by TX2', sub:'j32', sub2: '12' } });
+        expect(tx2.get('book:2')).toEqual({ 'book:2': {title: 'Marlborough: his life and times' }});
+        expect(tx2.get('book:3')).toEqual({ 'book:3': {title: 'New Merged book by TX2'} });
+        expect(tx2.get('book:4')).toEqual({ 'book:4': { title: 'new book 4', sub:'j32', sub2: '12' } });
+  
+        // commit transaction 1
+        await tx2.commit();
+  
+        // Validate entries in original Cache after 2nd commit
+        expect(await cache.get('book:1')).toEqual({ 'book:1': { title: 'Conflict updated by TX2', sub:'j32', sub2: '12' } });
+        expect(await cache.get('book:2')).toEqual({ 'book:2': {title: 'Marlborough: his life and times' }});
+        expect(await cache.get('book:3')).toEqual({ 'book:3': {title: 'New Merged book by TX2'} });
+        expect(await cache.get('book:4')).toEqual({ 'book:4': { title: 'new book 4', sub:'j32', sub2: '12' } });
+      });
+  
+  
+      it('test local entries', async function () {
+        let cache = buildCache();
+  
+        await cache.load([
+          ['book:1', { 'book:1': {title: 'A History of the English speaking peoples'}}],
+          ['book:2', { 'book:2': {title: 'Marlborough: his life and times' }}],
+        ]);
+  
+        let tx = await cache.beginTransaction();  
+  
+        await tx.merge('book:3', {entity: {'book:3': { title: 'New Merged book' }}, revision: 1});
+        await tx.merge('book:1', {entity: {'book:1': { title: 'Conflict', sub:'j3' }}, revision: 1});
+  
+        const localEntries = tx.localEntries();
+  
+        expect(((await localEntries.next()).value)).toEqual(['book:3', { 'book:3': {title: 'New Merged book'} }, undefined]);
+        expect(((await localEntries.next()).value)).toEqual(['book:1', { 'book:1': { title: 'Conflict', sub:'j3' } }, undefined]);
+      });
 });
 

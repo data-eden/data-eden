@@ -50,7 +50,6 @@ export interface CacheEntryState<UserExtensionData = unknown> {
   /**
   The last time this cache entry was accessed, either via `get`, `set`, or
   `merge`.
-
   Mainly useful for userland retention policies.
   */
   lastAccessed?: number; // timestamp
@@ -136,10 +135,8 @@ export interface CacheOptions<CacheKeyRegistry extends DefaultRegistry, Key exte
   hooks?: {
     /**
     An optional callback that is invoked just before a transaction is committed.
-
     This does not allow users to mutate the transaction, but it is a hook where
     custom retention policies can be implemented.
-
     The default retention policies are all implementable in userland as commit hooks.
     */
     commit?: (tx: CacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>) => void;
@@ -148,15 +145,12 @@ export interface CacheOptions<CacheKeyRegistry extends DefaultRegistry, Key exte
     An optional hook for merging new versions of an entity into the cache. This
     hook specifies the default behaviour for the cache -- a different merge
     strategy can be passed in per call to `LiveCacheTransaction.merge`
-
     The hook returns the updated merged entry -- it may not mutate any of its arguments.
-
     If unspecified, the default merge strategy is to deeply merge objects.
     */
     entitymergeStrategy?: EntityMergeStrategy<CacheKeyRegistry, Key, $Debug, UserExtensionData>;
     /**
     An optional hook for merging the list of revisions for a cache entry.
-
     If unspecified, the default retention strategy is to keep the full history
     of an entry as long as it's in the cache, evicting revisions only when the
     value itself is evicted.
@@ -193,18 +187,15 @@ export interface Cache<
     Calling `.save()` without a serializer will iterate over the cache entries
     and return an array of cache entry tuples. The values contained within the
     tuples are copied via `structuredClone`.
-
     If your cache entries are not structured clonable, (e.g. a function)
     `.save()` will throw an error. In this case, use the alternate form of
     `.save` passing in a `CacheEntrySerializer`.
-
     @see <https://developer.mozilla.org/en-US/docs/Web/API/structuredClone>
   */
   save(): Promise<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData> | undefined][]>;
 
   /**
     Calling `.load()` will add all entries passed to the cache.
-
     Note: `.load()` does not clear pre-existing entries, if you need to clear
     entries before loading call `.clear()`.
   */
@@ -646,7 +637,7 @@ class LiveCacheTransactionImpl<
 
 class CacheImpl<
   CacheKeyRegistry extends DefaultRegistry,
-  Key extends keyof CacheKeyRegistry = keyof CacheKeyRegistry,
+  Key extends keyof CacheKeyRegistry,
   $Debug = unknown,
   UserExtensionData = unknown
   > implements Cache<CacheKeyRegistry, Key, $Debug, UserExtensionData>
@@ -708,7 +699,6 @@ class CacheImpl<
 
   /**
     Calling `.load()` will add all entries passed to the cache.
-
     Note: `.load()` does not clear pre-existing entries, if you need to clear
     entries before loading call `.clear()`.
   */
