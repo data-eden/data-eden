@@ -278,6 +278,9 @@ export interface LiveCacheTransaction<
   $Debug = unknown,
   UserExtensionData = unknown
 > extends CacheTransaction<CacheKeyRegistry, $Debug, UserExtensionData> {
+
+  //       let mergedEntity = await tx.merge(id, entity, { revision, entityMergeStrategy, revisionMergeStrategy, $debug: { rawDocument } });
+  
   async merge(cacheKey: Key, value: CachedEntityRevision<CacheKeyRegistry[Key]>, options?: {
     entityMergeStrategy: EntityMergeStrategy<CacheKeyRegistry, $Debug, UserExtensionData>;
     revisionMergeStrategy: RevisionMergeStrategy<CacheKeyRegistry, $Debug, UserExtensionData>;
@@ -442,7 +445,7 @@ async function handleGraphQLResponse(
       // returns the merged result
       let mergedEntity = await tx.merge(id, entity, { revision, entityMergeStrategy, revisionMergeStrategy, $debug: { rawDocument } });
       // For example, parent === book, prop === 'author'
-      // Because all userland calls go through GraphQL operations, we have
+      // Because all userland calls go through Graphql operations, we have
       // the metadata necessary to differentiate strings from references
       parent[prop] = id;
       cachedEntities.push(mergedEntity);
@@ -454,7 +457,6 @@ async function handleGraphQLResponse(
     let documentProxy = new DocumentProxy(document, queryMetaData, { $debug: { rawDocument } });
     DocumentProxyMap.set(document, documentProxy);
 
-    // override any previous item for this documentKey
     await tx.set(documentKey, document);
     await tx.commit();
     txSucceeded = true;
@@ -466,6 +468,11 @@ async function handleGraphQLResponse(
     }
   }
 }
+
+
+// Popopulating transaction ids
+// entityUrn_a ... timestamp1 transactionId1
+// entityUrn_a ... timestamp2 transactionId2
 
 const defaultMergeStrategy = deepMergeStrategy;
 async function shallowMergeStrategy<CacheKeyRegistry>(id, { entity, revision }, current: CacheKeyValue | undefined, tx: CacheTransaction<CacheKeyRegistry>) {
@@ -529,12 +536,12 @@ const defaultRetensionStrategy = retainAllRevisions;
 async function retainNoRevisions(id, tx: CommittingTransaction<CacheKeyRegistry>) {
 }
 async function retainAllRevisions(id, tx: CommittingTransaction<CacheKeyRegistry>) {
-  tx.cache.appendRevisions([...await tx.localRevisions(id)]);
+  tx.cache.appendRevisions([...await tx.localRevisions(id)]); 
 }
 async function retainLast5Revisions(id, tx: CommittingTransaction<CacheKeyRegistry>) {
   let lastFiveRevisions = await take(tx.entryRevisions(id), 5);
 
-  tx.cache.clearRevisions(id);
+  tx.cache.clearRevisions(id);   
   tx.cache.appendRevisions(lastFiveRevisions);
 }
 
