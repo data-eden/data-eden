@@ -348,4 +348,39 @@ describe('@data-eden/cache', function() {
         expect(((await localEntries.next()).value)).toEqual(['book:3', { 'book:3': {title: 'New Merged book'} }, undefined]);
         expect(((await localEntries.next()).value)).toEqual(['book:1', { 'book:1': { title: 'Conflict', sub:'j3' } }, undefined]);
       });
+
+      it('test merging entities with array values', async function () {
+        let cache = buildCache();
+  
+        await cache.load([
+          ['book:1', { 'book:1': {title: 'A History of the English speaking peoples', subjects:[{a: 1}]}}],
+          ['book:2', { 'book:2': {title: 'Marlborough: his life and times' }}],
+        ]);
+  
+        // transaction 1 starts
+        let tx = await cache.beginTransaction();  
+
+        await tx.merge('book:3', {entity: {'book:3': { title: 'New Merged book'} }, revision: 1});
+        await tx.merge('book:1', {entity: {'book:1': { title: 'Conflict', sub:'j3', subjects:[{a: 1}, {b:2}]}}, revision: 1});
+  
+        // Validate Transactional entries
+        expect(tx.get('book:1')).toEqual({ 'book:1': { title: 'Conflict', sub:'j3', subjects:[{a: 1}, {b:2}]} });
+        expect(tx.get('book:2')).toEqual({ 'book:2': {title: 'Marlborough: his life and times' }});
+        expect(tx.get('book:3')).toEqual({ 'book:3': {title: 'New Merged book'} });
+
+        // Validate Cache before commit
+        expect(await cache.get('book:1')).toEqual({'book:1': {title: 'A History of the English speaking peoples', subjects:[{a: 1}]}});
+        expect(await cache.get('book:2')).toEqual({'book:2': {title: 'Marlborough: his life and times' }});
+        expect(await cache.get('book:3')).toEqual(undefined);
+
+        const cacheEntriesBeforeCommit = await cache.save();
+        expect(cacheEntriesBeforeCommit.length).toEqual(2);
+  
+        await tx.commit();
+  
+        // Validate Cache after commit
+        expect(await cache.get('book:1')).toEqual({ 'book:1': { title: 'Conflict', sub:'j3', subjects:[{a: 1}, {b:2}] } });
+        expect(await cache.get('book:2')).toEqual({ 'book:2': {title: 'Marlborough: his life and times' }});
+        expect(await cache.get('book:3')).toEqual({ 'book:3': {title: 'New Merged book'} });
+      });
 });

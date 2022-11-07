@@ -413,7 +413,7 @@ const defaultMergeStrategy = function deepMergeStratey<
 
 // eslint-disable-next-line
 const isObject = function isObject(obj: any): obj is Record<string, any> {
-  return obj !== null && typeof obj === 'object';
+  return obj !== null && !Array.isArray(obj) && typeof obj === 'object';
 }
 
 function deepMerge(targetData: CacheKeyValue, sourceData: CacheKeyValue): CacheKeyValue {
