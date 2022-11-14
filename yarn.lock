@@ -913,15 +913,15 @@
 
 "@data-eden/athena@file:/Users/shkrishn/workspace2/data-eden/packages/athena":
   "resolved" "file:packages/athena"
-  "version" "0.2.0"
+  "version" "0.2.1"
 
 "@data-eden/cache@file:/Users/shkrishn/workspace2/data-eden/packages/cache":
   "resolved" "file:packages/cache"
-  "version" "0.2.0"
+  "version" "0.2.1"
 
 "@data-eden/network@file:/Users/shkrishn/workspace2/data-eden/packages/network":
   "resolved" "file:packages/network"
-  "version" "0.2.0"
+  "version" "0.2.1"
   dependencies:
     "cross-fetch" "^3.1.5"
 
@@ -2130,7 +2130,7 @@
   dependencies:
     "@types/node" "*"
 
-"@typescript-eslint/eslint-plugin@^5.33.0":
+"@typescript-eslint/eslint-plugin@^5.43.0":
   "version" "5.43.0"
   dependencies:
     "@typescript-eslint/scope-manager" "5.43.0"
@@ -2143,7 +2143,7 @@
     "semver" "^7.3.7"
     "tsutils" "^3.21.0"
 
-"@typescript-eslint/parser@^5.0.0", "@typescript-eslint/parser@^5.33.0":
+"@typescript-eslint/parser@^5.0.0", "@typescript-eslint/parser@^5.43.0":
   "version" "5.43.0"
   dependencies:
     "@typescript-eslint/scope-manager" "5.43.0"
@@ -4091,7 +4091,7 @@
   "resolved" "https://registry.npmjs.org/eslint-visitor-keys/-/eslint-visitor-keys-3.3.0.tgz"
   "version" "3.3.0"
 
-"eslint@*", "eslint@^6.0.0 || ^7.0.0 || ^8.0.0", "eslint@^8.17.0", "eslint@>= 6", "eslint@>=4.19.1", "eslint@>=5", "eslint@>=5.16.0", "eslint@>=7.0.0":
+"eslint@*", "eslint@^6.0.0 || ^7.0.0 || ^8.0.0", "eslint@^8.27.0", "eslint@>= 6", "eslint@>=4.19.1", "eslint@>=5", "eslint@>=5.16.0", "eslint@>=7.0.0":
   "version" "8.27.0"
   dependencies:
     "@eslint/eslintrc" "^1.3.3"
@@ -5854,7 +5854,7 @@
   "resolved" "https://registry.npmjs.org/lines-and-columns/-/lines-and-columns-1.2.4.tgz"
   "version" "1.2.4"
 
-"lint-staged@^13.0.1":
+"lint-staged@^13.0.3":
   "version" "13.0.3"
   dependencies:
     "cli-truncate" "^3.1.0"
@@ -7244,7 +7244,7 @@
   "resolved" "https://registry.npmjs.org/prepend-http/-/prepend-http-2.0.0.tgz"
   "version" "2.0.0"
 
-"prettier@^2.6.2":
+"prettier@^2.7.1":
   "version" "2.7.1"
 
 "pretty-error@^4.0.0":
@@ -9403,7 +9403,7 @@
 
 "website@file:/Users/shkrishn/workspace2/data-eden/internal-packages/website":
   "resolved" "file:internal-packages/website"
-  "version" "0.0.0"
+  "version" "0.2.1"
   dependencies:
     "@docusaurus/core" "2.0.1"
     "@docusaurus/preset-classic" "2.0.1"
