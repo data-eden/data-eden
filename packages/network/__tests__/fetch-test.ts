@@ -1,9 +1,7 @@
 import { beforeAll, afterAll, afterEach, expect, test, describe } from 'vitest';
 
 import { Response, Request } from 'cross-fetch';
-// TODO: this import _should_ use `msw/node`, but the types do not resolve
-// properly when using `moduleResolution: 'node16'`
-import { setupServer } from 'msw/lib/node/index.js';
+import { setupServer } from 'msw/node';
 import { MockedRequest, rest } from 'msw';
 
 import { buildFetch, Middleware, NormalizedFetch } from '@data-eden/network';
@@ -69,16 +67,7 @@ describe('@data-eden/fetch', function () {
     expect(response.status).toEqual(200);
     expect(await response.json()).toMatchInlineSnapshot(`
       {
-        "headers": {
-          "headers": {
-            "accept": "*/*",
-            "accept-encoding": "gzip,deflate",
-            "connection": "close",
-            "host": "www.example.com",
-            "user-agent": "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
-          },
-          "names": {},
-        },
+        "headers": {},
         "status": "success",
       }
     `);
@@ -93,21 +82,11 @@ describe('@data-eden/fetch', function () {
 
     expect(response.status).toEqual(200);
     expect(await response.json()).toMatchInlineSnapshot(`
-        {
-          "headers": {
-            "headers": {
-              "accept": "*/*",
-              "accept-encoding": "gzip,deflate",
-              "connection": "close",
-              "host": "www.example.com",
-              "user-agent": "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
-              "x-csrf": "a totally legit request",
-            },
-            "names": {},
-          },
-          "status": "success",
-        }
-      `);
+      {
+        "headers": {},
+        "status": "success",
+      }
+    `);
   });
 
   test('should be able to override fetch', async () => {
@@ -162,20 +141,7 @@ describe('@data-eden/fetch', function () {
     expect(response.status).toEqual(200);
     expect(await response.json()).toMatchInlineSnapshot(`
       {
-        "headers": {
-          "headers": {
-            "accept": "*/*",
-            "accept-encoding": "gzip,deflate",
-            "connection": "close",
-            "content-length": "0",
-            "content-type": "application/x-www-form-urlencoded;charset=UTF-8",
-            "host": "www.example.com",
-            "user-agent": "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
-            "x-csrf": "a totally legit request",
-            "x-http-method-override": "GET",
-          },
-          "names": {},
-        },
+        "headers": {},
         "method": "POST",
         "status": "success",
       }
@@ -238,18 +204,7 @@ describe('@data-eden/fetch', function () {
     expect(response.status).toEqual(200);
     expect(await response.json()).toMatchInlineSnapshot(`
       {
-        "headers": {
-          "headers": {
-            "accept": "*/*",
-            "accept-encoding": "gzip,deflate",
-            "connection": "close",
-            "host": "www.example.com",
-            "three": "true",
-            "two": "true",
-            "user-agent": "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
-          },
-          "names": {},
-        },
+        "headers": {},
         "status": "success",
       }
     `);
@@ -351,7 +306,7 @@ describe('@data-eden/fetch', function () {
       rest.get('http://www.example.com/foo', (req, res, ctx) => {
         expect(req.headers).toMatchInlineSnapshot(`
           HeadersPolyfill {
-            "headers": {
+            Symbol(normalizedHeaders): {
               "accept": "*/*",
               "accept-encoding": "gzip,deflate",
               "connection": "close",
@@ -359,7 +314,7 @@ describe('@data-eden/fetch', function () {
               "user-agent": "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
               "x-track": "signup",
             },
-            "names": Map {
+            Symbol(rawHeaderNames): Map {
               "x-track" => "x-track",
               "accept" => "accept",
               "user-agent" => "user-agent",
