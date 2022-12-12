@@ -278,9 +278,6 @@ export interface LiveCacheTransaction<
   $Debug = unknown,
   UserExtensionData = unknown
 > extends CacheTransaction<CacheKeyRegistry, $Debug, UserExtensionData> {
-
-  //       let mergedEntity = await tx.merge(id, entity, { revision, entityMergeStrategy, revisionMergeStrategy, $debug: { rawDocument } });
-  
   async merge(cacheKey: Key, value: CachedEntityRevision<CacheKeyRegistry[Key]>, options?: {
     entityMergeStrategy: EntityMergeStrategy<CacheKeyRegistry, $Debug, UserExtensionData>;
     revisionMergeStrategy: RevisionMergeStrategy<CacheKeyRegistry, $Debug, UserExtensionData>;

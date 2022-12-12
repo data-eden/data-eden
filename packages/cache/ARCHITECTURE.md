@@ -64,3 +64,24 @@ There are some particular use cases to make sure are ergonomic & have good examp
 ```ts
 async get<Key extends keyof CacheKeyRegistry>(cacheKey: Key): CacheKeyRegistry[Key] | undefined;
 ```
+
+### Additional Notes
+
+- Save + load gets you back into the same state, including for things like LRU
+- check lastAccessed when populating the LRU to restore it properly
+
+- LRU and TTL should be independent strongly held caches
+- semantics: hold on to this strongly for me if EITHER it’s recent (within TTL) or has been recently accessed (in LRU)”
+
+// transaction cache 
+// get, set, merge: update entry state.
+// commit
+
+
+open questions
+
+- apply retention policies before commit 
+- commit hook
+- save
+- load vs new api
+

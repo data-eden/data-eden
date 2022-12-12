@@ -384,3 +384,19 @@ describe('@data-eden/cache', function() {
         expect(await cache.get('book:3')).toEqual({ 'book:3': {title: 'New Merged book'} });
       });
 });
+
+
+
+// Delete
+// Revision strategy
+// cache options
+// query in rev number
+// Rollback
+// clear
+// Entry state 
+
+
+//Todo...
+// TTL & weakcache finalization reg
+// Debug
+// get rid of cachekeyvalue?>
