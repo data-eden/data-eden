@@ -579,7 +579,6 @@ class CacheImpl<
   #cacheEntryState = new Map<Key, CacheEntryState<UserExtensionData> | undefined>;
   #ttl = new Map<Key, CacheKeyRegistry[Key]>();
   #lru = new Map<Key, CacheKeyRegistry[Key]>();
-  #custom = new Map<Key, CacheKeyRegistry[Key]>();
 
   constructor(options: CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData> | undefined) {
     this.#cacheOptions = options;
