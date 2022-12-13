@@ -54,6 +54,44 @@ export interface CacheEntryState<UserExtensionData = unknown> {
   extensions?: UserExtensionData;
 }
 
+export interface LruCache<
+  CacheKeyRegistry extends DefaultRegistry,
+  Key extends keyof CacheKeyRegistry = keyof CacheKeyRegistry,
+> {
+  set(cacheKey: Key, value: CacheKeyRegistry[Key]): void;
+}
+
+class LruCacheImpl<
+ CacheKeyRegistry extends DefaultRegistry,
+ Key extends keyof CacheKeyRegistry = keyof CacheKeyRegistry
+> implements LruCache<CacheKeyRegistry, Key> {
+  
+  #max: number;
+  #lruCache: Map<Key, CacheKeyRegistry[Key]>;
+
+  constructor(maxCapacity: number) {
+    this.#max = maxCapacity;
+    this.#lruCache = new Map<Key, CacheKeyRegistry[Key]>;
+  }
+
+  set(cacheKey: Key, value: CacheKeyRegistry[Key]) {
+    // refresh data
+    if (this.#lruCache.has(cacheKey)) {
+      this.#lruCache.delete(cacheKey);
+    } else if (this.#lruCache.size === this.#max) {
+      // find and evict the LRU entry
+      const lruEntryKey = this.#lruCache.keys().next().value as Key;
+      this.#lruCache.delete(lruEntryKey);
+    }
+
+    this.#lruCache.set(cacheKey, value);
+  }
+
+  getCache(): Map<Key, CacheKeyRegistry[Key]> {
+    return this.#lruCache;
+  }
+}
+
 type CacheKeyValue = Record<string, object | string | number> | string | number ;
 
 export interface EntityMergeStrategy<
@@ -163,6 +201,13 @@ export interface Cache<
   ): Promise<void>;
 
   loadEntryRevisions(revisionMap: Map<Key, CachedEntityRevision<CacheKeyValue>[]>): Promise<void>;
+
+  commitTransaction(
+    entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[],
+    lruCacheMap?: Map< Key, CacheKeyRegistry[Key]>,
+    ttlCacheMap?: Map< Key, CacheKeyRegistry[Key]>,
+    customRentionCache?: Map< Key, CacheKeyRegistry[Key]>
+  ): Promise<void>;
 
   [Symbol.asyncIterator](): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>?]>
 
@@ -351,8 +396,9 @@ class LiveCacheTransactionImpl<
   #commitingTransaction: CommittingTransactionImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>;
   #cacheEntryState: Map<Key, CacheEntryState<UserExtensionData>>;
   #userOptionRetentionPolicy: ExpirationPolicy;
-  #ttlOption: number;
-  #lruOption: number;
+  #ttlPolicy: number;
+  #lruPolicy: number;
+  #lruCache: LruCacheImpl<CacheKeyRegistry, Key>;
 
   constructor(
     originalCache: CacheImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>,
@@ -364,19 +410,20 @@ class LiveCacheTransactionImpl<
     this.#localUpdatedEntries = new Map<Key, CacheKeyRegistry[Key]>();
     this.#commitingTransaction = committingTransaction;
     this.#cacheEntryState = new Map<Key, CacheEntryState<UserExtensionData>>;
-    this.#ttlOption = DEFAULT_EXPIRATION.ttl;
-    this.#lruOption = DEFAULT_EXPIRATION.lru;
+    this.#ttlPolicy = DEFAULT_EXPIRATION.ttl;
+    this.#lruPolicy = DEFAULT_EXPIRATION.lru;
     
     this.#userOptionRetentionPolicy = this.#originalCacheReference.getCacheOptions()?.expiration || DEFAULT_EXPIRATION;
 
     if (this.#userOptionRetentionPolicy && this.#userOptionRetentionPolicy?.lru && typeof this.#userOptionRetentionPolicy.lru === 'number') {
-      this.#lruOption = this.#userOptionRetentionPolicy.lru
+      this.#lruPolicy = this.#userOptionRetentionPolicy.lru
     }
 
     if (this.#userOptionRetentionPolicy && this.#userOptionRetentionPolicy?.ttl && typeof this.#userOptionRetentionPolicy.ttl === 'number') {
-      this.#ttlOption = this.#userOptionRetentionPolicy.ttl
+      this.#ttlPolicy = this.#userOptionRetentionPolicy.ttl
     }
 
+    this.#lruCache = new LruCacheImpl<CacheKeyRegistry, Key>(this.#lruPolicy);
   }
 
   static async beginLiveTransaction<
@@ -398,9 +445,12 @@ class LiveCacheTransactionImpl<
   get(cacheKey: Key): CacheKeyRegistry[Key] | undefined {
     const cacheValue = this.#transactionalCache.get(cacheKey);
 
-    // Update cache entry state
     if (cacheValue) {
-      this.#cacheEntryState.set(cacheKey, { retained: { lru: true, ttl: this.#ttlOption }, lastAccessed: Date.now() })
+      //Update LRU
+      this.#lruCache.set(cacheKey, cacheValue)
+
+      // Update cache entry state
+      this.#cacheEntryState.set(cacheKey, { retained: { lru: true, ttl: this.#ttlPolicy }, lastAccessed: Date.now() })
     }
 
     return cacheValue;
@@ -425,8 +475,10 @@ class LiveCacheTransactionImpl<
     this.#transactionalCache.set(cacheKey, value);
     this.#localUpdatedEntries.set(cacheKey, value);
 
+    // Update LRU
+    this.#lruCache.set(cacheKey, value);
     // Update cache entry state
-    this.#cacheEntryState.set(cacheKey, { retained: { lru: true, ttl: this.#ttlOption }, lastAccessed: Date.now() })
+    this.#cacheEntryState.set(cacheKey, { retained: { lru: true, ttl: this.#ttlPolicy }, lastAccessed: Date.now() })
 
     return value;
   }
@@ -475,9 +527,6 @@ class LiveCacheTransactionImpl<
 
     // call revisionStrategy to append revisions to transaction entityRevisions
     await revisionStrategy(cacheKey, this.#commitingTransaction);
-
-    // Update cache entry state
-    this.#cacheEntryState.set(cacheKey, { retained: { lru: true, ttl: this.#ttlOption }, lastAccessed: Date.now() })
 
     return mergedEntity;
   }
@@ -530,14 +579,16 @@ class LiveCacheTransactionImpl<
         await revisionStrategy(cacheKey, this.#commitingTransaction);
       }
 
-      // Apply custom retention policies before commit (if passed by cache options)
+      // Call commit hook to apply custom retention policies before commit (if passed by cache options)
       const customRetentionPolicy = this.#originalCacheReference.getCacheOptions()?.hooks.commit;
       if (customRetentionPolicy) {
         customRetentionPolicy(this);
       }
 
+      const lruCacheMap = this.#lruCache.getCache();
+
       // commit transaction entries to main cache
-      await this.#originalCacheReference.load(trasactionCacheEntries);
+      await this.#originalCacheReference.commitTransaction(trasactionCacheEntries, lruCacheMap);
 
       // commit all revisions to main cache
       await this.#commitingTransaction.commitTransactionRevisions();
@@ -577,8 +628,8 @@ class CacheImpl<
   #entryRevisions = new Map<Key, CachedEntityRevision<CacheKeyValue>[]>;
   #cacheOptions: CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData> | undefined;
   #cacheEntryState = new Map<Key, CacheEntryState<UserExtensionData> | undefined>;
-  #ttl = new Map<Key, CacheKeyRegistry[Key]>();
-  #lru = new Map<Key, CacheKeyRegistry[Key]>();
+  #lruRetainedCache = new Map<Key, CacheKeyRegistry[Key]>();
+  #ttlRetainedCache = new Map<Key, CacheKeyRegistry[Key]>();
 
   constructor(options: CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData> | undefined) {
     this.#cacheOptions = options;
@@ -632,16 +683,42 @@ class CacheImpl<
       // TODO: finalizregistry
       let clone = structuredClone(value) as CacheKeyRegistry[Key];
       this.#weakCache.set(key, new WeakRef(clone));
-
-      if (this.#cacheOptions?.expiration && this.#cacheOptions.expiration.lru) {
-        updateLruCache(this.#lru, key, value, state || DEFAULT_ENTRY_STATE)
-      }
-  
-      if (this.#cacheOptions?.expiration && this.#cacheOptions.expiration.ttl) {
-        updateTtlCache(this.#ttl, key, value, state || DEFAULT_ENTRY_STATE)
-      }
-
+      
+      // TODO Implement lru & ttl?
       this.#cacheEntryState.set(key, state)
+    }
+  }
+ 
+  async commitTransaction(
+    entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[],
+    lruCacheMap?: Map< Key, CacheKeyRegistry[Key]>,
+    ttlCacheMap?: Map< Key, CacheKeyRegistry[Key]>,
+    customRentionCache?: Map< Key, CacheKeyRegistry[Key]>
+  ): Promise<void> {
+    for await (let entry of entries) {
+      let [key, value, state] = entry;
+
+      // TODO: finalizregistry
+      let clone = structuredClone(value) as CacheKeyRegistry[Key];
+      this.#weakCache.set(key, new WeakRef(clone));
+      
+      this.#cacheEntryState.set(key, state)
+    }
+
+    if (lruCacheMap) {
+      for await (let entry of lruCacheMap) {
+        let [key, value] = entry;
+
+        this.#lruRetainedCache.set(key, value);
+      }
+    }
+
+    if (ttlCacheMap) {
+      for await (let entry of ttlCacheMap) {
+        let [key, value] = entry;
+
+        this.#ttlRetainedCache.set(key, value);
+      }
     }
   }
 
@@ -653,7 +730,7 @@ class CacheImpl<
         this.#entryRevisions.set(cacheKey, revision)
       }
     }
-  }  
+  } 
 
   /**
     Generator function for async iterable that yields iterable cache entries. This
@@ -679,16 +756,16 @@ class CacheImpl<
     }
 
     // yield strongly held values
-    for await (const [key] of this.#ttl) {
-      const value = this.#ttl.get(key) as CacheKeyRegistry[Key];
+    for await (const [key] of this.#ttlRetainedCache) {
+      const value = this.#ttlRetainedCache.get(key) as CacheKeyRegistry[Key];
 
       const state = this.#cacheEntryState.get(key) || DEFAULT_ENTRY_STATE;
 
       yield [key, value, state];
     }
 
-    for await (const [key] of this.#lru) {
-      const value = this.#lru.get(key) as CacheKeyRegistry[Key];
+    for await (const [key] of this.#lruRetainedCache) {
+      const value = this.#lruRetainedCache.get(key) as CacheKeyRegistry[Key];
       const state = this.#cacheEntryState.get(key) || DEFAULT_ENTRY_STATE;
       yield [key, value, state];
     }
@@ -737,6 +814,13 @@ class CacheImpl<
   async beginTransaction(): Promise<LiveCacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>> {
     return await LiveCacheTransactionImpl.beginLiveTransaction(this);
   }
+}
+
+export interface LruCache<
+ CacheKeyRegistry extends DefaultRegistry,
+ Key extends keyof CacheKeyRegistry = keyof CacheKeyRegistry,
+> {
+  set(cacheKey: Key, value: CacheKeyRegistry[Key]): void;
 }
 
 export function buildCache<
@@ -807,22 +891,4 @@ function resolveConflict(target: Record<string, object | string | number>, sourc
   return deepMerge(target[property] as CacheKeyValue, source[property] as CacheKeyValue) ;
 }
 
-function updateLruCache<  
-  CacheKeyRegistry extends DefaultRegistry, 
-  Key extends keyof CacheKeyRegistry,
-  UserExtensionData = unknown
->(lruCache: Map<Key, CacheKeyRegistry[Key]>, cacheKey: Key, value: CacheKeyRegistry[Key], state: CacheEntryState<UserExtensionData>): Map<Key, CacheKeyRegistry[Key]> {
 
-  // TODO implement LRU 
-  return lruCache;
-}
-
-function updateTtlCache<  
-  CacheKeyRegistry extends DefaultRegistry, 
-  Key extends keyof CacheKeyRegistry,
-  UserExtensionData = unknown
->(ttlCache: Map<Key, CacheKeyRegistry[Key]>, cacheKey: Key, value: CacheKeyRegistry[Key], state: CacheEntryState<UserExtensionData>): Map<Key, CacheKeyRegistry[Key]> {
-
-    // TODO implement TTL 
-  return ttlCache;
-}
