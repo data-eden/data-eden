@@ -7,7 +7,7 @@ function structuredClone(x: any): any {
   }
 }
 
-const DEFAULT_EXPIRATION = { lru: 10, ttl: 5000 };
+const DEFAULT_EXPIRATION = { lru: 10, ttl: 60000 };
 
 const DEFAULT_ENTRY_STATE = { retained: {lru: false, ttl: DEFAULT_EXPIRATION.ttl} };
 
@@ -597,7 +597,7 @@ class LiveCacheTransactionImpl<
     try {
       await Promise.race([writeToCache(), commitLock]);
     } catch {
-      // TODO throw error
+      // TODO throw error/warning
       await this.rollback(cacheSnapshotBeforeCommit);
     }
   }
@@ -628,11 +628,20 @@ class CacheImpl<
   #entryRevisions = new Map<Key, CachedEntityRevision<CacheKeyValue>[]>;
   #cacheOptions: CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData> | undefined;
   #cacheEntryState = new Map<Key, CacheEntryState<UserExtensionData> | undefined>;
-  #lruRetainedCache = new Map<Key, CacheKeyRegistry[Key]>();
-  #ttlRetainedCache = new Map<Key, CacheKeyRegistry[Key]>();
+  // #lruRetainedCache = new Map<Key, CacheKeyRegistry[Key]>();
+  // #ttlRetainedCache = new Map<Key, CacheKeyRegistry[Key]>();
+  #lruCache: LruCacheImpl<CacheKeyRegistry, Key>;
+  #lruPolicy: number;
 
   constructor(options: CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData> | undefined) {
     this.#cacheOptions = options;
+    const expiration = this.#cacheOptions?.expiration || DEFAULT_EXPIRATION;
+    this.#lruPolicy = DEFAULT_EXPIRATION.lru;
+
+    if (expiration && expiration?.lru && typeof expiration.lru === 'number') {
+      this.#lruPolicy = expiration.lru
+    }
+    this.#lruCache = new LruCacheImpl<CacheKeyRegistry, Key>(this.#lruPolicy)
   }
 
   /**
@@ -661,7 +670,7 @@ class CacheImpl<
   async save(): Promise<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData> | undefined][]> {
     const arrayOfCacheEntryTuples: [Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData> | undefined][] = [];
     for await (const [key, value, state] of this.entries()) {
-      // create state
+      // TODO create state?
       const structuredClonedValue = structuredClone(value) as CacheKeyRegistry[Key];
       arrayOfCacheEntryTuples.push([key, structuredClonedValue, state])
     } 
@@ -684,7 +693,7 @@ class CacheImpl<
       let clone = structuredClone(value) as CacheKeyRegistry[Key];
       this.#weakCache.set(key, new WeakRef(clone));
       
-      // TODO Implement lru & ttl?
+      this.#lruCache.set(key, value);
       this.#cacheEntryState.set(key, state)
     }
   }
@@ -709,17 +718,12 @@ class CacheImpl<
       for await (let entry of lruCacheMap) {
         let [key, value] = entry;
 
-        this.#lruRetainedCache.set(key, value);
+        this.#lruCache.set(key, value);
       }
     }
 
-    if (ttlCacheMap) {
-      for await (let entry of ttlCacheMap) {
-        let [key, value] = entry;
+    // TODO TTL
 
-        this.#ttlRetainedCache.set(key, value);
-      }
-    }
   }
 
   async loadEntryRevisions(revisions: Map<Key, CachedEntityRevision<CacheKeyValue>[]>): Promise<void> { 
@@ -755,20 +759,20 @@ class CacheImpl<
       yield [key, valueRef, state];
     }
 
+    const lru = this.#lruCache.getCache();
+
     // yield strongly held values
-    for await (const [key] of this.#ttlRetainedCache) {
-      const value = this.#ttlRetainedCache.get(key) as CacheKeyRegistry[Key];
+    for await (const [key] of lru) {
+      const value = lru.get(key) as CacheKeyRegistry[Key];
 
       const state = this.#cacheEntryState.get(key) || DEFAULT_ENTRY_STATE;
 
       yield [key, value, state];
     }
 
-    for await (const [key] of this.#lruRetainedCache) {
-      const value = this.#lruRetainedCache.get(key) as CacheKeyRegistry[Key];
-      const state = this.#cacheEntryState.get(key) || DEFAULT_ENTRY_STATE;
-      yield [key, value, state];
-    }
+    // TODO yield
+
+    // TODO How to yield entries that are custom retention through userland
   }
 
   /**
