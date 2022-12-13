@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 // TODO: add a tests tsconfig so we can import properly
 import { buildCache } from '@data-eden/cache';
+import { l } from 'vitest/dist/index-4a906fa4.js';
 
 // TODO: add tests for types
+// TODO test live trasaction where original cache has enitiy that is GCd (memory management tests)
 
 describe('@data-eden/cache', function() {
   describe('with no user registry', function() {
@@ -41,13 +43,13 @@ describe('@data-eden/cache', function() {
 
       const entries = cache.entries();
       const entry1 = await entries.next();
+      const defaultEntryState = {retained: {lru: false, ttl: 60000}}
 
-      // TODO validate cache entry state
       // TODO setup & validate weekly held and strongly held entries
-      expect(entry1.value).toEqual(['book:1', { title: 'A History of the English speaking peoples' }, undefined]);
+      expect(entry1.value).toEqual(['book:1', { title: 'A History of the English speaking peoples' }, defaultEntryState]);
 
       const entry2 = await entries.next();
-      expect(entry2.value).toEqual(['book:2', { title: 'Marlborough: his life and times' }, undefined]);
+      expect(entry2.value).toEqual(['book:2', { title: 'Marlborough: his life and times' }, defaultEntryState]);
 
       for await (const [key, value] of cache.entries()) {
         expect(key).toBeTypeOf('string');
@@ -110,7 +112,7 @@ describe('@data-eden/cache', function() {
       const cacheEntryTuple1 = arrayOfCacheEntryTuples.at(0);
       const cacheEntryTuple2 = arrayOfCacheEntryTuples.at(1);
 
-      expect(arrayOfCacheEntryTuples.length).toEqual(2);
+      expect(arrayOfCacheEntryTuples.length).toEqual(4);
 
       expect(cacheEntryTuple1?.length).toEqual(3);
       expect(cacheEntryTuple1?.at(0)).toEqual('book:1');
@@ -127,15 +129,13 @@ describe('@data-eden/cache', function() {
       // TODO verify cache entry state
     });
 
-    it('test cache.save w/o serializer throws error when values are not structured clonable', async () => {
+    it('test cache.load w/o serializer throws error when values are not structured clonable', async () => {
       let cache = buildCache();
 
-      await cache.load([
-        ['book:1', function() { }],
-      ]);
-
       void expect(async () => {
-        await cache.save();
+        await cache.load([
+          ['book:1', function() { }],
+        ]);
       }).rejects.toThrow('The cache value is not structured clonable use `save` with serializer');
     });
 
@@ -229,7 +229,6 @@ describe('@data-eden/cache', function() {
     it('can be built', function() { });
   });
 
-      //TODO test live trasaction where original cache has enitiy that is GCd
       it('test single transaction', async function () {
         let cache = buildCache();
   
@@ -255,7 +254,7 @@ describe('@data-eden/cache', function() {
         expect(await cache.get('book:3')).toEqual(undefined);
   
         const cacheEntriesBeforeCommit = await cache.save();
-        expect(cacheEntriesBeforeCommit.length).toEqual(2);
+        expect(cacheEntriesBeforeCommit.length).toEqual(4);
   
         await tx.commit();
   
@@ -342,11 +341,15 @@ describe('@data-eden/cache', function() {
   
         await tx.merge('book:3', {entity: {'book:3': { title: 'New Merged book' }}, revision: 1});
         await tx.merge('book:1', {entity: {'book:1': { title: 'Conflict', sub:'j3' }}, revision: 1});
+        const localEntries = []
   
-        const localEntries = tx.localEntries();
-  
-        expect(((await localEntries.next()).value)).toEqual(['book:3', { 'book:3': {title: 'New Merged book'} }, undefined]);
-        expect(((await localEntries.next()).value)).toEqual(['book:1', { 'book:1': { title: 'Conflict', sub:'j3' } }, undefined]);
+
+        for await (const [key, value, state] of tx.localEntries()) {
+          localEntries.push([key, value, state])
+        }
+
+        expect(localEntries.at(0)?.at(1)).toEqual({'book:3': { title: 'New Merged book' }});
+        expect(localEntries.at(1)?.at(1)).toEqual({'book:1': { title:  'Conflict', sub:'j3' }});
       });
 
       it('test merging entities with array values', async function () {
@@ -374,7 +377,7 @@ describe('@data-eden/cache', function() {
         expect(await cache.get('book:3')).toEqual(undefined);
 
         const cacheEntriesBeforeCommit = await cache.save();
-        expect(cacheEntriesBeforeCommit.length).toEqual(2);
+        expect(cacheEntriesBeforeCommit.length).toEqual(4);
   
         await tx.commit();
   
