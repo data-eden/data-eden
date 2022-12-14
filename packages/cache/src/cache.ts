@@ -705,7 +705,7 @@ class CacheImpl<
       let clone = structuredClone(value) as CacheKeyRegistry[Key];
       this.#weakCache.set(key, new WeakRef(clone));
       
-      this.#lruCache.set(key, value);
+      this.#lruCache.set(key, clone);
       this.#cacheEntryState.set(key, state);
 
       const entityRevision = {entity: value as CacheKeyValue, revision: ++revisionCounter}
@@ -731,17 +731,11 @@ class CacheImpl<
       let clone = structuredClone(value) as CacheKeyRegistry[Key];
       this.#weakCache.set(key, new WeakRef(clone));
       
-      this.#cacheEntryState.set(key, state)
-    }
+      this.#cacheEntryState.set(key, state);
 
-    for await (let entry of lruCacheMap) {
-      let [key, value] = entry;
-      this.#lruCache.set(key, value);
-    }
-
-    for await (let entry of ttlCacheMap) {
-      let [key, value] = entry;
-      this.#lruCache.set(key, value);
+      if (lruCacheMap.has(key)) {
+        this.#lruCache.set(key, clone);
+      }
     }
 
     for await (const [cacheKey, revision] of entryRevisions) {
