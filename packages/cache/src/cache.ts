@@ -572,10 +572,13 @@ class LiveCacheTransactionImpl<
 
         const structuredClonedValue = structuredClone(entityToCommit) as CacheKeyRegistry[Key];
   
-        trasactionCacheEntries.push([cacheKey, structuredClonedValue, state])
+        trasactionCacheEntries.push([cacheKey, structuredClonedValue, state]);
 
         // Update saved revisions of the entity
-        const entityRevision = {entity: entityToCommit as CacheKeyValue, revision: 3}
+        const localRevisions = this.#localRevisions.get(cacheKey);
+        let revisionNumber = localRevisions && localRevisions[localRevisions.length - 1].revision ? localRevisions[localRevisions.length - 1].revision : 0;
+ 
+        const entityRevision = {entity: entityToCommit as CacheKeyValue, revision: ++revisionNumber}
         if (this.#localRevisions.has(cacheKey)) {
           this.#localRevisions.get(cacheKey)?.push(entityRevision)
         } else {

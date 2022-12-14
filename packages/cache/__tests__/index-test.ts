@@ -482,12 +482,13 @@ describe('@data-eden/cache', function() {
       const entryRevisions = cache.entryRevisions('book:1');
       const revisions = []
       for await (const entry of entryRevisions) {
-        // console.log(entry)
         revisions.push(entry)
       }
       
       expect(revisions.length).toEqual(3);
+      expect(revisions.includes({entity: { 'book:1': { title: 'A History of the English speaking peoples' } }, revision: 1}))
       expect(revisions.includes({entity: {'book:1': { title: 'Conflict', sub:'j3' }}, revision: 2}))
+      expect(revisions.includes({entity: {'book:1': { title: 'Conflict', sub:'j3' }}, revision: 3}))
     });
   });
 
