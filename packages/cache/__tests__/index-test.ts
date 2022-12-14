@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, assert } from 'vitest';
 // TODO: add a tests tsconfig so we can import properly
 import { buildCache } from '@data-eden/cache';
 
@@ -464,10 +464,32 @@ describe('@data-eden/cache', function() {
     });
   });
 
-  // describe('test revisions', function() {
+  describe('test revision strategy', function() {
     
+    it('test entry revisions are merged correctly', async function () {
+      let cache = buildCache();
 
-  // });
+      await cache.load([
+        ['book:1', { 'book:1': {title: 'A History of the English speaking peoples'}}],
+       // ['book:2', { 'book:2': {title: 'Marlborough: his life and times' }}],
+      ]);
+
+      let tx = await cache.beginTransaction();  
+
+    //  await tx.merge('book:3', {entity: {'book:3': { title: 'New Merged book' }}, revision: 2});
+      await tx.merge('book:1', {entity: {'book:1': { title: 'Conflict', sub:'j3' }}, revision: 2});
+
+      await tx.commit();
+
+      const entryRevisions = cache.entryRevisions('book:1');
+
+      // console.log('test')
+      // console.log((await entryRevisions.next()).value)
+      // console.log((await entryRevisions.next()).value)
+      // console.log((await entryRevisions.next()).value)
+      // console.log((await entryRevisions.next()).value)
+    });
+  });
 
 
 });
