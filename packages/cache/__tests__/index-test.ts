@@ -1,6 +1,7 @@
 import { describe, it, expect, assert } from 'vitest';
 // TODO: add a tests tsconfig so we can import properly
 import { buildCache } from '@data-eden/cache';
+import { e } from 'vitest/dist/index-4a906fa4.js';
 
 // TODO: add tests for types
 // TODO test live trasaction where original cache has enitiy that is GCd (memory management tests)
@@ -471,23 +472,23 @@ describe('@data-eden/cache', function() {
 
       await cache.load([
         ['book:1', { 'book:1': {title: 'A History of the English speaking peoples'}}],
-       // ['book:2', { 'book:2': {title: 'Marlborough: his life and times' }}],
       ]);
 
       let tx = await cache.beginTransaction();  
 
-    //  await tx.merge('book:3', {entity: {'book:3': { title: 'New Merged book' }}, revision: 2});
       await tx.merge('book:1', {entity: {'book:1': { title: 'Conflict', sub:'j3' }}, revision: 2});
 
       await tx.commit();
 
       const entryRevisions = cache.entryRevisions('book:1');
-
-      // console.log('test')
-      // console.log((await entryRevisions.next()).value)
-      // console.log((await entryRevisions.next()).value)
-      // console.log((await entryRevisions.next()).value)
-      // console.log((await entryRevisions.next()).value)
+      const revisions = []
+      for await (const entry of entryRevisions) {
+        // console.log(entry)
+        revisions.push(entry)
+      }
+      
+      expect(revisions.length).toEqual(3);
+      expect(revisions.includes({entity: {'book:1': { title: 'Conflict', sub:'j3' }}, revision: 2}))
     });
   });
 

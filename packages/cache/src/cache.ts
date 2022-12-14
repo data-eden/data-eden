@@ -418,11 +418,7 @@ class LiveCacheTransactionImpl<
       transactionalCache.set(key, {...value});
 
       for await (const entryRevision of originalCache.entryRevisions(key)) {
-        if (entryRevisions.has(key)) {
-          entryRevisions.get(key)?.push(entryRevision)
-        } else {
-          entryRevisions.set(key, [entryRevision])
-        }
+        entryRevisions.set(key, [entryRevision])
       }
     }
 
@@ -568,6 +564,7 @@ class LiveCacheTransactionImpl<
         const mergeStrategy = mergeStrategyFromCacheOptionHook || defaultMergeStrategy;
         
         if (latestCacheValue) {   
+          // TODO fix revision
           entityToCommit = mergeStrategy(cacheKey, { entity: value as CacheKeyValue, revision: 3 }, latestCacheValue, this);
         } else {
           entityToCommit = value;
