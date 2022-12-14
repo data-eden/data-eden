@@ -711,7 +711,7 @@ class CacheImpl<
       this.#lruCache.set(key, value);
       this.#cacheEntryState.set(key, state);
 
-      const entityRevision = {entity: value as CacheKeyValue, revision: 312}
+      const entityRevision = {entity: value as CacheKeyValue, revision: ++revisionCounter}
       if (this.#entryRevisions.has(key)) {
         const revisions = this.#entryRevisions.get(key)?.concat(entityRevision) || []
         this.#entryRevisions.set(key, revisions)
