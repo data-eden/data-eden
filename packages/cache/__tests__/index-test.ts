@@ -111,7 +111,7 @@ describe('@data-eden/cache', function() {
       const cacheEntryTuple1 = arrayOfCacheEntryTuples.at(0);
       const cacheEntryTuple2 = arrayOfCacheEntryTuples.at(1);
 
-      expect(arrayOfCacheEntryTuples.length).toEqual(4);
+      expect(arrayOfCacheEntryTuples.length).toEqual(2);
 
       expect(cacheEntryTuple1?.length).toEqual(3);
       expect(cacheEntryTuple1?.at(0)).toEqual('book:1');
@@ -271,7 +271,7 @@ describe('@data-eden/cache', function() {
       expect(await cache.get('book:3')).toEqual(undefined);
 
       const cacheEntriesBeforeCommit = await cache.save();
-      expect(cacheEntriesBeforeCommit.length).toEqual(4);
+      expect(cacheEntriesBeforeCommit.length).toEqual(2);
 
       await tx.commit();
 
@@ -306,7 +306,7 @@ describe('@data-eden/cache', function() {
       expect(await cache.get('book:3')).toEqual(undefined);
 
       const cacheEntriesBeforeCommit = await cache.save();
-      expect(cacheEntriesBeforeCommit.length).toEqual(4);
+      expect(cacheEntriesBeforeCommit.length).toEqual(2);
 
       await tx.commit();
 
@@ -434,7 +434,7 @@ describe('@data-eden/cache', function() {
       expect(await cache.get('book:3')).toEqual(undefined);
 
       const cacheEntriesBeforeCommit = await cache.save();
-      expect(cacheEntriesBeforeCommit.length).toEqual(4);
+      expect(cacheEntriesBeforeCommit.length).toEqual(2);
 
       await tx.commit();
 
