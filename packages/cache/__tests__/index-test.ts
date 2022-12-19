@@ -1,7 +1,6 @@
 import { describe, it, expect} from 'vitest';
 // TODO: add a tests tsconfig so we can import properly
 import { buildCache } from '@data-eden/cache';
-import { CacheEntryState } from '../src/cache.js';
 
 // TODO: add tests for types
 // TODO test live trasaction where original cache has enitiy that is GCd (memory management tests)
