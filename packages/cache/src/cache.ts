@@ -39,6 +39,9 @@ type CacheEntry<
     state?: CacheEntryState<UserExtensionData>
   ];
 
+/**
+ * A entry state (retention,last accessed) of each cache entry
+ */
 export interface CacheEntryState<UserExtensionData = unknown> {
   retained: {
     lru: boolean;
@@ -54,19 +57,19 @@ export interface CacheEntryState<UserExtensionData = unknown> {
   extensions?: UserExtensionData;
 }
 
+/**
+ * LRU Cache
+ */
 export interface LruCache<
   CacheKeyRegistry extends DefaultRegistry,
-  Key extends keyof CacheKeyRegistry = keyof CacheKeyRegistry,
-  UserExtensionData = unknown
+  Key extends keyof CacheKeyRegistry = keyof CacheKeyRegistry
 > {
   set(cacheKey: Key, value: CacheKeyRegistry[Key]): void;
-  hydrate(cacheKey: Key, value: CacheKeyRegistry[Key], entryState: CacheEntryState<UserExtensionData> ): void
 }
 
 class LruCacheImpl<
   CacheKeyRegistry extends DefaultRegistry,
-  Key extends keyof CacheKeyRegistry,
-  UserExtensionData = unknown
+  Key extends keyof CacheKeyRegistry
 > implements LruCache<CacheKeyRegistry, Key> {
   
   #max: number;
@@ -88,11 +91,6 @@ class LruCacheImpl<
     }
 
     this.#lruCache.set(cacheKey, value);
-  }
-
-  hydrate(cacheKey: Key, value: CacheKeyRegistry[Key], entryState: CacheEntryState<UserExtensionData> ) {
-
-
   }
 
   getCache(): Map<Key, CacheKeyRegistry[Key]> {
@@ -135,7 +133,7 @@ type ExpirationPolicy = false | {
   ttl: number;
 }
 export interface CacheOptions<CacheKeyRegistry extends DefaultRegistry, Key extends keyof CacheKeyRegistry, $Debug = unknown, UserExtensionData = unknown> {
-  hooks: {
+  hooks?: {
     /**
     An optional callback that is invoked just before a transaction is committed.
 
@@ -181,8 +179,14 @@ export interface Cache<
   */
   clear(): Promise<void>;
 
+  /**
+    Restuns all cache options passed
+  */
   getCacheOptions(): CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData> | undefined;
 
+  /**
+    Get Cache value based on cache key
+  */
   get(cacheKey: Key): Promise<CacheKeyRegistry[Key] | undefined>;
 
   /**
@@ -210,14 +214,31 @@ export interface Cache<
 
   [Symbol.asyncIterator](): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>?]>
 
+  /**
+    Generator function that yields each of the cache entries. Note that this
+    will include both strongly held (unexpired entries) as well as weakly held
+    entries.
+  */
   entries(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]>;
 
+  /**
+    Generator function that yields each of the cache entry revision
+  */
   entryRevisions(cacheKey: Key):  AsyncIterableIterator<CachedEntityRevision<CacheKeyValue>>;
 
+  /**
+    Generator function that yields each of the cache entry keys
+  */
   keys(): AsyncIterableIterator<Key>;
 
+  /**
+    Generator function that yields each of the cache entry values
+  */
   values(): AsyncIterableIterator<CacheKeyRegistry[Key]>;
 
+  /**
+    Creates a live transaction instance
+  */
   beginTransaction(): Promise<LiveCacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>>;
 }
 
@@ -229,28 +250,44 @@ export interface CacheTransaction<
   UserExtensionData = unknown
   > {
   
+  /**
+    Get the value of `cacheKey` in the cache.  If `key` has been modified in this
+    transaction (e.g. via `merge` or `set`), `tx.get` will return the updated
+    entry in this transaction. The return value can therefore differ from
+    `cache.get`.
+  */
   get(cacheKey: Key): CacheKeyRegistry[Key] | CacheKeyValue | undefined;
 
   [Symbol.asyncIterator](entryMap: Map<Key, CacheKeyRegistry[Key]>): AsyncIterableIterator<[Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]>
 
+  /**
+    Generator function that yields each of the transaction entries including local entries and entries before transaction began.
+  */
   entries(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key] | CacheKeyValue, CacheEntryState<UserExtensionData>]>;
-
+  
+  /**
+    Generator function that yields each of the transaction local entries.
+  */
   localEntries(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key] | CacheKeyValue, CacheEntryState<UserExtensionData>]>;
 
   /**
-  An async generator that produces the revisions of `key` within this transaction.
+   An async generator that produces the revisions of `key` within this transaction.
   */
   localRevisions(cacheKey: Key): AsyncIterableIterator<CachedEntityRevision<CacheKeyValue>>;
 
   /**
-  An async generator that produces the complete list of revisions for `key`,
-  from the time the transaction began and including the revisions added in this
-  transaction.
+   An async generator that produces the complete list of revisions for `key`,
+   from the time the transaction began and including the revisions added in this
+   transaction.
   */
   entryRevisions(cacheKey: Key): AsyncIterableIterator<CachedEntityRevision<CacheKeyValue>>;
 
   $debug?: $Debug & CacheTransactionDebugAPIs;
 }
+
+/**
+ * Interface specifc to handle Live transaction
+ */
 export interface LiveCacheTransaction<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry,
@@ -258,18 +295,33 @@ export interface LiveCacheTransaction<
   UserExtensionData = unknown
 > extends CacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData> {
 
+  /**
+   * Merges cache entries based on merge strategy
+   */
   merge(cacheKey: Key, value: CachedEntityRevision<CacheKeyValue>,
     options?: {
       $debug: $Debug;
     }
   ): Promise<CacheKeyRegistry[Key] | CacheKeyValue>;
 
+  /**
+   * sets cache values within the transaction
+   */
   set(cacheKey: Key, value: CacheKeyRegistry[Key] | CacheKeyValue): CacheKeyRegistry[Key] | CacheKeyValue;
 
+  /**
+   * Deletes an entry from live transction
+   */
   delete(cacheKey: Key): Promise<boolean>;
 
+  /**
+   * Commits live transction entries. Calls Rollback if there are errors during commit or if commit exceeds timeout
+   */
   commit(): Promise<void>;
 
+  /**
+   * Rollsback the cache to pre-transactional state
+  */
   rollback(): Promise<void>;
 }
 
@@ -481,7 +533,7 @@ class LiveCacheTransactionImpl<
   ): Promise<CacheKeyRegistry[Key] | CacheKeyValue> {
 
     // assign custom merge strategy if specified else use default
-    const mergeStrategyFromCacheOptionHook = this.#originalCacheReference.getCacheOptions()?.hooks.entitymergeStrategy;
+    const mergeStrategyFromCacheOptionHook = this.#originalCacheReference.getCacheOptions()?.hooks?.entitymergeStrategy;
     const mergeStrategy = mergeStrategyFromCacheOptionHook || defaultMergeStrategy;
 
     // get current cache value within this transaction
@@ -525,7 +577,7 @@ class LiveCacheTransactionImpl<
         let entityToCommit;
 
         // assign custom merge strategy if specified else use default
-        const mergeStrategyFromCacheOptionHook = this.#originalCacheReference.getCacheOptions()?.hooks.entitymergeStrategy;
+        const mergeStrategyFromCacheOptionHook = this.#originalCacheReference.getCacheOptions()?.hooks?.entitymergeStrategy;
         const mergeStrategy = mergeStrategyFromCacheOptionHook || defaultMergeStrategy;
         
         if (latestCacheValue) {   
@@ -549,14 +601,14 @@ class LiveCacheTransactionImpl<
           this.#localRevisions.set(cacheKey, [entityRevision])
         }
 
-        const revisionStrategy = this.#originalCacheReference.getCacheOptions()?.hooks.revisionMergeStrategy ? async (id: Key, commitTx: CommittingTransactionImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>, liveTx: LiveCacheTransactionImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>) => this.#originalCacheReference.getCacheOptions()?.hooks.revisionMergeStrategy : defaultRevisionStrategy; 
+        const revisionStrategy = this.#originalCacheReference.getCacheOptions()?.hooks?.revisionMergeStrategy ? async (id: Key, commitTx: CommittingTransactionImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>, liveTx: LiveCacheTransactionImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>) => this.#originalCacheReference.getCacheOptions()?.hooks?.revisionMergeStrategy : defaultRevisionStrategy; 
         
         // Update revisions based on revision strategy
         await revisionStrategy(cacheKey, this.#commitingTransaction, this);
       }
 
       // Call commit hook to apply custom retention policies before commit (if passed by cache options)
-      const customRetentionPolicy = this.#originalCacheReference.getCacheOptions()?.hooks.commit;
+      const customRetentionPolicy = this.#originalCacheReference.getCacheOptions()?.hooks?.commit;
       if (customRetentionPolicy) {
         customRetentionPolicy(this);
       }

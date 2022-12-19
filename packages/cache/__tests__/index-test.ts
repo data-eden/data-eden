@@ -1,6 +1,7 @@
 import { describe, it, expect} from 'vitest';
 // TODO: add a tests tsconfig so we can import properly
 import { buildCache } from '@data-eden/cache';
+import { CacheEntryState } from '../src/cache.js';
 
 // TODO: add tests for types
 // TODO test live trasaction where original cache has enitiy that is GCd (memory management tests)
@@ -492,15 +493,39 @@ describe('@data-eden/cache', function() {
     });
   });
 
+  describe('test LRU', function(){
+    it('test LRU policy', async function () {
+      let cache = buildCache({ expiration: { lru: 4, ttl: 5000}});
 
+      await cache.load([
+        ['book:1', { 'book:1': {title: 'A History1'}}],
+        ['book:2', { 'book:2': {title: 'A History2'}}],
+        ['book:3', { 'book:3': {title: 'A History3'}}],
+        ['book:4', { 'book:4': {title: 'A History4'}}],
+      ]);
+
+      let tx = await cache.beginTransaction();  
+
+      tx.set('book:5', { 'book:5': {title: 'A History5_lru'}});
+      tx.get('book:3');
+      await tx.merge('book:4', {entity: {'book:4': { title: 'A History4_lru' }}, revision: 2});
+      await tx.merge('book:1', {entity: {'book:1': { title: 'A History1_lru' }}, revision: 1});
+
+      await tx.commit();
+
+      const cacheEntries = await cache.save();
+    
+      const lru = cacheEntries.filter((entry) => {
+        const entryState = entry.at(2) as {retained: {lru: true | false}};
+        if (entry.at(2)) {
+          return entryState.retained?.lru === true 
+        }        
+      });
+
+      expect(lru?.at(0)?.at(0)).toEqual('book:1');
+      expect(lru?.at(1)?.at(0)).toEqual('book:4');
+      expect(lru?.at(2)?.at(0)).toEqual('book:5');
+    });
+  });
 });
 
-
-// Revision strategy
-// LRU
-// cache options
-// Entry state 
-
-//Todo...
-// TTL & weakcache finalization reg
-// Debug
