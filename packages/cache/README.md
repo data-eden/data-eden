@@ -280,7 +280,7 @@ export interface LiveCacheTransaction<
 > extends CacheTransaction<CacheKeyRegistry, $Debug, UserExtensionData> {
 
   //       let mergedEntity = await tx.merge(id, entity, { revision, entityMergeStrategy, revisionMergeStrategy, $debug: { rawDocument } });
-  
+
   async merge(cacheKey: Key, value: CachedEntityRevision<CacheKeyRegistry[Key]>, options?: {
     entityMergeStrategy: EntityMergeStrategy<CacheKeyRegistry, $Debug, UserExtensionData>;
     revisionMergeStrategy: RevisionMergeStrategy<CacheKeyRegistry, $Debug, UserExtensionData>;
@@ -536,12 +536,12 @@ const defaultRetensionStrategy = retainAllRevisions;
 async function retainNoRevisions(id, tx: CommittingTransaction<CacheKeyRegistry>) {
 }
 async function retainAllRevisions(id, tx: CommittingTransaction<CacheKeyRegistry>) {
-  tx.cache.appendRevisions([...await tx.localRevisions(id)]); 
+  tx.cache.appendRevisions([...await tx.localRevisions(id)]);
 }
 async function retainLast5Revisions(id, tx: CommittingTransaction<CacheKeyRegistry>) {
   let lastFiveRevisions = await take(tx.entryRevisions(id), 5);
 
-  tx.cache.clearRevisions(id);   
+  tx.cache.clearRevisions(id);
   tx.cache.appendRevisions(lastFiveRevisions);
 }
 

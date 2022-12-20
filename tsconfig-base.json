@@ -10,15 +10,9 @@
     "target": "es2021",
     "baseUrl": ".",
     "paths": {
-      "*": [
-        "./types/*"
-      ]
+      "*": ["./types/*"]
     },
-    "typeRoots": [
-      "node_modules/@types"
-    ]
+    "typeRoots": ["node_modules/@types"]
   },
-  "exclude": [
-    "**/node_modules/**"
-  ]
+  "exclude": ["**/node_modules/**"]
 }
