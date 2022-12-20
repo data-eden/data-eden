@@ -7,7 +7,7 @@ function structuredClone(x: any): any {
   }
 }
 
-const DEFAULT_EXPIRATION = { lru: 10, ttl: 60000 };
+const DEFAULT_EXPIRATION = { lru: 1000, ttl: 60000 };
 
 const DEFAULT_ENTRY_STATE = { retained: {lru: false, ttl: DEFAULT_EXPIRATION.ttl} };
 
