@@ -120,26 +120,26 @@ describe('@data-eden/cache', function () {
 
       const arrayOfCacheEntryTuples = await cache.save();
 
-      const cacheEntryTuple1 = arrayOfCacheEntryTuples.at(0);
-      const cacheEntryTuple2 = arrayOfCacheEntryTuples.at(1);
+      const cacheEntryTuple1 = arrayOfCacheEntryTuples[0];
+      const cacheEntryTuple2 = arrayOfCacheEntryTuples[1];
 
       expect(arrayOfCacheEntryTuples.length).toEqual(2);
 
       expect(cacheEntryTuple1?.length).toEqual(3);
-      expect(cacheEntryTuple1?.at(0)).toEqual('book:1');
-      expect(cacheEntryTuple1?.at(0)).toBeTypeOf('string');
-      expect(cacheEntryTuple1?.at(1)).toEqual({
+      expect(cacheEntryTuple1[0]).toEqual('book:1');
+      expect(cacheEntryTuple1[0]).toBeTypeOf('string');
+      expect(cacheEntryTuple1[1]).toEqual({
         title: 'A History of the English speaking peoples',
       });
-      expect(cacheEntryTuple1?.at(1)).toBeTypeOf('object');
+      expect(cacheEntryTuple1[1]).toBeTypeOf('object');
 
       expect(cacheEntryTuple2?.length).toEqual(3);
-      expect(cacheEntryTuple2?.at(0)).toEqual('book:2');
-      expect(cacheEntryTuple2?.at(0)).toBeTypeOf('string');
-      expect(cacheEntryTuple2?.at(1)).toEqual({
+      expect(cacheEntryTuple2[0]).toEqual('book:2');
+      expect(cacheEntryTuple2[0]).toBeTypeOf('string');
+      expect(cacheEntryTuple2[1]).toEqual({
         title: 'Marlborough: his life and times',
       });
-      expect(cacheEntryTuple2?.at(1)).toBeTypeOf('object');
+      expect(cacheEntryTuple2[1]).toBeTypeOf('object');
 
       // TODO verify cache entry state
     });
@@ -550,10 +550,10 @@ describe('@data-eden/cache', function () {
         localEntries.push([key, value, state]);
       }
 
-      expect(localEntries.at(0)?.at(1)).toEqual({
+      expect(localEntries[0][1]).toEqual({
         'book:3': { title: 'New Merged book' },
       });
-      expect(localEntries.at(1)?.at(1)).toEqual({
+      expect(localEntries[1][1]).toEqual({
         'book:1': { title: 'Conflict', sub: 'j3' },
       });
     });
@@ -752,15 +752,15 @@ describe('@data-eden/cache', function () {
       const cacheEntries = await cache.save();
 
       const lru = cacheEntries.filter((entry) => {
-        const entryState = entry.at(2) as { retained: { lru: true | false } };
-        if (entry.at(2)) {
+        const entryState = entry[2] as { retained: { lru: true | false } };
+        if (entry[2]) {
           return entryState.retained?.lru === true;
         }
       });
 
-      expect(lru?.at(0)?.at(0)).toEqual('book:1');
-      expect(lru?.at(1)?.at(0)).toEqual('book:4');
-      expect(lru?.at(2)?.at(0)).toEqual('book:5');
+      expect(lru[0][0]).toEqual('book:1');
+      expect(lru[1][0]).toEqual('book:4');
+      expect(lru[2][0]).toEqual('book:5');
     });
   });
 });
