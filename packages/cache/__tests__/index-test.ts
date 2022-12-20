@@ -516,7 +516,7 @@ describe('@data-eden/cache', function () {
 
       const cacheEntries = await cache.save();
     
-      const lru = cacheEntries.filter((entry) => {
+      const lru = cacheEntries.filter((entry: { retained: { lru: boolean; }; }[]) => {
         const entryState = entry.at(2) as {retained: {lru: true | false}};
         if (entry.at(2)) {
           return entryState.retained?.lru === true 
