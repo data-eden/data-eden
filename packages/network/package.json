@@ -1,6 +1,6 @@
 {
   "name": "@data-eden/network",
-  "version": "0.2.1",
+  "version": "0.2.2-beta.1",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/data-eden/data-eden.git",

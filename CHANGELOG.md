@@ -3,6 +3,16 @@
 
 
 
+
+## v0.2.2-beta.1 (2022-12-21)
+
+#### :house: Internal
+* [#49](https://github.com/data-eden/data-eden/pull/49) Update linting related devDependencies. ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 2
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
 ## v0.2.1 (2022-08-11)
 
 #### :bug: Bug Fix
