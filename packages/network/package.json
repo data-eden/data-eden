@@ -8,6 +8,9 @@
   },
   "license": "MIT",
   "type": "module",
+  "imports": {
+    "#settled-tracking-middleware": "./src/settled-tracking-middleware.ts"
+  },
   "exports": {
     ".": {
       "import": {
@@ -15,7 +18,9 @@
         "default": "./dist/index.js"
       },
       "default": "./dist/index.js"
-    }
+    },
+    "./NOTE01": "This should be removed once https://github.com/vitejs/vite/pull/7770 lands, and we can use `imports` properly",
+    "./-private/settled-tracking-middleware": "./dist/settled-tracking-middleware.js"
   },
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
