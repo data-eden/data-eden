@@ -255,6 +255,55 @@ describe('@data-eden/fetch', function () {
     `);
   });
 
+  test('earlier middlewares can wrap the results of later middlewares', async () => {
+    const steps: string[] = [];
+    const a: Middleware = async (request: Request, next: NormalizedFetch) => {
+      steps.push('a start');
+
+      const result = await next(request);
+
+      steps.push('a end');
+
+      return result;
+    };
+
+    const b: Middleware = async (request: Request, next: NormalizedFetch) => {
+      steps.push('b start');
+
+      const result = await next(request);
+
+      steps.push('b end');
+
+      return result;
+    };
+
+    const c: Middleware = async (request: Request, next: NormalizedFetch) => {
+      steps.push('c start');
+
+      const result = await next(request);
+
+      steps.push('c end');
+
+      return result;
+    };
+
+    const fetch = buildFetch([a, b, c]);
+
+    const response = await fetch('http://www.example.com/resource');
+
+    expect(steps).toMatchInlineSnapshot(`
+      [
+        "a start",
+        "b start",
+        "c start",
+        "c end",
+        "b end",
+        "a end",
+      ]
+    `);
+    expect(response.status).toEqual(200);
+  });
+
   test('should be able to introspect on the response as a middleware', async () => {
     expect.assertions(4);
 
