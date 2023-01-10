@@ -26,7 +26,7 @@
     "cross-fetch": "^3.1.5"
   },
   "devDependencies": {
-    "msw": "^0.42.0"
+    "msw": "^0.49.2"
   },
   "volta": {
     "extends": "../../package.json"
