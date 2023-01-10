@@ -9,7 +9,12 @@ import {
 } from 'vitest';
 import * as http from 'http';
 
-import { buildFetch, Middleware, NormalizedFetch } from '@data-eden/network';
+import {
+  buildFetch,
+  Middleware,
+  MiddlewareMetadata,
+  NormalizedFetch,
+} from '@data-eden/network';
 import { createServer } from '@data-eden/shared-test-utilities';
 
 function getPrefixedIncomingHttpHeaders(
@@ -210,6 +215,36 @@ describe('@data-eden/fetch', async function () {
       response.status,
       'original fetch was used after globalThis.fetch was reset'
     ).toEqual(200);
+  });
+
+  test('middlewares can access the `buildFetch` result', async () => {
+    const steps: string[] = [];
+
+    const fetches: (typeof fetch)[] = [];
+
+    const middleware: Middleware = async (
+      request: Request,
+      next: NormalizedFetch,
+      metadata: MiddlewareMetadata
+    ) => {
+      const fetchIndex = fetches.findIndex((item) => item === metadata.fetch);
+      steps.push(`invoked from ${fetchIndex}`);
+      return next(request);
+    };
+    fetches.push(buildFetch([middleware]));
+    fetches.push(buildFetch([middleware]));
+
+    await fetches[1]('http://www.example.com/resource');
+    await fetches[0]('http://www.example.com/resource');
+    await fetches[1]('http://www.example.com/resource');
+
+    expect(steps).toMatchInlineSnapshot(`
+      [
+        "invoked from 1",
+        "invoked from 0",
+        "invoked from 1",
+      ]
+    `);
   });
 
   test('should be able to override fetch', async () => {

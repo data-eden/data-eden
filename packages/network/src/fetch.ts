@@ -2,6 +2,18 @@ export type Fetch = typeof fetch;
 
 export type NormalizedFetch = (request: Request) => Promise<Response>;
 
+export interface MiddlewareMetadata {
+  /**
+    The specific function that was returned by `buildFetch`. This can be useful
+    to allow middlewares to handle state that is specifically related to one
+    `buildFetch` result over another one.
+
+    Note: The middleware **must not** actually invoke this `fetch` method (doing so
+    will throw due to infinite recursion).
+  */
+  fetch: Fetch;
+}
+
 export type Middleware = (
   /**
    * Request object to be manipulated by middleware
@@ -10,7 +22,12 @@ export type Middleware = (
   /**
    * localized fetch used when all middlewares are done with manipulating Request
    */
-  next: NormalizedFetch
+  next: NormalizedFetch,
+
+  /**
+   * metadata regarding the current request
+   */
+  metadata: MiddlewareMetadata
 ) => Promise<Response>;
 
 export interface BuildFetchOptions {
@@ -32,20 +49,13 @@ export interface BuildFetchOptions {
   fetch: Fetch;
 }
 
-function combine(
-  next: NormalizedFetch,
-  middleware: Middleware
-): NormalizedFetch {
-  return async (request: Request) => {
-    return middleware(request, next);
-  };
-}
-
 function globalFetch(request: Request): Promise<Response> {
   return fetch(request);
 }
 
 /**
+ * Builds a `fetch`-compatible function that runs `middleware`s on each
+ * request.
  *
  * @param middlewares {Middleware[]} array of middlewares
  * @param options {BuildFetchOptions=} optional options for overriding buildFetch configuration
@@ -62,12 +72,27 @@ export function buildFetch(
   }
   const _fetch: NormalizedFetch = options?.fetch || globalFetch;
 
+  let result: Fetch;
+
   const curriedMiddlewares: NormalizedFetch = [...middlewares]
     .reverse()
-    .reduce(combine, _fetch);
+    .reduce(
+      (next: NormalizedFetch, middleware: Middleware): NormalizedFetch => {
+        return async (request: Request) => {
+          const metadata = {
+            fetch: result,
+          };
 
-  return async (rawRequest: RequestInfo | URL, init?: RequestInit) => {
+          return middleware(request, next, metadata);
+        };
+      },
+      _fetch
+    );
+
+  result = async (rawRequest: RequestInfo | URL, init?: RequestInit) => {
     const normalizedRequest = new Request(rawRequest, init);
     return curriedMiddlewares(normalizedRequest);
   };
+
+  return result;
 }
