@@ -1,17 +1,19 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig.json",
   "compilerOptions": {
+    "baseUrl": ".",
     "composite": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
     "module": "es2020",
     "moduleResolution": "node16",
-    "strict": true,
-    "target": "es2021",
-    "baseUrl": ".",
     "paths": {
       "*": ["./types/*"]
     },
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2021",
     "typeRoots": ["node_modules/@types"]
   },
   "exclude": ["**/node_modules/**"]
