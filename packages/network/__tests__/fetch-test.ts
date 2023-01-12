@@ -1,45 +1,103 @@
-import { beforeAll, afterAll, afterEach, expect, test, describe } from 'vitest';
+import {
+  beforeAll,
+  beforeEach,
+  afterAll,
+  afterEach,
+  expect,
+  test,
+  describe,
+} from 'vitest';
+import * as http from 'http';
 
 import { Response, Request } from 'cross-fetch';
-import { setupServer } from 'msw/node';
-import { MockedRequest, rest } from 'msw';
 
 import { buildFetch, Middleware, NormalizedFetch } from '@data-eden/network';
+import { createServer } from './utils.js';
 
-describe('@data-eden/fetch', function () {
-  const restHandlers = [
-    rest.get('http://www.example.com/resource', (req, res, ctx) => {
-      return res(
-        ctx.status(200),
-        ctx.json({ status: 'success', headers: req.headers })
+function getPrefixedIncomingHttpHeaders(
+  headers: http.IncomingHttpHeaders,
+  prefix: string
+): object {
+  const result: Record<string, string | string[]> = {};
+
+  for (const key in headers) {
+    const value = headers[key];
+    if (key.toLowerCase().startsWith(prefix.toLowerCase()) && value) {
+      result[key] = value;
+    }
+  }
+
+  return result;
+}
+
+function getPrefixedHeaders(headers: Headers, prefix: string): object {
+  const result: Record<string, string | string[]> = {};
+
+  for (const [key, value] of headers) {
+    if (key.toLowerCase().startsWith(prefix.toLowerCase()) && value) {
+      result[key] = value;
+    }
+  }
+
+  return result;
+}
+
+describe('@data-eden/fetch', async function () {
+  const server = await createServer();
+
+  beforeAll(async () => await server.listen());
+  beforeEach(() => {
+    server.get(
+      '/resource',
+      (request: http.IncomingMessage, response: http.ServerResponse) => {
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(
+          JSON.stringify({
+            customOriginalRequestHeaders: getPrefixedIncomingHttpHeaders(
+              request.headers,
+              'X-'
+            ),
+            status: 'success',
+          })
+        );
+      }
+    ),
+      server.post(
+        '/resource/preview',
+        (request: http.IncomingMessage, response: http.ServerResponse) => {
+          response.writeHead(200, { 'Content-Type': 'application/json' });
+          response.end(
+            JSON.stringify({
+              method: request.method,
+              customOriginalRequestHeaders: getPrefixedIncomingHttpHeaders(
+                request.headers,
+                'X-'
+              ),
+              status: 'success',
+            })
+          );
+        }
       );
-    }),
-    rest.post('http://www.example.com/resource/preview', (req, res, ctx) => {
-      return res(
-        ctx.status(200),
-        ctx.json({ status: 'success', method: 'POST', headers: req.headers })
-      );
-    }),
-    rest.get('http://www.example.com/analytics', (_req, res, ctx) => {
-      return res(
-        ctx.set('x-call-id', '1234567'),
-        ctx.status(200),
-        ctx.json({ status: 'success' })
-      );
-    }),
-  ];
 
-  const server = setupServer(...restHandlers);
+    server.get(
+      '/analytics',
+      (_request: http.IncomingMessage, response: http.ServerResponse) => {
+        response.writeHead(200, {
+          'Content-Type': 'application/json',
+          'x-call-id': '1234567',
+        });
 
-  server.events.on('request:unhandled', (req: MockedRequest) => {
-    console.log('%s %s has no handler', req.method, req.url.href);
-
-    throw new Error('handle unhandled request!');
+        response.end(
+          JSON.stringify({
+            status: 'success',
+          })
+        );
+      }
+    );
   });
 
-  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+  afterEach(() => server.reset());
   afterAll(() => server.close());
-  afterEach(() => server.resetHandlers());
 
   const noopMiddleware: Middleware = async (
     request: Request,
@@ -62,12 +120,12 @@ describe('@data-eden/fetch', function () {
 
     const fetch = buildFetch([]);
 
-    const response = await fetch('http://www.example.com/resource');
+    const response = await fetch(server.buildUrl('/resource'));
 
     expect(response.status).toEqual(200);
     expect(await response.json()).toMatchInlineSnapshot(`
       {
-        "headers": {},
+        "customOriginalRequestHeaders": {},
         "status": "success",
       }
     `);
@@ -78,12 +136,14 @@ describe('@data-eden/fetch', function () {
 
     const fetch = buildFetch([noopMiddleware, csrfMiddleware]);
 
-    const response = await fetch('http://www.example.com/resource');
+    const response = await fetch(server.buildUrl('/resource'));
 
     expect(response.status).toEqual(200);
     expect(await response.json()).toMatchInlineSnapshot(`
       {
-        "headers": {},
+        "customOriginalRequestHeaders": {
+          "x-csrf": "a totally legit request",
+        },
         "status": "success",
       }
     `);
@@ -123,7 +183,7 @@ describe('@data-eden/fetch', function () {
       const url = new URL(request.url);
       request.headers.set('X-HTTP-Method-Override', request.method);
       const tunneledRequest = new Request(
-        `${url.protocol}//${url.hostname}${url.pathname}`,
+        `${url.protocol}//${url.hostname}:${url.port}${url.pathname}`,
         {
           method: 'POST',
           headers: request.headers,
@@ -136,12 +196,15 @@ describe('@data-eden/fetch', function () {
 
     const fetch = buildFetch([csrfMiddleware, queryTunneling, noopMiddleware]);
 
-    const response = await fetch('http://www.example.com/resource/preview');
+    const response = await fetch(server.buildUrl('/resource/preview'));
 
     expect(response.status).toEqual(200);
     expect(await response.json()).toMatchInlineSnapshot(`
       {
-        "headers": {},
+        "customOriginalRequestHeaders": {
+          "x-csrf": "a totally legit request",
+          "x-http-method-override": "GET",
+        },
         "method": "POST",
         "status": "success",
       }
@@ -174,7 +237,7 @@ describe('@data-eden/fetch', function () {
         }
       `);
 
-      request.headers.set('two', 'true');
+      request.headers.set('x-two', 'true');
 
       return next(request);
     };
@@ -186,25 +249,28 @@ describe('@data-eden/fetch', function () {
       expect(request.headers).toMatchInlineSnapshot(`
         Headers {
           Symbol(map): {
-            "two": [
+            "x-two": [
               "true",
             ],
           },
         }
       `);
 
-      request.headers.set('three', 'true');
+      request.headers.set('x-three', 'true');
 
       return next(request);
     };
 
     const fetch = buildFetch([middlewareOne, middlewareTwo, middlewareThree]);
 
-    const response = await fetch('http://www.example.com/resource');
+    const response = await fetch(server.buildUrl('/resource'));
     expect(response.status).toEqual(200);
     expect(await response.json()).toMatchInlineSnapshot(`
       {
-        "headers": {},
+        "customOriginalRequestHeaders": {
+          "x-three": "true",
+          "x-two": "true",
+        },
         "status": "success",
       }
     `);
@@ -244,7 +310,7 @@ describe('@data-eden/fetch', function () {
 
     const fetch = buildFetch([a, b, c]);
 
-    const response = await fetch('http://www.example.com/resource');
+    const response = await fetch(server.buildUrl('/resource'));
 
     expect(steps).toMatchInlineSnapshot(`
       [
@@ -268,19 +334,9 @@ describe('@data-eden/fetch', function () {
     ): Promise<Response> {
       const response = await next(request);
 
-      expect(response.headers).toMatchInlineSnapshot(`
-        Headers {
-          Symbol(map): {
-            "content-type": [
-              "application/json",
-            ],
-            "x-call-id": [
-              "1234567",
-            ],
-            "x-powered-by": [
-              "msw",
-            ],
-          },
+      expect(getPrefixedHeaders(response.headers, 'X-')).toMatchInlineSnapshot(`
+        {
+          "x-call-id": "1234567",
         }
       `);
       expect(response.status).toEqual(200);
@@ -290,7 +346,7 @@ describe('@data-eden/fetch', function () {
 
     const fetch = buildFetch([analyticsMiddleware]);
 
-    const response = await fetch('http://www.example.com/analytics');
+    const response = await fetch(server.buildUrl('/analytics'));
     expect(response.status).toEqual(200);
     expect(await response.json()).toMatchInlineSnapshot(`
       {
@@ -302,30 +358,22 @@ describe('@data-eden/fetch', function () {
   test('can read and mutate request headers', async function () {
     expect.assertions(2);
 
-    server.use(
-      rest.get('http://www.example.com/foo', (req, res, ctx) => {
-        expect(req.headers).toMatchInlineSnapshot(`
-          HeadersPolyfill {
-            Symbol(normalizedHeaders): {
-              "accept": "*/*",
-              "accept-encoding": "gzip,deflate",
-              "connection": "close",
-              "host": "www.example.com",
-              "user-agent": "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
-              "x-track": "signup",
-            },
-            Symbol(rawHeaderNames): Map {
-              "x-track" => "x-track",
-              "accept" => "accept",
-              "user-agent" => "user-agent",
-              "accept-encoding" => "accept-encoding",
-              "connection" => "connection",
-              "host" => "host",
-            },
-          }
-        `);
-        return res(ctx.status(200), ctx.json({ status: 'success' }));
-      })
+    server.get(
+      '/foo',
+      (request: http.IncomingMessage, response: http.ServerResponse) => {
+        expect(getPrefixedIncomingHttpHeaders(request.headers, 'X-'))
+          .toMatchInlineSnapshot(`
+        {
+          "x-track": "signup",
+        }
+      `);
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(
+          JSON.stringify({
+            status: 'success',
+          })
+        );
+      }
     );
 
     // A middleware might provide a header-based API (perhaps with sugar
@@ -349,9 +397,10 @@ describe('@data-eden/fetch', function () {
     }
 
     let fetch = buildFetch([headerTransformationMiddleware]);
-    let response = await fetch('http://www.example.com/foo', {
+    let response = await fetch(server.buildUrl('/foo'), {
       headers: { 'X-Use-Case': 'signup' },
     });
+
     expect(await response.json()).toMatchInlineSnapshot(`
       {
         "status": "success",
