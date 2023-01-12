@@ -1,5 +1,3 @@
-import { Request, fetch } from 'cross-fetch';
-
 export type Fetch = typeof fetch;
 
 export type NormalizedFetch = (request: Request) => Promise<Response>;
@@ -29,7 +27,7 @@ export interface BuildFetchOptions {
    */
   disableMessage?: string;
   /**
-   * override the default cross-fetch implementation
+   * override the default fetch implementation
    */
   fetch: Fetch;
 }
@@ -53,6 +51,12 @@ export function buildFetch(
   middlewares: Middleware[],
   options?: BuildFetchOptions
 ): Fetch {
+  if (typeof fetch === 'undefined') {
+    throw new Error(
+      "@data-eden/network requires `fetch` to be available on`globalThis`. Did you forget to setup `cross-fetch/polyfill` before calling @data-eden/network's `buildFetch`?"
+    );
+  }
+
   const _fetch: NormalizedFetch = options?.fetch || fetch;
 
   const curriedMiddlewares: NormalizedFetch = [...middlewares]

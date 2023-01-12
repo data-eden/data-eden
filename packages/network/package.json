@@ -22,10 +22,9 @@
   "scripts": {
     "test": "vitest run"
   },
-  "dependencies": {
-    "cross-fetch": "^3.1.5"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "cross-fetch": "^3.1.5",
     "get-port": "^6.1.2"
   },
   "volta": {
