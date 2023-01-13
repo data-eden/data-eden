@@ -9,7 +9,7 @@ import {
 import * as http from 'http';
 
 import { createServer } from '@data-eden/shared-test-utilities';
-import { buildCachedFetch } from '@data-eden/internal-package-simple-cached-fetch';
+import { buildCachedFetch } from '@data-eden/simple-cached-fetch';
 
 describe('@data-eden/internal-package-simple-cached-fetch', async function () {
 

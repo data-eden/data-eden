@@ -16,6 +16,12 @@
 
     {
       "path": "./internal-packages/shared-test-utilities"
+    },
+    {
+      "path": "./internal-packages/simple-cached-fetch"
+    },
+    {
+      "path": "./internal-packages/simple-cached-fetch/__tests__"
     }
   ]
 }
