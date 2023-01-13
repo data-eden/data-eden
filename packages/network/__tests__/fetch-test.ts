@@ -10,7 +10,7 @@ import {
 import * as http from 'http';
 
 import { buildFetch, Middleware, NormalizedFetch } from '@data-eden/network';
-import { createServer } from './utils.js';
+import { createServer } from '@data-eden/shared-test-utilities';
 
 function getPrefixedIncomingHttpHeaders(
   headers: http.IncomingHttpHeaders,

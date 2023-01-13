@@ -12,6 +12,10 @@
     },
     {
       "path": "./packages/cache"
+    },
+
+    {
+      "path": "./internal-packages/shared-test-utilities"
     }
   ]
 }
