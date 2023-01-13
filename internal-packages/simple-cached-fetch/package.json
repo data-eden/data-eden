@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@data-eden/internal-package-simple-cached-fetch",
+  "version": "0.2.2-beta.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/data-eden/data-eden.git",
+    "directory": "internal-packages/simple-cached-fetch"
+  },
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./src/index.ts",
+        "default": "./src/index.ts"
+      }
+    }
+  },
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@data-eden/network": "0.2.2-beta.1",
+    "@data-eden/cache": "0.2.2-beta.1"
+  },
+  "volta": {
+    "extends": "../../package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
