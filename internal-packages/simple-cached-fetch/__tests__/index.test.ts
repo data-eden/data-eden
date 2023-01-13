@@ -8,8 +8,7 @@ import {
 } from 'vitest';
 import * as http from 'http';
 
-// TODO: don't duplicate this :)
-import { createServer } from './utils.js';
+import { createServer } from '@data-eden/shared-test-utilities';
 import { buildCachedFetch } from '@data-eden/internal-package-simple-cached-fetch';
 
 describe('@data-eden/internal-package-simple-cached-fetch', async function () {

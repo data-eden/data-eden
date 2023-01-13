@@ -27,6 +27,9 @@
     "@data-eden/network": "0.2.2-beta.1",
     "@data-eden/cache": "0.2.2-beta.1"
   },
+  "devDependencies": {
+    "@data-eden/shared-test-utilities": "0.2.2-beta.1"
+  },
   "volta": {
     "extends": "../../package.json"
   },
