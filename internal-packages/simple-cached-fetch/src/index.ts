@@ -22,7 +22,7 @@ function getUrl(input: RequestInfo | URL): string {
 }
 
 type Signal = object;
-function buildSignal(key:string, value: object): Signal {
+function buildSignal(key: string, value: object): Signal {
   // TODO: wtf is this?
   return value;
 }
@@ -34,12 +34,15 @@ export function buildCachedFetch() {
   // TODO: make this not "leak"
   let signals = new Map<string, Signal>();
 
-  return async function (input: RequestInfo | URL, init?: RequestInit | undefined) {
+  return async function (
+    input: RequestInfo | URL,
+    init?: RequestInit | undefined
+  ) {
     const key = getUrl(input);
 
     // assume "fetch first" (could have an option for "cache first", but that is orthogonal to testing reactivity)
-    const response = await fetch(input, init)
-    const json = await response.json() as object;
+    const response = await fetch(input, init);
+    const json = (await response.json()) as object;
 
     const tx = await cache.beginTransaction();
     tx.set(key, json);
@@ -48,7 +51,9 @@ export function buildCachedFetch() {
     const cacheResult = await cache.get(key);
 
     if (cacheResult === undefined) {
-      throw new Error('INTERNAL ERROR: cache.set + cache.get resulted in undefined');
+      throw new Error(
+        'INTERNAL ERROR: cache.set + cache.get resulted in undefined'
+      );
     }
 
     let signal = signals.get(key);
