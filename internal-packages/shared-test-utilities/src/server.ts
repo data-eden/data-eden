@@ -64,15 +64,7 @@ export async function createServer(): Promise<Server> {
     },
 
     async close() {
-      return new Promise((resolve, reject) => {
-        server.close((error?: Error) => {
-          if (error !== undefined) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        });
-      });
+      server.close();
     },
 
     get(path: string, handler: RequestHandler) {
