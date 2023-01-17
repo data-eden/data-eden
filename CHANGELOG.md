@@ -1,5 +1,15 @@
 # Changelog
 
+
+## v0.3.1 (2023-01-17)
+
+#### :house: Internal
+* [#65](https://github.com/data-eden/data-eden/pull/65) Run `npm install` after the versions are bumped ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 1
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v0.3.0 (2023-01-17)
 
 #### :boom: Breaking Change
