@@ -5,6 +5,23 @@
 
 
 
+
+## v0.3.0 (2023-01-17)
+
+#### :boom: Breaking Change
+* `network`
+  * [#45](https://github.com/data-eden/data-eden/pull/45) Require "host" environment to include a `fetch` API ([@rwjblue](https://github.com/rwjblue))
+
+#### :rocket: Enhancement
+
+- `cache`
+  - [#40](https://github.com/data-eden/data-eden/pull/40) Initial implementation ([@shuba3862](https://github.com/shuba3862))
+
+#### Committers: 2
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+- ([@shuba3862](https://github.com/shuba3862))
+
+
 ## v0.2.2-beta.2 (2023-01-17)
 
 #### :boom: Breaking Change
