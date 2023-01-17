@@ -4,6 +4,31 @@
 
 
 
+
+## v0.2.2-beta.2 (2023-01-17)
+
+#### :boom: Breaking Change
+* `network`
+  * [#45](https://github.com/data-eden/data-eden/pull/45) Require "host" environment to include a `fetch` API ([@rwjblue](https://github.com/rwjblue))
+
+#### :house: Internal
+* Other
+  * [#62](https://github.com/data-eden/data-eden/pull/62) Update vitest + patch-package to latest ([@rwjblue](https://github.com/rwjblue))
+  * [#61](https://github.com/data-eden/data-eden/pull/61) Update release-it dependencies ([@rwjblue](https://github.com/rwjblue))
+  * [#60](https://github.com/data-eden/data-eden/pull/60) Improve test performance: Don't wait on `server.close()` ([@rwjblue](https://github.com/rwjblue))
+  * [#57](https://github.com/data-eden/data-eden/pull/57) Update linting related packages ([@rwjblue](https://github.com/rwjblue))
+  * [#56](https://github.com/data-eden/data-eden/pull/56) Update typescript related packages to latest. ([@rwjblue](https://github.com/rwjblue))
+  * [#54](https://github.com/data-eden/data-eden/pull/54) Update `vite` and `vitest` to latest ([@rwjblue](https://github.com/rwjblue))
+  * [#52](https://github.com/data-eden/data-eden/pull/52) Remove `yarn.lock` ([@rwjblue](https://github.com/rwjblue))
+* `network`
+  * [#59](https://github.com/data-eden/data-eden/pull/59) Extract simple test server implementation ([@rwjblue](https://github.com/rwjblue))
+  * [#55](https://github.com/data-eden/data-eden/pull/55) Replace `msw` with `http` server ([@rwjblue](https://github.com/rwjblue))
+  * [#50](https://github.com/data-eden/data-eden/pull/50) Update msw to latest ([@rwjblue](https://github.com/rwjblue))
+  * [#51](https://github.com/data-eden/data-eden/pull/51) Add test for middleware ordering (including results) ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 1
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
 ## v0.2.2-beta.1 (2022-12-21)
 
 #### :house: Internal
