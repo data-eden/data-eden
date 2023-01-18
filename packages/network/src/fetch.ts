@@ -41,6 +41,10 @@ function combine(
   };
 }
 
+function globalFetch(request: Request): Promise<Response> {
+  return fetch(request);
+}
+
 /**
  *
  * @param middlewares {Middleware[]} array of middlewares
@@ -56,8 +60,7 @@ export function buildFetch(
       "@data-eden/network requires `fetch` to be available on`globalThis`. Did you forget to setup `cross-fetch/polyfill` before calling @data-eden/network's `buildFetch`?"
     );
   }
-
-  const _fetch: NormalizedFetch = options?.fetch || fetch;
+  const _fetch: NormalizedFetch = options?.fetch || globalFetch;
 
   const curriedMiddlewares: NormalizedFetch = [...middlewares]
     .reverse()
