@@ -1,6 +1,17 @@
 # Changelog
 
 
+
+## v0.3.2 (2023-01-18)
+
+#### :bug: Bug Fix
+* `network`
+  * [#66](https://github.com/data-eden/data-eden/pull/66) Ensure that `fetch` is only accessed lazily (allow mocking) ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 1
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v0.3.1 (2023-01-17)
 
 #### :house: Internal
