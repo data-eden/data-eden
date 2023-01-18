@@ -22,6 +22,12 @@ module.exports = {
       extends: ['plugin:node/recommended'],
     },
     {
+      files: ['dev/**/*.[tj]s'],
+      env: {
+        node: true,
+      },
+    },
+    {
       files: ['**/*.ts'],
       parser: '@typescript-eslint/parser',
       parserOptions: {
