@@ -18,7 +18,7 @@
   ],
   "scripts": {
     "build": "tsc --build",
-    "build:watch": "tsc --watch",
+    "build:watch": "npm run build --- --watch",
     "prepublish": "npm run build",
     "postinstall": "patch-package",
     "test": "npm-run-all lint test:*",
