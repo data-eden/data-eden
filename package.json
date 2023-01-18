@@ -67,9 +67,6 @@
     "registry": "https://registry.npmjs.org"
   },
   "release-it": {
-    "scripts": {
-      "after:bump": "npm install"
-    },
     "plugins": {
       "@release-it-plugins/lerna-changelog": {
         "infile": "CHANGELOG.md",
@@ -78,7 +75,7 @@
       "@release-it-plugins/workspaces": true
     },
     "hooks": {
-      "before:init": "npm run build"
+      "after:bump": "npm install"
     },
     "git": {
       "tagName": "v${version}"
