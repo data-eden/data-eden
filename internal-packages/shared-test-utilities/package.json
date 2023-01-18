@@ -13,9 +13,9 @@
     ".": {
       "import": {
         "types": "./src/index.ts",
-        "default": "./src/index.js"
+        "default": "./dist/index.js"
       },
-      "default": "./src/index.js"
+      "default": "./dist/index.js"
     }
   },
   "main": "./dist/index.js",
