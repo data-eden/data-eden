@@ -325,11 +325,6 @@ export interface LiveCacheTransaction<
   async commit(options?: {
     timeout: number | false = false;
   }): Promise<void>;
-
-  /**
-  Abandon this transaction and discard any changes or other transaction state.
-  */
-  rollback(): void;
 }
 
 export function defaultMergeStrategy(): MergeStrategy;
@@ -432,41 +427,34 @@ async function handleGraphQLResponse(
 
   let defaultRevision = ++globalRevisionCounter;
   let tx = cache.beginTransaction();
-  let txSucceeded = false;
-  try {
-    let cachedEntities = [];
-    // parseEntities yields in post-order depth-first-search i.e. children before parents
-    for(let { entity, parent, prop, revision: entityRevision } of await parseEntities(document, queryMetaData)) {
-      let id = entityId(entity);
-      let revision = entityRevision ?? defaultRevision;
-      let { entityMergeStrategy, revisionMergeStrategy } = options;
 
-      // merges with pre-existing entities (along with debugging data) and
-      // returns the merged result
-      let mergedEntity = await tx.merge(id, entity, { revision, entityMergeStrategy, revisionMergeStrategy, $debug: { rawDocument } });
-      // For example, parent === book, prop === 'author'
-      // Because all userland calls go through Graphql operations, we have
-      // the metadata necessary to differentiate strings from references
-      parent[prop] = id;
-      cachedEntities.push(mergedEntity);
-    }
-    DocumentEntityMap.set(document, cachedEntities);
-    // Proxy exists to do at least the following:
-    //  1. access referenced cached entities and
-    //  2. field mask them
-    let documentProxy = new DocumentProxy(document, queryMetaData, { $debug: { rawDocument } });
-    DocumentProxyMap.set(document, documentProxy);
+  let cachedEntities = [];
+  // parseEntities yields in post-order depth-first-search i.e. children before parents
+  for(let { entity, parent, prop, revision: entityRevision } of await parseEntities(document, queryMetaData)) {
+    let id = entityId(entity);
+    let revision = entityRevision ?? defaultRevision;
+    let { entityMergeStrategy, revisionMergeStrategy } = options;
 
-    await tx.set(documentKey, document);
-    await tx.commit();
-    txSucceeded = true;
-
-    return documentProxy;
-  } finally {
-    if(!txSucceeded) {
-      tx.rollback();
-    }
+    // merges with pre-existing entities (along with debugging data) and
+    // returns the merged result
+    let mergedEntity = await tx.merge(id, entity, { revision, entityMergeStrategy, revisionMergeStrategy, $debug: { rawDocument } });
+    // For example, parent === book, prop === 'author'
+    // Because all userland calls go through Graphql operations, we have
+    // the metadata necessary to differentiate strings from references
+    parent[prop] = id;
+    cachedEntities.push(mergedEntity);
   }
+  DocumentEntityMap.set(document, cachedEntities);
+  // Proxy exists to do at least the following:
+  //  1. access referenced cached entities and
+  //  2. field mask them
+  let documentProxy = new DocumentProxy(document, queryMetaData, { $debug: { rawDocument } });
+  DocumentProxyMap.set(document, documentProxy);
+
+  await tx.set(documentKey, document);
+  await tx.commit();
+
+  return documentProxy;
 }
 
 

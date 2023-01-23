@@ -325,7 +325,7 @@ describe('@data-eden/cache', function () {
       });
     });
 
-    it('test single transaction with commit & rollback', async function () {
+    it('test single transaction with commit', async function () {
       let cache = buildCache();
 
       await cache.load([
@@ -383,16 +383,6 @@ describe('@data-eden/cache', function () {
       expect(await cache.get('book:3')).toEqual({
         'book:3': { title: 'New Merged book' },
       });
-
-      await tx.rollback();
-
-      expect(await cache.get('book:1')).toEqual({
-        'book:1': { title: 'A History of the English speaking peoples' },
-      });
-      expect(await cache.get('book:2')).toEqual({
-        'book:2': { title: 'Marlborough: his life and times' },
-      });
-      expect(await cache.get('book:3')).toEqual(undefined);
     });
 
     it('test cache with multiple transaction commits is masked from trasaction changes', async function () {
