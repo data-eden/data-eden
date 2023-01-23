@@ -374,14 +374,9 @@ export interface LiveCacheTransaction<
   delete(cacheKey: Key): Promise<boolean>;
 
   /**
-   * Commits live transction entries. Calls Rollback if there are errors during commit or if commit exceeds timeout
+   * Commits live transction entries.
    */
   commit(): Promise<void>;
-
-  /**
-   * Rollsback the cache to pre-transactional state
-   */
-  rollback(): Promise<void>;
 }
 
 export interface CommittingTransaction<
@@ -522,7 +517,6 @@ class LiveCacheTransactionImpl<
     $Debug,
     UserExtensionData
   >;
-  #cacheSnapshotBeforeCommit: Map<Key, CacheKeyRegistry[Key]>;
   #cacheEntryState: Map<Key, CacheEntryState<UserExtensionData>>;
   #userOptionRetentionPolicy: ExpirationPolicy;
   #ttlPolicy: number;
@@ -538,7 +532,6 @@ class LiveCacheTransactionImpl<
     this.#originalCacheReference = originalCache;
     this.#transactionalCache = transactionalCacheEntryMap;
     this.#localUpdatedEntries = new Map<Key, CacheKeyRegistry[Key]>();
-    this.#cacheSnapshotBeforeCommit = new Map<Key, CacheKeyRegistry[Key]>();
     this.#cacheEntryState = new Map<Key, CacheEntryState<UserExtensionData>>();
     this.#ttlPolicy = DEFAULT_EXPIRATION.ttl;
     this.#lruPolicy = DEFAULT_EXPIRATION.lru;
@@ -760,17 +753,6 @@ class LiveCacheTransactionImpl<
   }
 
   async commit(options?: { timeout: number | false }): Promise<void> {
-    for await (const [cacheKey] of this.#originalCacheReference.entries()) {
-      const originalCacheValue = await this.#originalCacheReference.get(
-        cacheKey
-      );
-      if (originalCacheValue) {
-        this.#cacheSnapshotBeforeCommit.set(cacheKey, {
-          ...originalCacheValue,
-        });
-      }
-    }
-
     const timeout: number = options?.timeout ? options.timeout : 10000;
     const commitLock = new Promise((resolve, reject) =>
       setTimeout(reject, timeout)
@@ -870,32 +852,7 @@ class LiveCacheTransactionImpl<
       );
     };
 
-    try {
-      await Promise.race([writeToCache(), commitLock]);
-    } catch {
-      // TODO throw error/warning
-      await this.rollback();
-    }
-  }
-
-  async rollback(): Promise<void> {
-    const arrayOfCacheEntryTuples: [
-      Key,
-      CacheKeyRegistry[Key],
-      CacheEntryState<UserExtensionData>?
-    ][] = [];
-
-    for (const [cacheKey] of this.#cacheSnapshotBeforeCommit) {
-      const prevCacheValue = this.#cacheSnapshotBeforeCommit.get(cacheKey);
-
-      const structuredClonedValue = structuredClone(
-        prevCacheValue
-      ) as CacheKeyRegistry[Key];
-      arrayOfCacheEntryTuples.push([cacheKey, structuredClonedValue]);
-    }
-
-    await this.#originalCacheReference.clear();
-    await this.#originalCacheReference.load(arrayOfCacheEntryTuples);
+    await Promise.race([writeToCache(), commitLock]);
   }
 }
 
