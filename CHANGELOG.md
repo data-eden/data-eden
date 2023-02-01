@@ -2,6 +2,26 @@
 
 
 
+
+## v0.4.0 (2023-02-01)
+
+#### :boom: Breaking Change
+* `cache`
+  * [#82](https://github.com/data-eden/data-eden/pull/82) Remove rollback ([@hjdivad](https://github.com/hjdivad))
+
+#### :rocket: Enhancement
+* `network`
+  * [#53](https://github.com/data-eden/data-eden/pull/53) Create `settled-tracking-middleware` ([@rwjblue](https://github.com/rwjblue))
+  * [#69](https://github.com/data-eden/data-eden/pull/69) Expose metadata to middlewares ([@rwjblue](https://github.com/rwjblue))
+
+#### :house: Internal
+* [#68](https://github.com/data-eden/data-eden/pull/68) Add script to easily step through `buildFetch` usage. ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 2
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v0.3.2 (2023-01-18)
 
 #### :bug: Bug Fix
