@@ -25,6 +25,7 @@
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
+    "build": "tsc --build",
     "test": "vitest run"
   },
   "dependencies": {},

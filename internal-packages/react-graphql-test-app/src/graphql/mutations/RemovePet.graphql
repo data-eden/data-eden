@@ -1,0 +1,25 @@
+mutation RemovePet($id: ID!) {
+  removePet(id: $id) {
+    id
+    name
+    owner {
+      id
+      pets {
+        id
+        name
+        owner {
+          id
+          name
+          pets {
+            id
+            name
+            owner {
+              id
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}

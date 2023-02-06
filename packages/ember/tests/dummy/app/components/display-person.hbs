@@ -1,0 +1,10 @@
+<div>
+  <h1>Displaying Person 1</h1>
+  {{#if this.loading}}
+    <span>Loading...</span>
+  {{/if}}
+
+  {{#if this.person}}
+    <span>Name: {{this.person.name}}</span>
+  {{/if}}
+</div>

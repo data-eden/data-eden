@@ -1,0 +1,33 @@
+mutation CreatePet($input: CreatePetInput!) {
+  createPet(input: $input) {
+    id
+    name
+    owner {
+      id
+      pets {
+        id
+        name
+        owner {
+          id
+          name
+          pets {
+            id
+            name
+            owner {
+              id
+              name
+              pets {
+                id
+                name
+                owner {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
