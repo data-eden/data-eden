@@ -8,12 +8,17 @@
       "path": "./packages/network"
     },
     {
+      "path": "./packages/react"
+    },
+    {
+      "path": "./packages/ember"
+    },
+    {
       "path": "./packages/network/__tests__/"
     },
     {
       "path": "./packages/cache"
     },
-
     {
       "path": "./internal-packages/shared-test-utilities"
     }

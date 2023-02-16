@@ -1,0 +1,38 @@
+{
+  "name": "@data-eden/react",
+  "version": "0.0.1",
+  "private": true,
+  "description": "",
+  "homepage": "https://github.com/data-eden/data-eden#readme",
+  "bugs": {
+    "url": "https://github.com/data-eden/data-eden/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/data-eden/data-eden.git"
+  },
+  "license": "ISC",
+  "author": "Chris Freeman",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "volta": {
+    "extends": "../../package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
