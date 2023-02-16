@@ -1,11 +1,12 @@
 {
   "name": "graphql-test-server",
+  "private": true,
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "tsx watch src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 0"
   },
   "repository": {
     "type": "git",

@@ -145,18 +145,18 @@ export const schema = createSchema({
     },
 
     Person: {
-      car: (person) =>
+      car: (person: { id: string }) =>
         cars.find((car) => {
           return car.personId === person.id;
         }),
-      pets: (person) =>
+      pets: (person: { id: string }) =>
         pets.filter((pet) => {
           return pet.personId === person.id;
         }),
     },
 
     Pet: {
-      owner: (pet) => {
+      owner: (pet: { personId: string }) => {
         console.log('resolving owner');
         const result = people.find((p) => pet.personId === p.id);
         return result;

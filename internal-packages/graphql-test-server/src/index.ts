@@ -6,6 +6,7 @@ import { schema } from './schema';
 const yoga = createYoga({ schema });
 
 // Pass it into a server to hook into request handlers.
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
 const server = createServer(yoga);
 
 // Start the server and you're done!

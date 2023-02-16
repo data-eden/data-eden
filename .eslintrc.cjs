@@ -52,5 +52,33 @@ module.exports = {
         ],
       },
     },
+    // ember files
+    {
+      files: [
+        './packages/ember/.eslintrc.js',
+        './packages/ember/.prettierrc.js',
+        './packages/ember/.template-lintrc.js',
+        './packages/ember/ember-cli-build.js',
+        './packages/ember/index.js',
+        './packages/ember/testem.js',
+        './packages/ember/blueprints/*/index.js',
+        './packages/ember/config/**/*.js',
+        './packages/ember/tests/dummy/config/**/*.js',
+      ],
+      parserOptions: {
+        sourceType: 'script',
+      },
+      env: {
+        browser: false,
+        node: true,
+      },
+      plugins: ['node'],
+      extends: ['plugin:node/recommended'],
+    },
+    {
+      // test files
+      files: ['./packages/ember/tests/**/*-test.{js,ts}'],
+      extends: ['plugin:qunit/recommended'],
+    },
   ],
 };
