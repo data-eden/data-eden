@@ -473,6 +473,32 @@ describe('@data-eden/fetch', async function () {
     `);
   });
 
+  test('should be able to return cached data', async () => {
+    expect.assertions(2);
+
+    async function cachingMiddleware(
+      request: Request,
+      next: (request: Request) => Promise<Response>
+    ): Promise<Response> {
+      const response = new Response(
+        JSON.stringify({ status: 'cached-success' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+
+      return response;
+    }
+
+    const fetch = buildFetch([cachingMiddleware]);
+
+    const response = await fetch(server.buildUrl('/analytics'));
+    expect(response.status).toEqual(200);
+    expect(await response.json()).toMatchInlineSnapshot(`
+      {
+        "status": "cached-success",
+      }
+    `);
+  });
+
   test('can read and mutate request headers', async function () {
     expect.assertions(2);
 
