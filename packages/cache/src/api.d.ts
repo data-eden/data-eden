@@ -198,7 +198,7 @@ export interface CommittingTransaction<
   > {
   cache: {
     clearRevisions(
-      tx: CommittingTransactionImpl<
+      tx: CommittingTransaction<
         CacheKeyRegistry,
         Key,
         $Debug,
@@ -207,7 +207,7 @@ export interface CommittingTransaction<
       id: Key
     ): void;
     appendRevisions(
-      tx: CommittingTransactionImpl<
+      tx: CommittingTransaction<
         CacheKeyRegistry,
         Key,
         $Debug,
@@ -275,7 +275,7 @@ export interface RevisionMergeStrategy<
 > {
   (
     cacheKey: Key,
-    tx: CommittingTransactionImpl<
+    tx: CommittingTransaction<
       CacheKeyRegistry,
       Key,
       $Debug,
