@@ -1,6 +1,23 @@
 import { describe, it, expect } from 'vitest';
 // TODO: add a tests tsconfig so we can import properly
 import { buildCache } from '@data-eden/cache';
+import type {
+  Cache,
+  CacheTransaction,
+  LiveCacheTransaction,
+  CommittingTransaction,
+  CacheEntry,
+  CacheEntryState,
+  CacheKeyValue,
+  EntityMergeStrategy,
+  RevisionMergeStrategy,
+  CachedEntityRevision,
+  ExpirationPolicy,
+  CacheOptions,
+  DefaultRegistry,
+  CacheDebugAPIs,
+  CacheTransactionDebugAPIs
+} from '@data-eden/cache'
 
 // TODO: add tests for types
 // TODO test live trasaction where original cache has enitiy that is GCd (memory management tests)
@@ -739,7 +756,7 @@ describe('@data-eden/cache', function () {
 
       await tx.commit();
 
-      const cacheEntries = await cache.save();
+      const cacheEntries = await cache.save() as [];
 
       const lru = cacheEntries.filter((entry) => {
         const entryState = entry[2] as { retained: { lru: true | false } };
