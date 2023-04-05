@@ -239,20 +239,23 @@ export type CacheEntry<
  * A entry state (retention,last accessed) of each cache entry
  */
 export interface CacheEntryState<UserExtensionData = unknown> {
-    retained: {
-      lru: boolean;
-      ttl: number;
-    };
-    /**
+  retained: {
+    lru: boolean;
+    ttl: number;
+  };
+  /**
     The last time this cache entry was accessed, either via `get`, `set`, or
     `merge`.
     Mainly useful for userland retention policies.
     */
-    lastAccessed?: number; // timestamp
-    extensions?: UserExtensionData;
+  lastAccessed?: number; // timestamp
+  extensions?: UserExtensionData;
 }
-  
-export type CacheKeyValue = Record<string, object | string | number> | string | number;
+
+export type CacheKeyValue =
+  | Record<string, object | string | number>
+  | string
+  | number;
 
 export interface EntityMergeStrategy<
   CacheKeyRegistry extends DefaultRegistry,
@@ -275,12 +278,7 @@ export interface RevisionMergeStrategy<
 > {
   (
     cacheKey: Key,
-    tx: CommittingTransaction<
-      CacheKeyRegistry,
-      Key,
-      $Debug,
-      UserExtensionData
-    >
+    tx: CommittingTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
   ): void;
 }
 

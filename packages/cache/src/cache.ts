@@ -11,8 +11,8 @@ import type {
   CacheOptions,
   DefaultRegistry,
   LruCache,
-  CacheTransactionDebugAPIs
-} from './api.js'
+  CacheTransactionDebugAPIs,
+} from './api.js';
 
 class CacheImpl<
   CacheKeyRegistry extends DefaultRegistry,

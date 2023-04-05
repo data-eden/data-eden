@@ -14,5 +14,5 @@ export type {
   CacheOptions,
   DefaultRegistry,
   CacheDebugAPIs,
-  CacheTransactionDebugAPIs
-} from './api.js'
+  CacheTransactionDebugAPIs,
+} from './api.js';
