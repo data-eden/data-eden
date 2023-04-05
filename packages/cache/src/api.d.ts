@@ -1,3 +1,5 @@
+export { buildCache } from './cache.js';
+
 export interface Cache<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry,
@@ -223,7 +225,7 @@ export interface CommittingTransaction<
   - *value*
   - *state* (optional)
 */
-type CacheEntry<
+export type CacheEntry<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry = keyof CacheKeyRegistry,
   UserExtensionData = unknown
@@ -250,7 +252,7 @@ export interface CacheEntryState<UserExtensionData = unknown> {
     extensions?: UserExtensionData;
 }
   
-type CacheKeyValue = Record<string, object | string | number> | string | number;
+export type CacheKeyValue = Record<string, object | string | number> | string | number;
 
 export interface EntityMergeStrategy<
   CacheKeyRegistry extends DefaultRegistry,
@@ -282,13 +284,13 @@ export interface RevisionMergeStrategy<
   ): void;
 }
 
-interface CachedEntityRevision<CacheKeyValue> {
+export interface CachedEntityRevision<CacheKeyValue> {
   entity: CacheKeyValue;
   revision: number;
   revisionContext?: string; // Use to store queryIds that can be used for debugging
 }
 
-type ExpirationPolicy =
+export type ExpirationPolicy =
   | false
   | {
       lru: number;
@@ -342,7 +344,7 @@ export interface CacheOptions<
   $debug?: $Debug;
 }
 
-type DefaultRegistry = Record<string, object>;
+export type DefaultRegistry = Record<string, object>;
 
 export interface CacheDebugAPIs {
   size(): void;
