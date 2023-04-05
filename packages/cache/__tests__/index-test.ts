@@ -1,23 +1,6 @@
 import { describe, it, expect } from 'vitest';
 // TODO: add a tests tsconfig so we can import properly
 import { buildCache } from '@data-eden/cache';
-import type {
-  Cache,
-  CacheTransaction,
-  LiveCacheTransaction,
-  CommittingTransaction,
-  CacheEntry,
-  CacheEntryState,
-  CacheKeyValue,
-  EntityMergeStrategy,
-  RevisionMergeStrategy,
-  CachedEntityRevision,
-  ExpirationPolicy,
-  CacheOptions,
-  DefaultRegistry,
-  CacheDebugAPIs,
-  CacheTransactionDebugAPIs
-} from '@data-eden/cache'
 
 // TODO: add tests for types
 // TODO test live trasaction where original cache has enitiy that is GCd (memory management tests)
