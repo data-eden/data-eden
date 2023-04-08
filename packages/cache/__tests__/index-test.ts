@@ -740,7 +740,7 @@ describe('@data-eden/cache', function () {
 
       await tx.commit();
 
-      const cacheEntries = (await cache.save()) as [];
+      const cacheEntries = await cache.save();
 
       const lru = cacheEntries.filter((entry) => {
         const entryState = entry[2] as { retained: { lru: true | false } };
