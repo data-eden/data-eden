@@ -1,4 +1,4 @@
-export { buildCache } from './cache.js';
+export { buildCache } from '../src/cache.js';
 
 export interface Cache<
   CacheKeyRegistry extends DefaultRegistry,

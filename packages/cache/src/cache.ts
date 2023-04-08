@@ -12,7 +12,7 @@ import type {
   DefaultRegistry,
   LruCache,
   CacheTransactionDebugAPIs,
-} from './api.js';
+} from './index.js';
 
 class CacheImpl<
   CacheKeyRegistry extends DefaultRegistry,
