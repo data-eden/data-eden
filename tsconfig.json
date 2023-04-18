@@ -20,6 +20,9 @@
       "path": "./packages/cache"
     },
     {
+      "path": "./packages/cache/__tests__/"
+    },
+    {
       "path": "./internal-packages/shared-test-utilities"
     }
   ]
