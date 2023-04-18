@@ -1,11 +1,21 @@
 import { describe, it, expect } from 'vitest';
 // TODO: add a tests tsconfig so we can import properly
-import { buildCache } from '@data-eden/cache';
+import { buildCache, DefaultRegistry } from '@data-eden/cache';
+import type { Cache } from '@data-eden/cache';
+import { expectTypeOf } from 'vitest';
 
 // TODO: add tests for types
 // TODO test live trasaction where original cache has enitiy that is GCd (memory management tests)
 
 describe('@data-eden/cache', function () {
+  describe('user api', function () {
+    it('returns the public interfaces', function () {
+      expectTypeOf(buildCache()).toEqualTypeOf<
+        Cache<DefaultRegistry, keyof DefaultRegistry>
+      >();
+    });
+  });
+
   describe('cache with no user registry', function () {
     it('can be built', async function () {
       // TODO: this valid call fails if we switch module resolution to node16
