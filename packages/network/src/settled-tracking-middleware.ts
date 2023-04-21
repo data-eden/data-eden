@@ -1,4 +1,6 @@
-import type { Fetch, MiddlewareMetadata, NormalizedFetch } from './fetch.js';
+import type { MiddlewareMetadata, NormalizedFetch } from './fetch.js';
+
+type Fetch = typeof fetch;
 
 /**
   Debug information that is exposed via `getPendingRequestState(...)`.
