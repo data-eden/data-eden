@@ -16,5 +16,4 @@ export type {
   MiddlewareMetadata,
   NormalizedFetch,
   BuildFetchOptions,
-  Fetch,
 } from './fetch.js';

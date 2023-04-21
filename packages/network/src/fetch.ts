@@ -1,5 +1,3 @@
-export type Fetch = typeof fetch;
-
 export type NormalizedFetch = (request: Request) => Promise<Response>;
 
 export interface MiddlewareMetadata {
@@ -11,7 +9,7 @@ export interface MiddlewareMetadata {
     Note: The middleware **must not** actually invoke this `fetch` method (doing so
     will throw due to infinite recursion).
   */
-  fetch: Fetch;
+  fetch: typeof fetch;
 }
 
 export type Middleware = (
@@ -46,7 +44,7 @@ export interface BuildFetchOptions {
   /**
    * override the default fetch implementation
    */
-  fetch: Fetch;
+  fetch: typeof fetch;
 }
 
 function globalFetch(request: Request): Promise<Response> {
@@ -64,7 +62,7 @@ function globalFetch(request: Request): Promise<Response> {
 export function buildFetch(
   middlewares: Middleware[],
   options?: BuildFetchOptions
-): Fetch {
+): typeof fetch {
   if (typeof fetch === 'undefined') {
     throw new Error(
       "@data-eden/network requires `fetch` to be available on`globalThis`. Did you forget to setup `cross-fetch/polyfill` before calling @data-eden/network's `buildFetch`?"
@@ -72,7 +70,7 @@ export function buildFetch(
   }
   const _fetch: NormalizedFetch = options?.fetch || globalFetch;
 
-  let result: Fetch;
+  let result: typeof fetch;
 
   const curriedMiddlewares: NormalizedFetch = [...middlewares]
     .reverse()
