@@ -24,7 +24,9 @@
     "test": "vitest run",
     "test:debug": "node --inspect-brk --inspect ../../node_modules/.bin/vitest --threads=false"
   },
-  "dependencies": {},
+  "devDependencies": {
+    "ts-expect": "^1.3.0"
+  },
   "volta": {
     "extends": "../../package.json"
   },
