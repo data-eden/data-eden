@@ -1,27 +1,25 @@
-import { createSignal } from '@signalis/core';
-import { Entries } from 'type-fest';
+import type { Entries } from 'type-fest';
 import { createSignalProxy } from './signal-proxy.js';
 import { traverse } from './traverse.js';
-import {
+import type {
   DefaultRecord,
   DefaultVariables,
   Entity,
   IdFetcher,
   ReactiveAdapter,
-  ReactiveSignal,
   Scalar,
   WithSignal,
 } from './types.js';
-import {
+import type {
   DocumentNode,
   FieldNode,
   SelectionNode,
   ValueNode,
   VariableNode,
-  visit,
 } from 'graphql';
-import { TypedDocumentNode } from '@graphql-typed-document-node/core';
-import { Primitive } from 'type-fest';
+import { visit } from 'graphql';
+import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import type { Primitive } from 'type-fest';
 
 export type Link = Record<string, string | Array<string>>;
 
@@ -124,22 +122,18 @@ function defaultIdGetter(v: Entity) {
   return `${v.__typename}:${v.id}`;
 }
 
-function DefaultSignalAdapter<T>(v: T): ReactiveSignal<T> {
-  return createSignal(v, false);
-}
-
 export class SignalCache {
   getId: IdFetcher;
   signalAdapter: ReactiveAdapter;
   queryLinks = new Map<string, Link>();
-  links = new Map<string, Link>(Object.entries({ query: {} }));
+  links = new Map<string, Link>();
   records = new Map<string, Record<string, Scalar>>();
   signals = new Map<string, WeakRef<WithSignal<Entity>>>();
   private registry: FinalizationRegistry<string>;
 
   constructor(
-    getId: IdFetcher = defaultIdGetter,
-    signalAdapter: ReactiveAdapter = DefaultSignalAdapter
+    signalAdapter: ReactiveAdapter,
+    getId: IdFetcher = defaultIdGetter
   ) {
     this.getId = getId;
     this.signalAdapter = signalAdapter;
@@ -216,7 +210,9 @@ export class SignalCache {
     const links = this.links.get(entityKey) || this.queryLinks.get(entityKey);
 
     if (!links) {
-      throw new Error(`No entity found for ${entityKey}`);
+      throw new Error(
+        `@data-eden/athena - internal error: No entity found for ${entityKey}`
+      );
     }
 
     exploring.add(entityKey);

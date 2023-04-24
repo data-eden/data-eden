@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { beforeEach, describe, expect, test } from 'vitest';
-import { Link, SignalCache } from '../src/signal-cache.js';
+import type { Link } from '../src/signal-cache.js';
+import { SignalCache } from '../src/signal-cache.js';
 import { parse } from 'graphql';
+import { createSignal } from '@signalis/core';
 
 const Person1 = {
   id: '1',
@@ -33,7 +35,13 @@ function expectMap(v: Map<any, any>) {
 }
 
 describe('signal cache', () => {
-  describe.skip('cache#store', () => {
+  describe('cache#store', () => {
+    let cache: SignalCache;
+
+    beforeEach(() => {
+      cache = new SignalCache((v) => createSignal(v, false));
+    });
+
     test('simple query', () => {
       const query = `query Person($id: ID) {
         person(id: $id) {
@@ -42,7 +50,6 @@ describe('signal cache', () => {
           __typename
         }
       }`;
-      const cache = new SignalCache();
 
       const payload = {
         query: parse(query),
@@ -59,12 +66,13 @@ describe('signal cache', () => {
 
       cache.store(payload);
 
-      expectMap(cache.links).toEqual({
-        query: {
-          'person(id: 1)': {
-            person: 'Person:1',
-          },
+      expectMap(cache.queryLinks).toEqual({
+        'person(id: 1)': {
+          person: 'Person:1',
         },
+      });
+
+      expectMap(cache.links).toEqual({
         'Person:1': {},
       });
 
@@ -89,7 +97,6 @@ describe('signal cache', () => {
           }
         }
       }`;
-      const cache = new SignalCache();
 
       const payload = {
         query: parse(query),
@@ -113,12 +120,13 @@ describe('signal cache', () => {
 
       cache.store(payload);
 
-      expectMap(cache.links).toEqual({
-        query: {
-          'person(id: 1)': {
-            person: 'Person:1',
-          },
+      expectMap(cache.queryLinks).toEqual({
+        'person(id: 1)': {
+          person: 'Person:1',
         },
+      });
+
+      expectMap(cache.links).toEqual({
         'Person:1': {
           car: 'Car:1',
         },
@@ -148,7 +156,6 @@ describe('signal cache', () => {
           }
         }
       }`;
-      const cache = new SignalCache();
 
       const payload = {
         query: parse(query),
@@ -185,12 +192,13 @@ describe('signal cache', () => {
 
       cache.store(payload);
 
-      expectMap(cache.links).toEqual({
-        query: {
-          'person(id: 1)': {
-            person: 'Person:1',
-          },
+      expectMap(cache.queryLinks).toEqual({
+        'person(id: 1)': {
+          person: 'Person:1',
         },
+      });
+
+      expectMap(cache.links).toEqual({
         'Person:1': {
           pets: ['Pet:1', 'Pet:2'],
         },
@@ -219,7 +227,6 @@ describe('signal cache', () => {
         }
       }`;
 
-      const cache = new SignalCache();
       cache.queryLinks = new Map(
         Object.entries({
           'person(id: 1)': {
@@ -230,7 +237,6 @@ describe('signal cache', () => {
 
       cache.links = new Map(
         Object.entries({
-          query: {},
           'Person:1': {},
         })
       );
@@ -264,15 +270,16 @@ describe('signal cache', () => {
 
       cache.store(payload);
 
-      expectMap(cache.links).toEqual({
-        query: {
-          'person(id: 1)': {
-            person: 'Person:1',
-          },
-          'updatePerson(personId: 1, input: {"name":"Bar"})': {
-            updatePerson: 'Person:1',
-          },
+      expectMap(cache.queryLinks).toEqual({
+        'person(id: 1)': {
+          person: 'Person:1',
         },
+        'updatePerson(personId: 1, input: {"name":"Bar"})': {
+          updatePerson: 'Person:1',
+        },
+      });
+
+      expectMap(cache.links).toEqual({
         'Person:1': {},
       });
 
@@ -289,7 +296,7 @@ describe('signal cache', () => {
     let cache: SignalCache;
 
     beforeEach(() => {
-      cache = new SignalCache();
+      cache = new SignalCache((v) => createSignal(v, false));
 
       cache.queryLinks = new Map(
         Object.entries({
@@ -374,7 +381,8 @@ describe('signal cache', () => {
     });
 
     test('can resolve cycle with singular property', () => {
-      const cache = new SignalCache();
+      cache.evict('Person:1');
+      cache.evict('Pet:1');
 
       cache.storeEntity('Person:1', {
         ...Person1,
@@ -395,12 +403,13 @@ describe('signal cache', () => {
       expect(result.__typename).toEqual('Pet');
       expect(result.name).toEqual('Hitch');
       expect(result.owner.__typename).toEqual('Person');
-      expect(result.owner.pet.name).toEqual('Hitch');
       expect(result.owner.pet.owner.__typename).toEqual('Person');
+      expect(result.owner.pet.name).toEqual('Hitch');
     });
 
     test('can resolve cycle with array property', () => {
-      const cache = new SignalCache();
+      cache.evict('Person:1');
+      cache.evict('Pet:1');
 
       cache.storeEntity('Person:1', {
         ...Person1,
@@ -429,9 +438,13 @@ describe('signal cache', () => {
   });
 
   describe('cache#evict', () => {
-    test('can evict a flat entity', () => {
-      const cache = new SignalCache();
+    let cache: SignalCache;
 
+    beforeEach(() => {
+      cache = new SignalCache((v) => createSignal(v, false));
+    });
+
+    test('can evict a flat entity', () => {
       cache.storeEntity('Person:1', {
         ...Person1,
       });
@@ -448,8 +461,6 @@ describe('signal cache', () => {
     });
 
     test('can evict an entity with a link', () => {
-      const cache = new SignalCache();
-
       cache.storeEntity('Person:1', {
         ...Person1,
         pet: {
@@ -474,7 +485,6 @@ describe('signal cache', () => {
       });
 
       expectMap(cache.links).toEqual({
-        query: {},
         'Person:1': {
           pet: 'Pet:1',
         },
@@ -492,14 +502,11 @@ describe('signal cache', () => {
       });
 
       expectMap(cache.links).toEqual({
-        query: {},
         'Person:1': {},
       });
     });
 
     test('can evict an entity with an array of links', () => {
-      const cache = new SignalCache();
-
       cache.storeEntity('Person:1', {
         ...Person1,
         pets: [
@@ -539,7 +546,6 @@ describe('signal cache', () => {
       });
 
       expectMap(cache.links).toEqual({
-        query: {},
         'Person:1': {
           pets: ['Pet:1', 'Pet:2'],
         },
@@ -563,7 +569,6 @@ describe('signal cache', () => {
       });
 
       expectMap(cache.links).toEqual({
-        query: {},
         'Person:1': {
           pets: ['Pet:2'],
         },

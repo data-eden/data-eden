@@ -1,6 +1,6 @@
-import { Entries } from 'type-fest';
+import type { Entries } from 'type-fest';
 import { traverse } from './traverse.js';
-import { DefaultRecord, Entity, ParsedEntity } from './types.js';
+import type { Entity, ParsedEntity } from './types.js';
 
 // if something is an object with a `__typename` field, it's an Entity as far as we're concerned
 export function isEntity(obj: unknown): obj is Entity {
@@ -8,7 +8,7 @@ export function isEntity(obj: unknown): obj is Entity {
 }
 
 export function parseEntities<
-  Data extends Record<string, DefaultRecord | Array<DefaultRecord>>
+  Data extends Record<string, object | Array<object>>
 >(document: Data): Array<Array<ParsedEntity>> {
   const result: Array<Array<ParsedEntity>> = [];
 
@@ -17,7 +17,8 @@ export function parseEntities<
   // of finding child entities
   (Object.entries(document) as Entries<Data>).forEach(([key, entry]) => {
     if (Array.isArray(entry)) {
-      const localResult = entry.map((v, idx) => parse([key, idx], v));
+      // We cast back to `object` here because `isArray` casts to `any[]`
+      const localResult = entry.map((v, idx) => parse([key, idx], v as object));
       result.push(...localResult);
     } else {
       const localResult = parse(key, entry);
@@ -31,7 +32,7 @@ export function parseEntities<
 
 function parse(
   key: PropertyKey | Array<PropertyKey>,
-  entry: DefaultRecord
+  entry: object
 ): Array<ParsedEntity> {
   const result: Array<ParsedEntity> = [];
 

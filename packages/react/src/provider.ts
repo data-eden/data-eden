@@ -1,4 +1,4 @@
-import { AthenaClient, Entity } from '@data-eden/athena';
+import type { AthenaClient, Entity } from '@data-eden/athena';
 import { createContext, useContext } from 'react';
 import { createClient } from './client.js';
 

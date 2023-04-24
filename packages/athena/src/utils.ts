@@ -1,14 +1,13 @@
-import {
+import type {
   DocumentNode,
   FieldNode,
   Kind,
   OperationDefinitionNode,
   SelectionNode,
-  parse,
-  visit,
 } from 'graphql';
-import { DefaultVariables, DocumentInput } from './types.js';
-import { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import { parse, visit } from 'graphql';
+import type { DefaultVariables, DocumentInput } from './types.js';
+import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 
 const TYPENAME_FIELD: FieldNode = {
   kind: 'Field' as Kind.FIELD,

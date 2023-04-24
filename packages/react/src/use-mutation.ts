@@ -1,11 +1,9 @@
-import {
+import type {
   ClientError,
   DefaultVariables,
   DocumentInput,
-  isSignalProxy,
-  traverse,
-  unwrap,
 } from '@data-eden/athena';
+import { isSignalProxy, traverse, unwrap } from '@data-eden/athena';
 import { Reaction } from '@signalis/core';
 import { useCallback, useReducer, useRef, useState } from 'react';
 import { useAthenaClient } from './provider.js';

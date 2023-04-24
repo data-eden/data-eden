@@ -14,7 +14,6 @@
     "@data-eden/cache": "*",
     "@data-eden/network": "*",
     "@data-eden/react": "^0.0.1",
-    "@signalis/core": "^0.0.10",
     "graphql": "^16.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

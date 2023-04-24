@@ -1,8 +1,8 @@
 import { buildCache } from '@data-eden/cache';
-import { Middleware, buildFetch } from '@data-eden/network';
+import { type Middleware, buildFetch } from '@data-eden/network';
 import { print } from 'graphql';
 import { set } from 'lodash-es';
-import { Entries } from 'type-fest';
+import type { Entries } from 'type-fest';
 import { isEntity, parseEntities } from './parse-entities.js';
 import { SignalCache, createLinkNode } from './signal-cache.js';
 import type {
@@ -18,13 +18,15 @@ import type {
 } from './types.js';
 import { prepareQuery } from './utils.js';
 
-interface ClientArgs {
+export interface ClientArgs {
   url: string;
   id: IdFetcher;
   fetchMiddleware?: Array<Middleware>;
   adapter: ReactiveAdapter;
 }
 
+export type CacheKey = string;
+export type PropertyPath = string;
 export type AthenaClientOptions = Omit<ClientArgs, 'adapter'>;
 
 export class AthenaClient {
@@ -38,7 +40,7 @@ export class AthenaClient {
     this.url = options.url;
     this.getId = options.id;
     this.fetch = buildFetch(options.fetchMiddleware || []);
-    this.signalCache = new SignalCache(options.id, options.adapter);
+    this.signalCache = new SignalCache(options.adapter, options.id);
 
     const signalCache = this.signalCache;
     this.cache = buildCache({
@@ -139,7 +141,10 @@ export class AthenaClient {
 
     const parsedEntitiesList = parseEntities(response);
 
-    const roots: Record<PropertyKey, string> = {};
+    // This object maps "root" entities from a graphql docment to the key used to store them in the
+    // cache. We will later use this mapping to reconstitute all of the entities and construct
+    // the result to pass back to the caller
+    const roots: Record<PropertyPath, CacheKey> = {};
 
     /**
      *`parseEntities` returns an array of arrays, where each inner array corresponds to a root
@@ -181,8 +186,8 @@ export class AthenaClient {
 
     const result = (
       Object.entries(roots) as Entries<typeof roots>
-    ).reduce<Data>((acc, [key, value]) => {
-      set(acc, key, this.signalCache.resolve(value));
+    ).reduce<Data>((acc, [propertyPath, cacheKey]) => {
+      set(acc, propertyPath, this.signalCache.resolve(cacheKey));
       return acc;
     }, {} as Data);
 
@@ -190,6 +195,6 @@ export class AthenaClient {
   }
 }
 
-export function createClient({ url, id, adapter }: ClientArgs): AthenaClient {
-  return new AthenaClient({ url, id, adapter });
+export function createClient(args: ClientArgs): AthenaClient {
+  return new AthenaClient(args);
 }

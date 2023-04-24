@@ -1,13 +1,11 @@
-import {
+import type {
   ClientError,
   DefaultVariables,
   DocumentInput,
   Entity,
   WithSignal,
-  isSignalProxy,
-  traverse,
-  unwrap,
 } from '@data-eden/athena';
+import { isSignalProxy, traverse, unwrap } from '@data-eden/athena';
 import { Reaction } from '@signalis/core';
 import {
   useCallback,
@@ -18,7 +16,7 @@ import {
   useState,
 } from 'react';
 import { useAthenaClient } from './provider.js';
-import { safeIncrement } from './utils.js';
+import { EMPTY, safeIncrement } from './utils.js';
 
 // Key and memoize the variables object so we determine when the variables themselves have
 // actually changed
@@ -136,7 +134,7 @@ export function useQuery<
       setLoading(false);
     }
   },
-  []);
+  EMPTY);
 
   useEffect(() => {
     void refetch(vars);
