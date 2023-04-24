@@ -7,14 +7,14 @@ import {
   test,
   describe,
 } from 'vitest';
-import * as http from 'http';
+import type * as http from 'http';
 
-import {
-  buildFetch,
+import type {
   Middleware,
   MiddlewareMetadata,
   NormalizedFetch,
 } from '@data-eden/network';
+import { buildFetch } from '@data-eden/network';
 import { createServer } from '@data-eden/shared-test-utilities';
 
 function getPrefixedIncomingHttpHeaders(

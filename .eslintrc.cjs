@@ -43,6 +43,7 @@ module.exports = {
         'prefer-const': 'off',
         '@typescript-eslint/no-empty-function': 'off',
         '@typescript-eslint/require-await': 'off',
+        '@typescript-eslint/consistent-type-imports': 'error',
         '@typescript-eslint/no-unused-vars': [
           'error',
           {

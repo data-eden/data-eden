@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 // TODO: add a tests tsconfig so we can import properly
-import { buildCache, DefaultRegistry } from '@data-eden/cache';
-import type { Cache } from '@data-eden/cache';
+import { buildCache } from '@data-eden/cache';
+import type { Cache, DefaultRegistry } from '@data-eden/cache';
 import { expectTypeOf } from 'vitest';
 
 // TODO: add tests for types
