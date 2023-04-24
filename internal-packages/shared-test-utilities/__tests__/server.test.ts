@@ -1,5 +1,5 @@
 import { expect, test, describe } from 'vitest';
-import * as http from 'http';
+import type * as http from 'http';
 
 import { createServer } from '@data-eden/shared-test-utilities';
 

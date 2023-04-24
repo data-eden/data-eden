@@ -8,20 +8,20 @@ import {
   describe,
 } from 'vitest';
 
+import type { FetchDebugInfo } from '@data-eden/network';
 import {
   buildFetch,
   SettledTrackingMiddleware,
   hasPendingRequests,
   requestsCompleted,
   getPendingRequestState,
-  FetchDebugInfo,
 } from '@data-eden/network';
 
 // TODO: this should actually be import { _setupDefaultRequestsCompletedOptions } from '#settled-tracking-middleware'
 //   but we need https://github.com/vitejs/vite/pull/7770 to land in order to leverage subpath imports properly
 import { _setupDefaultRequestsCompletedOptions } from '@data-eden/network/-private/settled-tracking-middleware';
 
-import * as http from 'http';
+import type * as http from 'http';
 
 import { fileURLToPath } from 'url';
 import * as path from 'path';
