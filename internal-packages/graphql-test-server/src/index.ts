@@ -11,8 +11,6 @@ const store = readJSONSync(
   )
 );
 
-console.log('store', store);
-
 // Create a Yoga instance with a GraphQL schema.
 const yoga = createYoga({
   schema,

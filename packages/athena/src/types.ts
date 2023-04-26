@@ -1,11 +1,9 @@
 import type { buildCache } from '@data-eden/cache';
-import type { buildFetch } from '@data-eden/network';
 import type { SIGNAL } from './signal-proxy.js';
 import type { DocumentNode, GraphQLError } from 'graphql';
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import type { Primitive } from 'type-fest';
 
-export type DataEdenFetch = ReturnType<typeof buildFetch>;
 export type DataEdenCache = ReturnType<typeof buildCache>;
 
 export type DefaultVariables = Record<string, object | Primitive> | undefined;

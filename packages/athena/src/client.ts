@@ -4,7 +4,6 @@ import { isEntity, parseEntities } from './parse-entities.js';
 import { SignalCache, createLinkNode } from './signal-cache.js';
 import type {
   DataEdenCache,
-  DataEdenFetch,
   DefaultVariables,
   DocumentInput,
   GraphQLRequest,
@@ -40,7 +39,7 @@ function defaultBuildRequest(request: GraphQLRequest): RequestInit {
 
 export class AthenaClient {
   private url: string;
-  private fetch: DataEdenFetch;
+  private fetch: typeof fetch;
   private cache: DataEdenCache;
   private getId: IdFetcher;
   private signalCache: SignalCache;

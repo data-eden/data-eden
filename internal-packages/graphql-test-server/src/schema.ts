@@ -1,5 +1,4 @@
 import { createSchema } from 'graphql-yoga';
-import { usePersistedOperations } from '@graphql-yoga/plugin-persisted-operations';
 import { v4 } from 'uuid';
 
 const cars = [
