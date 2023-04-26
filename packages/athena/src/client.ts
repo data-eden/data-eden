@@ -1,5 +1,4 @@
 import { buildCache } from '@data-eden/cache';
-import { buildFetch, type Middleware } from '@data-eden/network';
 import { set } from 'lodash-es';
 import { isEntity, parseEntities } from './parse-entities.js';
 import { SignalCache, createLinkNode } from './signal-cache.js';
@@ -19,7 +18,7 @@ import { prepareOperation } from './utils.js';
 export interface ClientArgs {
   url: string;
   id: IdFetcher;
-  fetchMiddleware?: Array<Middleware>;
+  fetch?: typeof fetch;
   adapter: ReactiveAdapter;
 }
 
@@ -37,7 +36,7 @@ export class AthenaClient {
   constructor(options: ClientArgs) {
     this.url = options.url;
     this.getId = options.id;
-    this.fetch = buildFetch(options.fetchMiddleware || []);
+    this.fetch = options.fetch || globalThis.fetch;
     this.signalCache = new SignalCache(options.adapter, options.id);
 
     const signalCache = this.signalCache;
