@@ -19,12 +19,24 @@ export interface ClientArgs {
   url: string;
   id: IdFetcher;
   fetch?: typeof fetch;
+  buildRequest?: BuildRequest;
   adapter: ReactiveAdapter;
 }
 
+export type BuildRequest = (request: GraphQLRequest) => RequestInit;
 export type CacheKey = string;
 export type PropertyPath = string | number | Array<string | number>;
 export type AthenaClientOptions = Omit<ClientArgs, 'adapter'>;
+
+function defaultBuildRequest(request: GraphQLRequest): RequestInit {
+  return {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  };
+}
 
 export class AthenaClient {
   private url: string;
@@ -32,11 +44,13 @@ export class AthenaClient {
   private cache: DataEdenCache;
   private getId: IdFetcher;
   private signalCache: SignalCache;
+  private buildRequest: BuildRequest;
 
   constructor(options: ClientArgs) {
     this.url = options.url;
     this.getId = options.id;
     this.fetch = options.fetch || globalThis.fetch;
+    this.buildRequest = options.buildRequest || defaultBuildRequest;
     this.signalCache = new SignalCache(options.adapter, options.id);
 
     const signalCache = this.signalCache;
@@ -87,13 +101,7 @@ export class AthenaClient {
     const result: OperationResult<Data> = {};
 
     try {
-      response = await this.fetch(this.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
+      response = await this.fetch(this.url, this.buildRequest(request));
     } catch (err) {
       result.error = {
         network: err,
