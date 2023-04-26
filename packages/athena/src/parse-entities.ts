@@ -31,7 +31,7 @@ export function parseEntities<
 }
 
 function parse(
-  key: PropertyKey | Array<PropertyKey>,
+  key: string | number | Array<string | number>,
   entry: object
 ): Array<ParsedEntity> {
   const result: Array<ParsedEntity> = [];

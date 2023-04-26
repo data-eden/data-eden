@@ -58,7 +58,7 @@ export type Entity<T extends object = Record<string, any>> = T & {
 export interface ParsedEntity {
   entity: Entity;
   parent: Entity | null;
-  prop: PropertyKey | Array<PropertyKey>;
+  prop: string | number | Array<string | number>;
 }
 
 export type IdFetcher<T = any> = (v: T) => string;

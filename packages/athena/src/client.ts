@@ -26,7 +26,7 @@ export interface ClientArgs {
 }
 
 export type CacheKey = string;
-export type PropertyPath = string;
+export type PropertyPath = string | number | Array<string | number>;
 export type AthenaClientOptions = Omit<ClientArgs, 'adapter'>;
 
 export class AthenaClient {
@@ -144,7 +144,7 @@ export class AthenaClient {
     // This object maps "root" entities from a graphql docment to the key used to store them in the
     // cache. We will later use this mapping to reconstitute all of the entities and construct
     // the result to pass back to the caller
-    const roots: Record<PropertyPath, CacheKey> = {};
+    const roots = new Map<PropertyPath, CacheKey>();
 
     /**
      *`parseEntities` returns an array of arrays, where each inner array corresponds to a root
@@ -174,7 +174,7 @@ export class AthenaClient {
         }
 
         if (!parent) {
-          set(roots, prop, key);
+          roots.set(prop, key);
         }
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -184,12 +184,11 @@ export class AthenaClient {
       await tx.commit();
     }
 
-    const result = (
-      Object.entries(roots) as Entries<typeof roots>
-    ).reduce<Data>((acc, [propertyPath, cacheKey]) => {
-      set(acc, propertyPath, this.signalCache.resolve(cacheKey));
-      return acc;
-    }, {} as Data);
+    const result = {} as Data;
+
+    for (const [propertyPath, cacheKey] of roots.entries()) {
+      set(result, propertyPath, this.signalCache.resolve(cacheKey));
+    }
 
     return result;
   }
