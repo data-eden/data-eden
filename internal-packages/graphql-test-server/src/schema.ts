@@ -8,6 +8,12 @@ const cars = [
     model: 'Mustang',
     personId: '1',
   },
+  {
+    id: '2',
+    make: 'Audi',
+    model: 'Q5',
+    personId: '1',
+  },
 ];
 
 const pets = [
@@ -32,21 +38,21 @@ const people = [
 
 const gqlSchema = `
   type Person {
-    id: ID
-    name: String
-    car: Car
-    pets: [Pet]
+    id: ID!
+    name: String!
+    car: Car!
+    pets: [Pet!]!
   }
 
   input PersonInput {
-    name: String
+    name: String!
   }
 
   type Car {
-    id: ID
-    make: String
-    model: String
-    owner: Person
+    id: ID!
+    make: String!
+    model: String!
+    owner: Person!
   }
 
   input CarInput {
@@ -55,36 +61,37 @@ const gqlSchema = `
   }
 
   type Pet {
-    id: ID
-    name: String
-    owner: Person
+    id: ID!
+    name: String!
+    owner: Person!
   }
 
   input UpdatePetInput {
-    name: String
+    name: String!
   }
 
   input CreatePetInput {
-    name: String
-    personId: ID
+    name: String!
+    personId: ID!
   }
 
   input RemovePetInput {
-    id: ID
-    personId: ID
+    id: ID!
+    personId: ID!
   }
 
   type Query {
-    person(id: ID!): Person
-    people: [Person]
+    person(id: ID!): Person!
+    car(id: ID!): Car!
+    people: [Person!]!
   }
 
   type Mutation {
-    updatePerson(personId: ID!, input: PersonInput!): Person
-    updateCar(carId: ID!, input: CarInput!): Car
-    updatePet(petId: ID!, input: UpdatePetInput!): Pet
-    createPet(input: CreatePetInput!): Pet
-    removePet(id: ID!): [Pet]
+    updatePerson(personId: ID!, input: PersonInput!): Person!
+    updateCar(carId: ID!, input: CarInput!): Car!
+    updatePet(petId: ID!, input: UpdatePetInput!): Pet!
+    createPet(input: CreatePetInput!): Pet!
+    removePet(id: ID!): [Pet!]!
   }
 `;
 
@@ -98,6 +105,9 @@ export const schema = createSchema({
           return v.id === id;
         }),
       people: () => people,
+      car: (_, { id }) => {
+        return cars.find((car) => car.id === id);
+      },
     },
 
     Mutation: {
@@ -141,6 +151,12 @@ export const schema = createSchema({
           pets.splice(idx, 1);
         }
         return pets;
+      },
+    },
+
+    Car: {
+      owner: (car: { personId: string }) => {
+        return people.find((p) => car.personId === p.id);
       },
     },
 

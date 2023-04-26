@@ -1,0 +1,6 @@
+mutation UpdatePet($petId: ID!, $input: UpdatePetInput!) {
+  updatePet(petId: $petId, input: $input) {
+    id
+    name
+  }
+}

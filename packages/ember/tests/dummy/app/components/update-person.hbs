@@ -1,0 +1,13 @@
+<div>
+  <h1>Updating Person 1</h1>
+  <input
+    type='text'
+    aria-label='name-input'
+    value={{this.inputValue}}
+    {{on 'input' this.handleInputChange}}
+  />
+
+  <button type='button' {{on 'click' this.handleSubmit}}>
+    Submit
+  </button>
+</div>

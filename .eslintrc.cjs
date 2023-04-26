@@ -28,11 +28,15 @@ module.exports = {
       },
     },
     {
-      files: ['**/*.ts'],
+      files: ['**/*.{ts,tsx}'],
       parser: '@typescript-eslint/parser',
       parserOptions: {
         tsconfigRootDir: __dirname,
-        project: ['./tsconfig.eslint.json', './packages/*/tsconfig.json'],
+        project: [
+          './tsconfig.eslint.json',
+          './packages/*/tsconfig.json',
+          './internal-packages/*/tsconfig.json',
+        ],
       },
       plugins: ['@typescript-eslint'],
       extends: [

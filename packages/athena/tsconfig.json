@@ -1,8 +1,17 @@
 {
   "extends": "../../tsconfig-base.json",
   "compilerOptions": {
+    "noEmitOnError": false,
     "outDir": "dist",
     "rootDir": "src"
   },
-  "include": ["./src"]
+  "include": ["./src/**/*.ts"],
+  "references": [
+    {
+      "path": "../cache"
+    },
+    {
+      "path": "../network"
+    }
+  ]
 }

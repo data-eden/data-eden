@@ -1,0 +1,19 @@
+query Person($id: ID!) {
+  person(id: $id) {
+    id
+    name
+    car {
+      id
+      make
+      model
+    }
+    pets {
+      id
+      name
+      owner {
+        id
+        name
+      }
+    }
+  }
+}

@@ -22,5 +22,11 @@
     "types/**/*",
     "test-support/**/*",
     "addon-test-support/**/*"
+  ],
+  "files": ["types/dummy/graphql.d.ts"],
+  "references": [
+    {
+      "path": "../athena"
+    }
   ]
 }

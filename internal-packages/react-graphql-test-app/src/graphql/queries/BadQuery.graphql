@@ -1,0 +1,6 @@
+query BadQuery($id: ID!) {
+  foo(id: $id) {
+    id
+    name
+  }
+}

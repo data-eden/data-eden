@@ -1,7 +1,6 @@
 {
   "name": "@data-eden/react",
   "version": "0.0.1",
-  "private": true,
   "description": "",
   "homepage": "https://github.com/data-eden/data-eden#readme",
   "bugs": {
@@ -23,12 +22,22 @@
     }
   },
   "main": "./dist/index.js",
-  "typings": "./dist/index.d.ts",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc --build"
   },
-  "dependencies": {},
-  "devDependencies": {},
+  "dependencies": {
+    "@data-eden/athena": "^0.4.0",
+    "@signalis/core": "^0.1.0",
+    "graphql": "^16.6.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.28",
+    "react": "*"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  },
   "volta": {
     "extends": "../../package.json"
   },
