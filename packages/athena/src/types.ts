@@ -32,8 +32,14 @@ export interface GraphQLRequest<
   Data extends object = object,
   Variables = DefaultVariables
 > {
-  query: DocumentNode | TypedDocumentNode<Data, Variables>;
+  query?: DocumentInput<Data, Variables>;
   variables?: Variables;
+  extensions?: {
+    persistedQuery?: {
+      version: number;
+      sha256Hash: string;
+    };
+  };
 }
 
 export interface GraphQLResponse<Data extends object = object> {

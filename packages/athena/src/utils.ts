@@ -5,8 +5,12 @@ import type {
   OperationDefinitionNode,
   SelectionNode,
 } from 'graphql';
-import { parse, visit } from 'graphql';
-import type { DefaultVariables, DocumentInput } from './types.js';
+import { parse, visit, print } from 'graphql';
+import type {
+  DefaultVariables,
+  DocumentInput,
+  GraphQLRequest,
+} from './types.js';
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 
 const TYPENAME_FIELD: FieldNode = {
@@ -79,15 +83,42 @@ export function addTypenameToDocument<
   });
 }
 
-export function prepareQuery<
+interface AthenaDocumentNode extends TypedDocumentNode {
+  __meta__?: {
+    hash: string;
+  };
+}
+
+// Given an operation (query or mutation in the form of a string or document node), we construct
+// the actual payload that will be sent to the graphql server. This allows us to do things like
+// send a pre-registered query if we find that a hash is present, or automatically add `__typename`
+// to any fully formed queries that get passed in.
+export function prepareOperation<
   Data extends object = object,
   Variables extends DefaultVariables = DefaultVariables
 >(
-  queryOperation: DocumentInput<Data, Variables>
-): TypedDocumentNode<Data, Variables> {
-  const parsed =
-    typeof queryOperation === 'string' ? parse(queryOperation) : queryOperation;
-  const withTypename = addTypenameToDocument<Data, Variables>(parsed);
+  operation: DocumentInput<Data, Variables>,
+  variables?: Variables
+): GraphQLRequest<Data, Variables> {
+  const parsed = (
+    typeof operation === 'string' ? parse(operation) : operation
+  ) as AthenaDocumentNode;
 
-  return withTypename;
+  const request: GraphQLRequest<Data, Variables> = {};
+
+  if (parsed.__meta__) {
+    request.extensions = {
+      persistedQuery: {
+        version: 1,
+        sha256Hash: parsed.__meta__.hash,
+      },
+    };
+  } else {
+    const withTypename = addTypenameToDocument<Data, Variables>(parsed);
+    request.query = print(withTypename);
+  }
+
+  request.variables = variables;
+
+  return request;
 }

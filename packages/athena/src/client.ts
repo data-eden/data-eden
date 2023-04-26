@@ -1,8 +1,6 @@
 import { buildCache } from '@data-eden/cache';
-import { type Middleware, buildFetch } from '@data-eden/network';
-import { print } from 'graphql';
+import { buildFetch, type Middleware } from '@data-eden/network';
 import { set } from 'lodash-es';
-import type { Entries } from 'type-fest';
 import { isEntity, parseEntities } from './parse-entities.js';
 import { SignalCache, createLinkNode } from './signal-cache.js';
 import type {
@@ -16,7 +14,7 @@ import type {
   OperationResult,
   ReactiveAdapter,
 } from './types.js';
-import { prepareQuery } from './utils.js';
+import { prepareOperation } from './utils.js';
 
 export interface ClientArgs {
   url: string;
@@ -62,35 +60,26 @@ export class AthenaClient {
     Data extends object = object,
     Variables extends DefaultVariables = DefaultVariables
   >(
-    queryOperation: DocumentInput<Data, Variables>,
+    operation: DocumentInput<Data, Variables>,
     variables?: Variables
   ): Promise<OperationResult<Data>> {
-    const query = prepareQuery<Data, Variables>(queryOperation);
+    const prepared = prepareOperation<Data, Variables>(operation, variables);
 
-    const result = this.makeRequest<Data, Variables>({
-      query,
-      variables,
-    });
-
-    return result;
+    return this.makeRequest<Data, Variables>(prepared);
   }
 
   async mutate<
     Data extends object = object,
     Variables extends DefaultVariables = DefaultVariables
   >(
-    queryOperation: DocumentInput<Data, Variables>,
+    operation: DocumentInput<Data, Variables>,
     variables?: Variables
   ): Promise<OperationResult<Data>> {
-    const query = prepareQuery(queryOperation);
+    const prepared = prepareOperation<Data, Variables>(operation, variables);
 
-    const result = await this.makeRequest<Data, Variables>({
-      query,
-      variables,
-    });
-
-    return result;
+    return this.makeRequest<Data, Variables>(prepared);
   }
+
   private async makeRequest<
     Data extends object = object,
     Variables extends DefaultVariables = DefaultVariables
@@ -98,18 +87,13 @@ export class AthenaClient {
     let response: Response;
     const result: OperationResult<Data> = {};
 
-    const body = {
-      query: print(request.query),
-      variables: request.variables,
-    };
-
     try {
       response = await this.fetch(this.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(request),
       });
     } catch (err) {
       result.error = {
