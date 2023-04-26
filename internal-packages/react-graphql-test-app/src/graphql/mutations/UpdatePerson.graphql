@@ -1,6 +1,7 @@
 mutation UpdatePerson($personId: ID!, $input: PersonInput!) {
   updatePerson(personId: $personId, input: $input) {
     id
+    __typename
     name
   }
 }

@@ -46,7 +46,6 @@ export default function DisplayPerson() {
   });
 
   const person = data?.person;
-  console.log('person', person);
 
   return (
     <div className="border-2 rounded border-blue-500 border-solid my-2 mx-2">

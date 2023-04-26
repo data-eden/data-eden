@@ -1,6 +1,7 @@
 mutation UpdateCar($carId: ID!, $input: CarInput!) {
   updateCar(carId: $carId, input: $input) {
     id
+    __typename
     make
     model
   }

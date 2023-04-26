@@ -1,20 +1,26 @@
 mutation RemovePet($id: ID!) {
   removePet(id: $id) {
     id
+    __typename
     name
     owner {
       id
+      __typename
       pets {
         id
+        __typename
         name
         owner {
           id
+          __typename
           name
           pets {
             id
+            __typename
             name
             owner {
               id
+              __typename
               name
             }
           }
