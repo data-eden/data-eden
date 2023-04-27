@@ -1,13 +1,9 @@
 import { buildCache } from '@data-eden/cache';
-import { type Middleware, buildFetch } from '@data-eden/network';
-import { print } from 'graphql';
 import { set } from 'lodash-es';
-import type { Entries } from 'type-fest';
 import { isEntity, parseEntities } from './parse-entities.js';
 import { SignalCache, createLinkNode } from './signal-cache.js';
 import type {
   DataEdenCache,
-  DataEdenFetch,
   DefaultVariables,
   DocumentInput,
   GraphQLRequest,
@@ -16,30 +12,44 @@ import type {
   OperationResult,
   ReactiveAdapter,
 } from './types.js';
-import { prepareQuery } from './utils.js';
+import { prepareOperation } from './utils.js';
 
 export interface ClientArgs {
   url: string;
   id: IdFetcher;
-  fetchMiddleware?: Array<Middleware>;
+  fetch?: typeof fetch;
+  buildRequest?: BuildRequest;
   adapter: ReactiveAdapter;
 }
 
+export type BuildRequest = (request: GraphQLRequest) => RequestInit;
 export type CacheKey = string;
-export type PropertyPath = string;
+export type PropertyPath = string | number | Array<string | number>;
 export type AthenaClientOptions = Omit<ClientArgs, 'adapter'>;
+
+function defaultBuildRequest(request: GraphQLRequest): RequestInit {
+  return {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  };
+}
 
 export class AthenaClient {
   private url: string;
-  private fetch: DataEdenFetch;
+  private fetch: typeof fetch;
   private cache: DataEdenCache;
   private getId: IdFetcher;
   private signalCache: SignalCache;
+  private buildRequest: BuildRequest;
 
   constructor(options: ClientArgs) {
     this.url = options.url;
     this.getId = options.id;
-    this.fetch = buildFetch(options.fetchMiddleware || []);
+    this.fetch = options.fetch || globalThis.fetch;
+    this.buildRequest = options.buildRequest || defaultBuildRequest;
     this.signalCache = new SignalCache(options.adapter, options.id);
 
     const signalCache = this.signalCache;
@@ -62,35 +72,26 @@ export class AthenaClient {
     Data extends object = object,
     Variables extends DefaultVariables = DefaultVariables
   >(
-    queryOperation: DocumentInput<Data, Variables>,
+    operation: DocumentInput<Data, Variables>,
     variables?: Variables
   ): Promise<OperationResult<Data>> {
-    const query = prepareQuery<Data, Variables>(queryOperation);
+    const prepared = prepareOperation<Data, Variables>(operation, variables);
 
-    const result = this.makeRequest<Data, Variables>({
-      query,
-      variables,
-    });
-
-    return result;
+    return this.makeRequest<Data, Variables>(prepared);
   }
 
   async mutate<
     Data extends object = object,
     Variables extends DefaultVariables = DefaultVariables
   >(
-    queryOperation: DocumentInput<Data, Variables>,
+    operation: DocumentInput<Data, Variables>,
     variables?: Variables
   ): Promise<OperationResult<Data>> {
-    const query = prepareQuery(queryOperation);
+    const prepared = prepareOperation<Data, Variables>(operation, variables);
 
-    const result = await this.makeRequest<Data, Variables>({
-      query,
-      variables,
-    });
-
-    return result;
+    return this.makeRequest<Data, Variables>(prepared);
   }
+
   private async makeRequest<
     Data extends object = object,
     Variables extends DefaultVariables = DefaultVariables
@@ -98,19 +99,8 @@ export class AthenaClient {
     let response: Response;
     const result: OperationResult<Data> = {};
 
-    const body = {
-      query: print(request.query),
-      variables: request.variables,
-    };
-
     try {
-      response = await this.fetch(this.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
+      response = await this.fetch(this.url, this.buildRequest(request));
     } catch (err) {
       result.error = {
         network: err,
@@ -144,7 +134,7 @@ export class AthenaClient {
     // This object maps "root" entities from a graphql docment to the key used to store them in the
     // cache. We will later use this mapping to reconstitute all of the entities and construct
     // the result to pass back to the caller
-    const roots: Record<PropertyPath, CacheKey> = {};
+    const roots = new Map<PropertyPath, CacheKey>();
 
     /**
      *`parseEntities` returns an array of arrays, where each inner array corresponds to a root
@@ -174,7 +164,7 @@ export class AthenaClient {
         }
 
         if (!parent) {
-          set(roots, prop, key);
+          roots.set(prop, key);
         }
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -184,12 +174,11 @@ export class AthenaClient {
       await tx.commit();
     }
 
-    const result = (
-      Object.entries(roots) as Entries<typeof roots>
-    ).reduce<Data>((acc, [propertyPath, cacheKey]) => {
-      set(acc, propertyPath, this.signalCache.resolve(cacheKey));
-      return acc;
-    }, {} as Data);
+    const result = {} as Data;
+
+    for (const [propertyPath, cacheKey] of roots.entries()) {
+      set(result, propertyPath, this.signalCache.resolve(cacheKey));
+    }
 
     return result;
   }

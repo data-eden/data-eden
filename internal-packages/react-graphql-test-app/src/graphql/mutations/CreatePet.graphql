@@ -1,26 +1,34 @@
 mutation CreatePet($input: CreatePetInput!) {
   createPet(input: $input) {
     id
+    __typename
     name
     owner {
       id
+      __typename
       pets {
         id
+        __typename
         name
         owner {
           id
+          __typename
           name
           pets {
             id
+            __typename
             name
             owner {
               id
+              __typename
               name
               pets {
                 id
+                __typename
                 name
                 owner {
                   id
+                  __typename
                   name
                 }
               }

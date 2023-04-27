@@ -1,6 +1,7 @@
 query Car($id: ID!) {
   car(id: $id) {
     id
+    __typename
     make
     model
     owner {

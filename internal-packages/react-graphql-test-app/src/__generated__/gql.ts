@@ -13,19 +13,19 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-  'mutation CreatePet($input: CreatePetInput!) {\n  createPet(input: $input) {\n    id\n    name\n    owner {\n      id\n      pets {\n        id\n        name\n        owner {\n          id\n          name\n          pets {\n            id\n            name\n            owner {\n              id\n              name\n              pets {\n                id\n                name\n                owner {\n                  id\n                  name\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}':
+  'mutation CreatePet($input: CreatePetInput!) {\n  createPet(input: $input) {\n    id\n    __typename\n    name\n    owner {\n      id\n      __typename\n      pets {\n        id\n        __typename\n        name\n        owner {\n          id\n          __typename\n          name\n          pets {\n            id\n            __typename\n            name\n            owner {\n              id\n              __typename\n              name\n              pets {\n                id\n                __typename\n                name\n                owner {\n                  id\n                  __typename\n                  name\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}':
     types.CreatePetDocument,
-  'mutation RemovePet($id: ID!) {\n  removePet(id: $id) {\n    id\n    name\n    owner {\n      id\n      pets {\n        id\n        name\n        owner {\n          id\n          name\n          pets {\n            id\n            name\n            owner {\n              id\n              name\n            }\n          }\n        }\n      }\n    }\n  }\n}':
+  'mutation RemovePet($id: ID!) {\n  removePet(id: $id) {\n    id\n    __typename\n    name\n    owner {\n      id\n      __typename\n      pets {\n        id\n        __typename\n        name\n        owner {\n          id\n          __typename\n          name\n          pets {\n            id\n            __typename\n            name\n            owner {\n              id\n              __typename\n              name\n            }\n          }\n        }\n      }\n    }\n  }\n}':
     types.RemovePetDocument,
-  'mutation UpdateCar($carId: ID!, $input: CarInput!) {\n  updateCar(carId: $carId, input: $input) {\n    id\n    make\n    model\n  }\n}':
+  'mutation UpdateCar($carId: ID!, $input: CarInput!) {\n  updateCar(carId: $carId, input: $input) {\n    id\n    __typename\n    make\n    model\n  }\n}':
     types.UpdateCarDocument,
-  'mutation UpdatePerson($personId: ID!, $input: PersonInput!) {\n  updatePerson(personId: $personId, input: $input) {\n    id\n    name\n  }\n}':
+  'mutation UpdatePerson($personId: ID!, $input: PersonInput!) {\n  updatePerson(personId: $personId, input: $input) {\n    id\n    __typename\n    name\n  }\n}':
     types.UpdatePersonDocument,
-  'mutation UpdatePet($petId: ID!, $input: UpdatePetInput!) {\n  updatePet(petId: $petId, input: $input) {\n    id\n    name\n  }\n}':
+  'mutation UpdatePet($petId: ID!, $input: UpdatePetInput!) {\n  updatePet(petId: $petId, input: $input) {\n    id\n    __typename\n    name\n  }\n}':
     types.UpdatePetDocument,
-  'query Car($id: ID!) {\n  car(id: $id) {\n    id\n    make\n    model\n    owner {\n      id\n    }\n  }\n}':
+  'query Car($id: ID!) {\n  car(id: $id) {\n    id\n    __typename\n    make\n    model\n    owner {\n      id\n    }\n  }\n}':
     types.CarDocument,
-  'query Person($id: ID!) {\n  person(id: $id) {\n    id\n    name\n    car {\n      id\n      make\n      model\n    }\n    pets {\n      id\n      name\n      owner {\n        id\n        name\n      }\n    }\n  }\n}':
+  'query Person($id: ID!) {\n  person(id: $id) {\n    id\n    __typename\n    name\n    car {\n      id\n      __typename\n      make\n      model\n    }\n    pets {\n      id\n      __typename\n      name\n      owner {\n        id\n        __typename\n        name\n      }\n    }\n  }\n}':
     types.PersonDocument,
 };
 
@@ -47,44 +47,44 @@ export function graphql(source: string): unknown;
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: 'mutation CreatePet($input: CreatePetInput!) {\n  createPet(input: $input) {\n    id\n    name\n    owner {\n      id\n      pets {\n        id\n        name\n        owner {\n          id\n          name\n          pets {\n            id\n            name\n            owner {\n              id\n              name\n              pets {\n                id\n                name\n                owner {\n                  id\n                  name\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}'
-): (typeof documents)['mutation CreatePet($input: CreatePetInput!) {\n  createPet(input: $input) {\n    id\n    name\n    owner {\n      id\n      pets {\n        id\n        name\n        owner {\n          id\n          name\n          pets {\n            id\n            name\n            owner {\n              id\n              name\n              pets {\n                id\n                name\n                owner {\n                  id\n                  name\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}'];
+  source: 'mutation CreatePet($input: CreatePetInput!) {\n  createPet(input: $input) {\n    id\n    __typename\n    name\n    owner {\n      id\n      __typename\n      pets {\n        id\n        __typename\n        name\n        owner {\n          id\n          __typename\n          name\n          pets {\n            id\n            __typename\n            name\n            owner {\n              id\n              __typename\n              name\n              pets {\n                id\n                __typename\n                name\n                owner {\n                  id\n                  __typename\n                  name\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}'
+): (typeof documents)['mutation CreatePet($input: CreatePetInput!) {\n  createPet(input: $input) {\n    id\n    __typename\n    name\n    owner {\n      id\n      __typename\n      pets {\n        id\n        __typename\n        name\n        owner {\n          id\n          __typename\n          name\n          pets {\n            id\n            __typename\n            name\n            owner {\n              id\n              __typename\n              name\n              pets {\n                id\n                __typename\n                name\n                owner {\n                  id\n                  __typename\n                  name\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: 'mutation RemovePet($id: ID!) {\n  removePet(id: $id) {\n    id\n    name\n    owner {\n      id\n      pets {\n        id\n        name\n        owner {\n          id\n          name\n          pets {\n            id\n            name\n            owner {\n              id\n              name\n            }\n          }\n        }\n      }\n    }\n  }\n}'
-): (typeof documents)['mutation RemovePet($id: ID!) {\n  removePet(id: $id) {\n    id\n    name\n    owner {\n      id\n      pets {\n        id\n        name\n        owner {\n          id\n          name\n          pets {\n            id\n            name\n            owner {\n              id\n              name\n            }\n          }\n        }\n      }\n    }\n  }\n}'];
+  source: 'mutation RemovePet($id: ID!) {\n  removePet(id: $id) {\n    id\n    __typename\n    name\n    owner {\n      id\n      __typename\n      pets {\n        id\n        __typename\n        name\n        owner {\n          id\n          __typename\n          name\n          pets {\n            id\n            __typename\n            name\n            owner {\n              id\n              __typename\n              name\n            }\n          }\n        }\n      }\n    }\n  }\n}'
+): (typeof documents)['mutation RemovePet($id: ID!) {\n  removePet(id: $id) {\n    id\n    __typename\n    name\n    owner {\n      id\n      __typename\n      pets {\n        id\n        __typename\n        name\n        owner {\n          id\n          __typename\n          name\n          pets {\n            id\n            __typename\n            name\n            owner {\n              id\n              __typename\n              name\n            }\n          }\n        }\n      }\n    }\n  }\n}'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: 'mutation UpdateCar($carId: ID!, $input: CarInput!) {\n  updateCar(carId: $carId, input: $input) {\n    id\n    make\n    model\n  }\n}'
-): (typeof documents)['mutation UpdateCar($carId: ID!, $input: CarInput!) {\n  updateCar(carId: $carId, input: $input) {\n    id\n    make\n    model\n  }\n}'];
+  source: 'mutation UpdateCar($carId: ID!, $input: CarInput!) {\n  updateCar(carId: $carId, input: $input) {\n    id\n    __typename\n    make\n    model\n  }\n}'
+): (typeof documents)['mutation UpdateCar($carId: ID!, $input: CarInput!) {\n  updateCar(carId: $carId, input: $input) {\n    id\n    __typename\n    make\n    model\n  }\n}'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: 'mutation UpdatePerson($personId: ID!, $input: PersonInput!) {\n  updatePerson(personId: $personId, input: $input) {\n    id\n    name\n  }\n}'
-): (typeof documents)['mutation UpdatePerson($personId: ID!, $input: PersonInput!) {\n  updatePerson(personId: $personId, input: $input) {\n    id\n    name\n  }\n}'];
+  source: 'mutation UpdatePerson($personId: ID!, $input: PersonInput!) {\n  updatePerson(personId: $personId, input: $input) {\n    id\n    __typename\n    name\n  }\n}'
+): (typeof documents)['mutation UpdatePerson($personId: ID!, $input: PersonInput!) {\n  updatePerson(personId: $personId, input: $input) {\n    id\n    __typename\n    name\n  }\n}'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: 'mutation UpdatePet($petId: ID!, $input: UpdatePetInput!) {\n  updatePet(petId: $petId, input: $input) {\n    id\n    name\n  }\n}'
-): (typeof documents)['mutation UpdatePet($petId: ID!, $input: UpdatePetInput!) {\n  updatePet(petId: $petId, input: $input) {\n    id\n    name\n  }\n}'];
+  source: 'mutation UpdatePet($petId: ID!, $input: UpdatePetInput!) {\n  updatePet(petId: $petId, input: $input) {\n    id\n    __typename\n    name\n  }\n}'
+): (typeof documents)['mutation UpdatePet($petId: ID!, $input: UpdatePetInput!) {\n  updatePet(petId: $petId, input: $input) {\n    id\n    __typename\n    name\n  }\n}'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: 'query Car($id: ID!) {\n  car(id: $id) {\n    id\n    make\n    model\n    owner {\n      id\n    }\n  }\n}'
-): (typeof documents)['query Car($id: ID!) {\n  car(id: $id) {\n    id\n    make\n    model\n    owner {\n      id\n    }\n  }\n}'];
+  source: 'query Car($id: ID!) {\n  car(id: $id) {\n    id\n    __typename\n    make\n    model\n    owner {\n      id\n    }\n  }\n}'
+): (typeof documents)['query Car($id: ID!) {\n  car(id: $id) {\n    id\n    __typename\n    make\n    model\n    owner {\n      id\n    }\n  }\n}'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: 'query Person($id: ID!) {\n  person(id: $id) {\n    id\n    name\n    car {\n      id\n      make\n      model\n    }\n    pets {\n      id\n      name\n      owner {\n        id\n        name\n      }\n    }\n  }\n}'
-): (typeof documents)['query Person($id: ID!) {\n  person(id: $id) {\n    id\n    name\n    car {\n      id\n      make\n      model\n    }\n    pets {\n      id\n      name\n      owner {\n        id\n        name\n      }\n    }\n  }\n}'];
+  source: 'query Person($id: ID!) {\n  person(id: $id) {\n    id\n    __typename\n    name\n    car {\n      id\n      __typename\n      make\n      model\n    }\n    pets {\n      id\n      __typename\n      name\n      owner {\n        id\n        __typename\n        name\n      }\n    }\n  }\n}'
+): (typeof documents)['query Person($id: ID!) {\n  person(id: $id) {\n    id\n    __typename\n    name\n    car {\n      id\n      __typename\n      make\n      model\n    }\n    pets {\n      id\n      __typename\n      name\n      owner {\n        id\n        __typename\n        name\n      }\n    }\n  }\n}'];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

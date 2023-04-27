@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { AthenaProvider, createClient } from '@data-eden/react';
+import { buildFetch } from '@data-eden/network';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Nested from './routes/Nested';
 import Unrelated from './routes/Unrelated';
@@ -20,6 +21,7 @@ interface Entity {
 export const client = createClient({
   url: 'http://localhost:4000/graphql',
   id: (v: Entity) => `${v.__typename}:${v.id}`,
+  fetch: buildFetch([]),
 });
 
 const router = createBrowserRouter([

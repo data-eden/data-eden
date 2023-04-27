@@ -1,11 +1,9 @@
 import type { buildCache } from '@data-eden/cache';
-import type { buildFetch } from '@data-eden/network';
 import type { SIGNAL } from './signal-proxy.js';
 import type { DocumentNode, GraphQLError } from 'graphql';
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import type { Primitive } from 'type-fest';
 
-export type DataEdenFetch = ReturnType<typeof buildFetch>;
 export type DataEdenCache = ReturnType<typeof buildCache>;
 
 export type DefaultVariables = Record<string, object | Primitive> | undefined;
@@ -32,8 +30,14 @@ export interface GraphQLRequest<
   Data extends object = object,
   Variables = DefaultVariables
 > {
-  query: DocumentNode | TypedDocumentNode<Data, Variables>;
+  query?: DocumentInput<Data, Variables>;
   variables?: Variables;
+  extensions?: {
+    persistedQuery?: {
+      version: number;
+      sha256Hash: string;
+    };
+  };
 }
 
 export interface GraphQLResponse<Data extends object = object> {
@@ -58,7 +62,7 @@ export type Entity<T extends object = Record<string, any>> = T & {
 export interface ParsedEntity {
   entity: Entity;
   parent: Entity | null;
-  prop: PropertyKey | Array<PropertyKey>;
+  prop: string | number | Array<string | number>;
 }
 
 export type IdFetcher<T = any> = (v: T) => string;

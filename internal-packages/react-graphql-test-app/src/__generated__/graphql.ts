@@ -120,33 +120,33 @@ export type CreatePetMutationVariables = Exact<{
 export type CreatePetMutation = {
   __typename?: 'Mutation';
   createPet: {
-    __typename?: 'Pet';
+    __typename: 'Pet';
     id: string;
     name: string;
     owner: {
-      __typename?: 'Person';
+      __typename: 'Person';
       id: string;
       pets: Array<{
-        __typename?: 'Pet';
+        __typename: 'Pet';
         id: string;
         name: string;
         owner: {
-          __typename?: 'Person';
+          __typename: 'Person';
           id: string;
           name: string;
           pets: Array<{
-            __typename?: 'Pet';
+            __typename: 'Pet';
             id: string;
             name: string;
             owner: {
-              __typename?: 'Person';
+              __typename: 'Person';
               id: string;
               name: string;
               pets: Array<{
-                __typename?: 'Pet';
+                __typename: 'Pet';
                 id: string;
                 name: string;
-                owner: { __typename?: 'Person'; id: string; name: string };
+                owner: { __typename: 'Person'; id: string; name: string };
               }>;
             };
           }>;
@@ -163,25 +163,25 @@ export type RemovePetMutationVariables = Exact<{
 export type RemovePetMutation = {
   __typename?: 'Mutation';
   removePet: Array<{
-    __typename?: 'Pet';
+    __typename: 'Pet';
     id: string;
     name: string;
     owner: {
-      __typename?: 'Person';
+      __typename: 'Person';
       id: string;
       pets: Array<{
-        __typename?: 'Pet';
+        __typename: 'Pet';
         id: string;
         name: string;
         owner: {
-          __typename?: 'Person';
+          __typename: 'Person';
           id: string;
           name: string;
           pets: Array<{
-            __typename?: 'Pet';
+            __typename: 'Pet';
             id: string;
             name: string;
-            owner: { __typename?: 'Person'; id: string; name: string };
+            owner: { __typename: 'Person'; id: string; name: string };
           }>;
         };
       }>;
@@ -196,7 +196,7 @@ export type UpdateCarMutationVariables = Exact<{
 
 export type UpdateCarMutation = {
   __typename?: 'Mutation';
-  updateCar: { __typename?: 'Car'; id: string; make: string; model: string };
+  updateCar: { __typename: 'Car'; id: string; make: string; model: string };
 };
 
 export type UpdatePersonMutationVariables = Exact<{
@@ -206,7 +206,7 @@ export type UpdatePersonMutationVariables = Exact<{
 
 export type UpdatePersonMutation = {
   __typename?: 'Mutation';
-  updatePerson: { __typename?: 'Person'; id: string; name: string };
+  updatePerson: { __typename: 'Person'; id: string; name: string };
 };
 
 export type UpdatePetMutationVariables = Exact<{
@@ -216,7 +216,7 @@ export type UpdatePetMutationVariables = Exact<{
 
 export type UpdatePetMutation = {
   __typename?: 'Mutation';
-  updatePet: { __typename?: 'Pet'; id: string; name: string };
+  updatePet: { __typename: 'Pet'; id: string; name: string };
 };
 
 export type CarQueryVariables = Exact<{
@@ -226,7 +226,7 @@ export type CarQueryVariables = Exact<{
 export type CarQuery = {
   __typename?: 'Query';
   car: {
-    __typename?: 'Car';
+    __typename: 'Car';
     id: string;
     make: string;
     model: string;
@@ -241,21 +241,21 @@ export type PersonQueryVariables = Exact<{
 export type PersonQuery = {
   __typename?: 'Query';
   person: {
-    __typename?: 'Person';
+    __typename: 'Person';
     id: string;
     name: string;
-    car: { __typename?: 'Car'; id: string; make: string; model: string };
+    car: { __typename: 'Car'; id: string; make: string; model: string };
     pets: Array<{
-      __typename?: 'Pet';
+      __typename: 'Pet';
       id: string;
       name: string;
-      owner: { __typename?: 'Person'; id: string; name: string };
+      owner: { __typename: 'Person'; id: string; name: string };
     }>;
   };
 };
 
 export const CreatePetDocument = {
-  __meta__: { hash: '187f0687a324c9ac1cf66dc362cda184d1cdc42f' },
+  __meta__: { hash: 'b1081e33670f6719623bf690c3cc3bb8ae5a5167' },
   kind: 'Document',
   definitions: [
     {
@@ -298,6 +298,7 @@ export const CreatePetDocument = {
               kind: 'SelectionSet',
               selections: [
                 { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: '__typename' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'name' } },
                 {
                   kind: 'Field',
@@ -308,6 +309,10 @@ export const CreatePetDocument = {
                       { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                       {
                         kind: 'Field',
+                        name: { kind: 'Name', value: '__typename' },
+                      },
+                      {
+                        kind: 'Field',
                         name: { kind: 'Name', value: 'pets' },
                         selectionSet: {
                           kind: 'SelectionSet',
@@ -315,6 +320,10 @@ export const CreatePetDocument = {
                             {
                               kind: 'Field',
                               name: { kind: 'Name', value: 'id' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: '__typename' },
                             },
                             {
                               kind: 'Field',
@@ -332,6 +341,10 @@ export const CreatePetDocument = {
                                   },
                                   {
                                     kind: 'Field',
+                                    name: { kind: 'Name', value: '__typename' },
+                                  },
+                                  {
+                                    kind: 'Field',
                                     name: { kind: 'Name', value: 'name' },
                                   },
                                   {
@@ -343,6 +356,13 @@ export const CreatePetDocument = {
                                         {
                                           kind: 'Field',
                                           name: { kind: 'Name', value: 'id' },
+                                        },
+                                        {
+                                          kind: 'Field',
+                                          name: {
+                                            kind: 'Name',
+                                            value: '__typename',
+                                          },
                                         },
                                         {
                                           kind: 'Field',
@@ -362,6 +382,13 @@ export const CreatePetDocument = {
                                                 name: {
                                                   kind: 'Name',
                                                   value: 'id',
+                                                },
+                                              },
+                                              {
+                                                kind: 'Field',
+                                                name: {
+                                                  kind: 'Name',
+                                                  value: '__typename',
                                                 },
                                               },
                                               {
@@ -391,6 +418,13 @@ export const CreatePetDocument = {
                                                       kind: 'Field',
                                                       name: {
                                                         kind: 'Name',
+                                                        value: '__typename',
+                                                      },
+                                                    },
+                                                    {
+                                                      kind: 'Field',
+                                                      name: {
+                                                        kind: 'Name',
                                                         value: 'name',
                                                       },
                                                     },
@@ -408,6 +442,14 @@ export const CreatePetDocument = {
                                                             name: {
                                                               kind: 'Name',
                                                               value: 'id',
+                                                            },
+                                                          },
+                                                          {
+                                                            kind: 'Field',
+                                                            name: {
+                                                              kind: 'Name',
+                                                              value:
+                                                                '__typename',
                                                             },
                                                           },
                                                           {
@@ -447,7 +489,7 @@ export const CreatePetDocument = {
   ],
 } as unknown as DocumentNode<CreatePetMutation, CreatePetMutationVariables>;
 export const RemovePetDocument = {
-  __meta__: { hash: 'dad97cc570fccc182f94f1b3a01a5e2a7414ec93' },
+  __meta__: { hash: '0d8007d8a6a52735ec2ad235ff0faae8db6d0a28' },
   kind: 'Document',
   definitions: [
     {
@@ -484,6 +526,7 @@ export const RemovePetDocument = {
               kind: 'SelectionSet',
               selections: [
                 { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: '__typename' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'name' } },
                 {
                   kind: 'Field',
@@ -494,6 +537,10 @@ export const RemovePetDocument = {
                       { kind: 'Field', name: { kind: 'Name', value: 'id' } },
                       {
                         kind: 'Field',
+                        name: { kind: 'Name', value: '__typename' },
+                      },
+                      {
+                        kind: 'Field',
                         name: { kind: 'Name', value: 'pets' },
                         selectionSet: {
                           kind: 'SelectionSet',
@@ -501,6 +548,10 @@ export const RemovePetDocument = {
                             {
                               kind: 'Field',
                               name: { kind: 'Name', value: 'id' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: '__typename' },
                             },
                             {
                               kind: 'Field',
@@ -518,6 +569,10 @@ export const RemovePetDocument = {
                                   },
                                   {
                                     kind: 'Field',
+                                    name: { kind: 'Name', value: '__typename' },
+                                  },
+                                  {
+                                    kind: 'Field',
                                     name: { kind: 'Name', value: 'name' },
                                   },
                                   {
@@ -529,6 +584,13 @@ export const RemovePetDocument = {
                                         {
                                           kind: 'Field',
                                           name: { kind: 'Name', value: 'id' },
+                                        },
+                                        {
+                                          kind: 'Field',
+                                          name: {
+                                            kind: 'Name',
+                                            value: '__typename',
+                                          },
                                         },
                                         {
                                           kind: 'Field',
@@ -548,6 +610,13 @@ export const RemovePetDocument = {
                                                 name: {
                                                   kind: 'Name',
                                                   value: 'id',
+                                                },
+                                              },
+                                              {
+                                                kind: 'Field',
+                                                name: {
+                                                  kind: 'Name',
+                                                  value: '__typename',
                                                 },
                                               },
                                               {
@@ -581,7 +650,7 @@ export const RemovePetDocument = {
   ],
 } as unknown as DocumentNode<RemovePetMutation, RemovePetMutationVariables>;
 export const UpdateCarDocument = {
-  __meta__: { hash: '55c3d86d62194e313a3b30b3a466a2f68349f620' },
+  __meta__: { hash: '4aa2d9ac9e3cec2483beb56d900bff36072b1bdf' },
   kind: 'Document',
   definitions: [
     {
@@ -643,6 +712,7 @@ export const UpdateCarDocument = {
               kind: 'SelectionSet',
               selections: [
                 { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: '__typename' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'make' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'model' } },
               ],
@@ -654,7 +724,7 @@ export const UpdateCarDocument = {
   ],
 } as unknown as DocumentNode<UpdateCarMutation, UpdateCarMutationVariables>;
 export const UpdatePersonDocument = {
-  __meta__: { hash: '8612807145391019a817a4175f6e9b88563eb8ed' },
+  __meta__: { hash: '449089d50c80d6c6d0c9cb3e8ff791f661b05520' },
   kind: 'Document',
   definitions: [
     {
@@ -716,6 +786,7 @@ export const UpdatePersonDocument = {
               kind: 'SelectionSet',
               selections: [
                 { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: '__typename' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'name' } },
               ],
             },
@@ -729,7 +800,7 @@ export const UpdatePersonDocument = {
   UpdatePersonMutationVariables
 >;
 export const UpdatePetDocument = {
-  __meta__: { hash: 'b55c66be67e1a7340bc4d2e035181d08a45b0454' },
+  __meta__: { hash: '23d0002c66857c75c3c33442b1700d08948472b9' },
   kind: 'Document',
   definitions: [
     {
@@ -791,6 +862,7 @@ export const UpdatePetDocument = {
               kind: 'SelectionSet',
               selections: [
                 { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: '__typename' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'name' } },
               ],
             },
@@ -801,7 +873,7 @@ export const UpdatePetDocument = {
   ],
 } as unknown as DocumentNode<UpdatePetMutation, UpdatePetMutationVariables>;
 export const CarDocument = {
-  __meta__: { hash: '88e4b60b18b9ace5f4a7b2fae2af0a5310f4552c' },
+  __meta__: { hash: '265be92252be38417f277c92fd6151a31dc12e6c' },
   kind: 'Document',
   definitions: [
     {
@@ -838,6 +910,7 @@ export const CarDocument = {
               kind: 'SelectionSet',
               selections: [
                 { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: '__typename' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'make' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'model' } },
                 {
@@ -859,7 +932,7 @@ export const CarDocument = {
   ],
 } as unknown as DocumentNode<CarQuery, CarQueryVariables>;
 export const PersonDocument = {
-  __meta__: { hash: 'c563bc4bce098a9306788a0742164b512af2b36e' },
+  __meta__: { hash: '824037f46d3b64652c411cce3d362f0f956e4091' },
   kind: 'Document',
   definitions: [
     {
@@ -896,6 +969,7 @@ export const PersonDocument = {
               kind: 'SelectionSet',
               selections: [
                 { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: '__typename' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'name' } },
                 {
                   kind: 'Field',
@@ -904,6 +978,10 @@ export const PersonDocument = {
                     kind: 'SelectionSet',
                     selections: [
                       { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: '__typename' },
+                      },
                       { kind: 'Field', name: { kind: 'Name', value: 'make' } },
                       { kind: 'Field', name: { kind: 'Name', value: 'model' } },
                     ],
@@ -916,6 +994,10 @@ export const PersonDocument = {
                     kind: 'SelectionSet',
                     selections: [
                       { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: '__typename' },
+                      },
                       { kind: 'Field', name: { kind: 'Name', value: 'name' } },
                       {
                         kind: 'Field',
@@ -926,6 +1008,10 @@ export const PersonDocument = {
                             {
                               kind: 'Field',
                               name: { kind: 'Name', value: 'id' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: '__typename' },
                             },
                             {
                               kind: 'Field',

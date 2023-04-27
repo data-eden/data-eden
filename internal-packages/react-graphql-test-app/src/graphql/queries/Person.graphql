@@ -1,17 +1,21 @@
 query Person($id: ID!) {
   person(id: $id) {
     id
+    __typename
     name
     car {
       id
+      __typename
       make
       model
     }
     pets {
       id
+      __typename
       name
       owner {
         id
+        __typename
         name
       }
     }
