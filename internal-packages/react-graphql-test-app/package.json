@@ -7,14 +7,13 @@
     "dev": "vite",
     "build": "rm -rf dist && tsc && vite build",
     "preview": "vite preview",
-    "codegen": "athena-codegen --schema-path schema.graphql --base-dir src/graphql --documents **/*.graphql !src/graphql/queries/BadQuery.graphql"
+    "codegen": "athena-codegen --schema-path schema.graphql --base-dir src/graphql --documents **/*.graphql **/*.tsx"
   },
   "dependencies": {
     "@data-eden/athena": "*",
     "@data-eden/cache": "*",
     "@data-eden/network": "*",
     "@data-eden/react": "^0.0.1",
-    "graphql": "^16.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.1"
@@ -24,6 +23,7 @@
     "@rollup/plugin-graphql": "^2.0.3",
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
+    "@vitejs/plugin-react": "^4.0.0",
     "@vitejs/plugin-react-swc": "^3.0.0",
     "autoprefixer": "^10.4.13",
     "postcss": "^8.4.21",

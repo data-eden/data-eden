@@ -1,12 +1,28 @@
-import { useQuery } from '@data-eden/react';
+import { graphql, useQuery } from '@data-eden/react';
 import DisplayCar from '../components/DisplayCar';
-import { Car } from '../components/DisplayPerson';
-import { CarDocument } from '../graphql/queries/Car.graphql.js';
 import { useState } from 'react';
+import type {
+  CarQuery,
+  CarQueryVariables,
+} from './__generated/QueryEffect.graphql';
+
+const CarQuery = graphql<CarQuery, CarQueryVariables>`
+  query Car($id: ID!) {
+    car(id: $id) {
+      id
+      __typename
+      make
+      model
+      owner {
+        id
+      }
+    }
+  }
+`;
 
 function QueryCar({ carId }: { carId: string }) {
   console.log('carId', carId);
-  const { data } = useQuery<{ car: Car }>(CarDocument, { id: carId });
+  const { data } = useQuery(CarQuery, { id: carId });
 
   if (data) {
     console.log('data', data);

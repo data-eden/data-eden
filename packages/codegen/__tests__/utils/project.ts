@@ -6,7 +6,11 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
-export async function createFixtures(): Promise<Project> {
+interface DirJSON {
+  [filename: string]: DirJSON | string | null;
+}
+
+export async function createFixtures(filesMap: DirJSON): Promise<Project> {
   const projectPath = path.join(__dirname, '..', '__graphql-project');
   await rimraf(projectPath);
 
@@ -21,7 +25,7 @@ export async function createFixtures(): Promise<Project> {
   return project;
 }
 
-export const filesMap = {
+export const graphqlFilesMap = {
   'schema.graphql': `scalar Date
 
 schema {
@@ -111,4 +115,24 @@ query chats($userId: ID!) {
 `,
   },
   mutations: {},
+};
+
+export const gqlFilesMap = {
+  'schema.graphql': graphqlFilesMap['schema.graphql'],
+  'user.tsx': `import { graphql } from '@data-eden/athena';
+
+  const userFieldsFragment = graphql\`fragment UserFields on User {
+    id
+    username
+    role
+  }
+  \`;
+
+  const findUserQuery = graphql\`query findUser($userId: ID!) {
+    user(id: $userId) {
+      \${userFieldsFragment}
+    }
+  }
+  \`
+`,
 };

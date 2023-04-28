@@ -1,12 +1,29 @@
-import { useMutation } from '@data-eden/react';
+import { graphql, useMutation } from '@data-eden/react';
 import { useState } from 'react';
-import { UpdateCarDocument } from '../graphql/mutations/UpdateCar.graphql.js';
+import {
+  type UpdateCarMutation,
+  type UpdateCarMutationVariables,
+} from './__generated/UpdateCar.graphql.js';
+
+const UpdateCarMutation = graphql<
+  UpdateCarMutation,
+  UpdateCarMutationVariables
+>`
+  mutation UpdateCar($carId: ID!, $input: CarInput!) {
+    updateCar(carId: $carId, input: $input) {
+      id
+      __typename
+      make
+      model
+    }
+  }
+`;
 
 export default function UpdateCar() {
   const [makeValue, setMakeValue] = useState('');
   const [modelValue, setModelValue] = useState('');
 
-  const { execute } = useMutation(UpdateCarDocument);
+  const { execute } = useMutation(UpdateCarMutation);
 
   function handleMakeChange(e: React.FormEvent<HTMLInputElement>) {
     setMakeValue(e.currentTarget.value);

@@ -1,7 +1,12 @@
-import type * as Types from '../schema.graphql.js';
+import type * as Types from '../../graphql/schema.graphql.js';
 
-import type { PersonFieldsFragment } from '../fragments/PersonFields.graphql.js';
 import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+export type PersonFieldsFragment = {
+  __typename: 'Person';
+  id: string;
+  name: string;
+};
+
 export type PersonQueryVariables = Types.Exact<{
   id: Types.Scalars['ID'];
 }>;
@@ -20,6 +25,27 @@ export type PersonQuery = {
   } & PersonFieldsFragment;
 };
 
+export const PersonFieldsFragmentDoc = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'PersonFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'Person' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: '__typename' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<PersonFieldsFragment, unknown>;
 export const PersonDocument = {
   __meta__: {
     queryId: '2b0fc416adc23e2c7cc9761a868714cb5662650a21e9fe14bfa358d98c68b82c',

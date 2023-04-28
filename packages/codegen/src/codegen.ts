@@ -1,12 +1,14 @@
 import { codegen } from '@graphql-codegen/core';
 import { preset } from '@graphql-codegen/near-operation-file-preset';
+import type { Types } from '@graphql-codegen/plugin-helpers';
 import * as typedDocumentNodePlugin from '@graphql-codegen/typed-document-node';
 import * as typescriptOperationsPlugin from '@graphql-codegen/typescript-operations';
 import { printExecutableGraphQLDocument } from '@graphql-tools/documents';
-import { readFile, writeFile } from 'fs/promises';
+import fs from 'fs-extra';
+import { readFile } from 'fs/promises';
 import { globby } from 'globby';
 import type { DocumentNode } from 'graphql';
-import { parse } from 'graphql';
+import { buildSchema, parse } from 'graphql';
 import * as path from 'node:path';
 import { defaultHash } from './default-hash.js';
 import { generateDocumentFiles } from './generate-document-files.js';
@@ -28,6 +30,7 @@ export async function athenaCodegen({
   // Read schema
   const rawSchema = await readFile(schemaPath, 'utf-8');
   const parsedSchema = parse(rawSchema);
+  const graphqlSchema = buildSchema(rawSchema);
   const hashFn = hash || defaultHash;
 
   // Generate schema types and write to root schema file
@@ -43,7 +46,7 @@ export async function athenaCodegen({
   const paths = await globby([...documents, `!${schemaPath}`]);
 
   // Create DocumentFile objects for use in the preset builder
-  const documentFiles = await generateDocumentFiles(paths);
+  const documentFiles = generateDocumentFiles(graphqlSchema, paths);
 
   function onExecutableDocumentNode(documentNode: DocumentNode) {
     const materializedDocumentString =
@@ -51,7 +54,10 @@ export async function athenaCodegen({
 
     const queryId = hashFn(documentNode);
 
-    persistedQueries[queryId] = materializedDocumentString;
+    persistedQueries[queryId] = materializedDocumentString.replaceAll(
+      /_\d+/g,
+      ''
+    );
 
     if (production) {
       return {
@@ -62,38 +68,40 @@ export async function athenaCodegen({
     }
   }
 
-  const configs = await preset.buildGeneratesSection({
-    baseOutputDir: baseDir,
-    config: {
-      useTypeImports: true,
-    },
-    presetConfig: {
-      baseTypesPath: path.relative(baseDir, schemaTypesOutputPath),
-      extension,
-    },
-    schema: parsedSchema,
-    documents: documentFiles,
-    pluginMap: {
-      typescriptOperations: typescriptOperationsPlugin,
-      typedDocumentNode: typedDocumentNodePlugin,
-    },
-    plugins: [
-      {
-        typescriptOperations: {
-          nonOptionalTypename: true,
-          useTypeImports: true,
-          inlineFragmentTypes: 'combine',
-        },
+  const configs: Array<Types.GenerateOptions> =
+    await preset.buildGeneratesSection({
+      baseOutputDir: baseDir,
+      config: {
+        useTypeImports: true,
       },
-      {
-        typedDocumentNode: {
-          addTypenameToSelectionSets: true,
-          unstable_omitDefinitions: true,
-          unstable_onExecutableDocumentNode: onExecutableDocumentNode,
-        },
+      presetConfig: {
+        baseTypesPath: path.relative(baseDir, schemaTypesOutputPath),
+        folder: '__generated',
+        extension,
       },
-    ],
-  });
+      schema: parsedSchema,
+      documents: documentFiles,
+      pluginMap: {
+        typescriptOperations: typescriptOperationsPlugin,
+        typedDocumentNode: typedDocumentNodePlugin,
+      },
+      plugins: [
+        {
+          typescriptOperations: {
+            nonOptionalTypename: true,
+            useTypeImports: true,
+            inlineFragmentTypes: 'combine',
+          },
+        },
+        {
+          typedDocumentNode: {
+            addTypenameToSelectionSets: true,
+            unstable_omitDefinitions: true,
+            unstable_onExecutableDocumentNode: onExecutableDocumentNode,
+          },
+        },
+      ],
+    });
 
   // Generate types for each document + import statements for Schema types
   const documentTypes = await Promise.all(
@@ -112,9 +120,12 @@ export async function athenaCodegen({
         );
       }
 
+      const contents = await codegen(config);
+
       return {
         location: config.filename,
-        contents: await codegen(config),
+        // Remove the weird deduping suffixes that codegen tries to apply
+        contents: contents.replaceAll(/_\d+/g, ''),
       };
     })
   );
@@ -125,8 +136,9 @@ export async function athenaCodegen({
   });
 
   await Promise.all(
-    outputFiles.map((file) => {
-      return writeFile(file.location, file.contents);
+    outputFiles.map(async (file) => {
+      await fs.ensureDir(path.dirname(file.location));
+      return fs.writeFile(file.location, file.contents);
     })
   );
 }

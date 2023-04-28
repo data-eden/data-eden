@@ -9,7 +9,6 @@ import { buildFetch } from '@data-eden/network';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Nested from './routes/Nested';
 import Unrelated from './routes/Unrelated';
-import BrokenQuery from './routes/BrokenQuery';
 import QueryEffect from './routes/QueryEffect';
 import MutationResult from './routes/MutationResult';
 
@@ -32,10 +31,6 @@ const router = createBrowserRouter([
       {
         path: '/nested',
         element: <Nested />,
-      },
-      {
-        path: '/broken-query',
-        element: <BrokenQuery />,
       },
       {
         path: '/unrelated-queries',

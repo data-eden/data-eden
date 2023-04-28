@@ -1,7 +1,11 @@
-import { useQuery } from '@data-eden/react';
+import { useQuery, graphql } from '@data-eden/react';
+import {
+  type PersonQuery,
+  type PersonFieldsFragment,
+  type PersonQueryVariables,
+} from './__generated/DisplayPerson.graphql.js';
 import DisplayCar from './DisplayCar';
 import DisplayPet from './DisplayPet';
-import { PersonDocument } from '../graphql/queries/Person.graphql.js';
 
 export interface Person {
   id: string;
@@ -20,6 +24,36 @@ export interface Car {
   make: string;
   model: string;
 }
+
+const PersonFieldsFragment = graphql<PersonFieldsFragment>`
+  fragment PersonFields on Person {
+    id
+    __typename
+    name
+  }
+`;
+
+const PersonQuery = graphql<PersonQuery, PersonQueryVariables>`
+  query Person($id: ID!) {
+    person(id: $id) {
+      ${PersonFieldsFragment}
+      car {
+        id
+        __typename
+        make
+        model
+      }
+      pets {
+        id
+        __typename
+        name
+        owner {
+          ${PersonFieldsFragment}
+        }
+      }
+    }
+  }
+`;
 
 const DisplayPets = ({ pets }: { pets: Array<Pet> }) => {
   return (
@@ -41,7 +75,7 @@ const DisplayPets = ({ pets }: { pets: Array<Pet> }) => {
 };
 
 export default function DisplayPerson() {
-  const { loading, data } = useQuery(PersonDocument, {
+  const { loading, data } = useQuery(PersonQuery, {
     id: '1',
   });
 

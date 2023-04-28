@@ -1,4 +1,4 @@
-import type * as Types from '../schema.graphql.js';
+import type * as Types from '../../graphql/schema.graphql.js';
 
 import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type UpdatePersonMutationVariables = Types.Exact<{
