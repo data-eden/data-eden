@@ -1,7 +1,7 @@
 import { useQuery } from '@data-eden/react';
 import DisplayCar from './DisplayCar';
 import DisplayPet from './DisplayPet';
-import { PersonDocument } from '../__generated__/graphql';
+import { PersonDocument } from '../graphql/queries/Person.graphql.js';
 
 export interface Person {
   id: string;

@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "rm -rf dist && tsc && vite build",
     "preview": "vite preview",
-    "codegen": "graphql-codegen --config codegen.ts"
+    "codegen": "athena-codegen --schema-path schema.graphql --base-dir src/graphql --documents **/*.graphql !src/graphql/queries/BadQuery.graphql"
   },
   "dependencies": {
     "@data-eden/athena": "*",
@@ -20,8 +20,7 @@
     "react-router-dom": "^6.8.1"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "3.3.0",
-    "@graphql-codegen/client-preset": "3.0.0",
+    "@data-eden/codegen": "*",
     "@rollup/plugin-graphql": "^2.0.3",
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",

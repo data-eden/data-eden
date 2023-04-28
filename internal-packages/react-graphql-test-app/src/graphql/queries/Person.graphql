@@ -1,8 +1,8 @@
+# import PersonFields from '../fragments/PersonFields.graphql'
+
 query Person($id: ID!) {
   person(id: $id) {
-    id
-    __typename
-    name
+    ...PersonFields
     car {
       id
       __typename
@@ -14,9 +14,7 @@ query Person($id: ID!) {
       __typename
       name
       owner {
-        id
-        __typename
-        name
+        ...PersonFields
       }
     }
   }

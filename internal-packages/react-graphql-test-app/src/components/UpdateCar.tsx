@@ -1,6 +1,6 @@
 import { useMutation } from '@data-eden/react';
 import { useState } from 'react';
-import { UpdateCarDocument } from '../__generated__/graphql';
+import { UpdateCarDocument } from '../graphql/mutations/UpdateCar.graphql.js';
 
 export default function UpdateCar() {
   const [makeValue, setMakeValue] = useState('');
