@@ -1,4 +1,5 @@
 # @data-eden/athena
+
 This library has several key components:
 
 **GraphQL Client** The main interface of Athena is a GraphQL client that closely follows the API of urql. This client uses a custom fetch function from @data-eden/network and includes a caching layer built on top of @data-eden/cache.
@@ -7,9 +8,9 @@ This library has several key components:
 
 The reactivity layer operates on two main principles:
 
-  - All entities are wrapped in proxies that provide reactivity while hiding the actual signal from the consumer. This allows GraphQL response data to be interacted with as if it were a regular object.
+- All entities are wrapped in proxies that provide reactivity while hiding the actual signal from the consumer. This allows GraphQL response data to be interacted with as if it were a regular object.
 
-  - All GraphQL responses are broken into entities, normalized, and cached so that all relationships between entities are encoded via the normalized store and kept in sync via the reactive proxy. The cache processes all GraphQL responses, ensuring that the underlying entities and their relationships are kept in sync while maintaining referential stability.
+- All GraphQL responses are broken into entities, normalized, and cached so that all relationships between entities are encoded via the normalized store and kept in sync via the reactive proxy. The cache processes all GraphQL responses, ensuring that the underlying entities and their relationships are kept in sync while maintaining referential stability.
 
 ## Query Metadata
 
