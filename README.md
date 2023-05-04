@@ -12,6 +12,8 @@ Here are some of the key libraries included in the Data-Eden collection:
 
 `@data-eden/network`: A fetch replacement that is request and response aware and supports middlewares for observing or altering requests or responses, either alone or in combination. Additionally, it adds middleware support without eager body consumption, making it compatible with streaming as long as your middlewares are written to be streaming-aware.
 
+## Adapters
+
 `@data-eden/ember`: #write-me
 
 `@data-eden/react`: #write-me
