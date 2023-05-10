@@ -85,7 +85,7 @@ export function addTypenameToDocument<
 
 interface AthenaDocumentNode extends TypedDocumentNode {
   __meta__?: {
-    hash: string;
+    queryId: string;
   };
 }
 
@@ -110,7 +110,7 @@ export function prepareOperation<
     request.extensions = {
       persistedQuery: {
         version: 1,
-        sha256Hash: parsed.__meta__.hash,
+        sha256Hash: parsed.__meta__.queryId,
       },
     };
   } else {

@@ -1,0 +1,5 @@
+fragment PersonFields on Person {
+  id
+  __typename
+  name
+}

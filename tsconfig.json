@@ -14,6 +14,9 @@
       "path": "./packages/ember"
     },
     {
+      "path": "./packages/codegen"
+    },
+    {
       "path": "./packages/network/__tests__/"
     },
     {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation } from '@data-eden/react';
-import { CreatePetDocument } from '../__generated__/graphql';
+import { CreatePetDocument } from '../graphql/mutations/CreatePet.graphql.js';
 import { Pet } from '../components/DisplayPerson';
 
 export default function MutationResult() {

@@ -1,0 +1,56 @@
+type Person {
+  id: ID!
+  name: String!
+  car: Car!
+  pets: [Pet!]!
+}
+
+input PersonInput {
+  name: String!
+}
+
+type Car {
+  id: ID!
+  make: String!
+  model: String!
+  owner: Person!
+}
+
+input CarInput {
+  make: String
+  model: String
+}
+
+type Pet {
+  id: ID!
+  name: String!
+  owner: Person!
+}
+
+input UpdatePetInput {
+  name: String!
+}
+
+input CreatePetInput {
+  name: String!
+  personId: ID!
+}
+
+input RemovePetInput {
+  id: ID!
+  personId: ID!
+}
+
+type Query {
+  person(id: ID!): Person!
+  car(id: ID!): Car!
+  people: [Person!]!
+}
+
+type Mutation {
+  updatePerson(personId: ID!, input: PersonInput!): Person!
+  updateCar(carId: ID!, input: CarInput!): Car!
+  updatePet(petId: ID!, input: UpdatePetInput!): Pet!
+  createPet(input: CreatePetInput!): Pet!
+  removePet(id: ID!): [Pet!]!
+}

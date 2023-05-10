@@ -1,6 +1,6 @@
 import { useMutation } from '@data-eden/react';
 import { useState } from 'react';
-import { UpdatePersonDocument } from '../__generated__/graphql';
+import { UpdatePersonDocument } from '../graphql/mutations/UpdatePerson.graphql.js';
 
 export default function UpdatePerson() {
   const [inputValue, setInputValue] = useState('');

@@ -1,7 +1,7 @@
 import { useQuery } from '@data-eden/react';
 import DisplayCar from '../components/DisplayCar';
 import { Car } from '../components/DisplayPerson';
-import { CarDocument } from '../__generated__/graphql';
+import { CarDocument } from '../graphql/queries/Car.graphql.js';
 import { useState } from 'react';
 
 function QueryCar({ carId }: { carId: string }) {

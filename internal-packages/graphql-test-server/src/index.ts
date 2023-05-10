@@ -6,9 +6,7 @@ import { readJSONSync } from 'fs-extra';
 import path from 'node:path';
 
 const store = readJSONSync(
-  path.resolve(
-    '../react-graphql-test-app/src/__generated__/persisted-documents.json'
-  )
+  path.resolve('../react-graphql-test-app/src/graphql/query-identifiers.json')
 );
 
 // Create a Yoga instance with a GraphQL schema.

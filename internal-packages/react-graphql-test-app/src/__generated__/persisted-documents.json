@@ -1,9 +1,0 @@
-{
-  "b1081e33670f6719623bf690c3cc3bb8ae5a5167": "mutation CreatePet($input: CreatePetInput!) { createPet(input: $input) { __typename id name owner { __typename id pets { __typename id name owner { __typename id name pets { __typename id name owner { __typename id name pets { __typename id name owner { __typename id name } } } } } } } } }",
-  "0d8007d8a6a52735ec2ad235ff0faae8db6d0a28": "mutation RemovePet($id: ID!) { removePet(id: $id) { __typename id name owner { __typename id pets { __typename id name owner { __typename id name pets { __typename id name owner { __typename id name } } } } } } }",
-  "4aa2d9ac9e3cec2483beb56d900bff36072b1bdf": "mutation UpdateCar($carId: ID!, $input: CarInput!) { updateCar(carId: $carId, input: $input) { __typename id make model } }",
-  "449089d50c80d6c6d0c9cb3e8ff791f661b05520": "mutation UpdatePerson($input: PersonInput!, $personId: ID!) { updatePerson(personId: $personId, input: $input) { __typename id name } }",
-  "23d0002c66857c75c3c33442b1700d08948472b9": "mutation UpdatePet($input: UpdatePetInput!, $petId: ID!) { updatePet(petId: $petId, input: $input) { __typename id name } }",
-  "265be92252be38417f277c92fd6151a31dc12e6c": "query Car($id: ID!) { car(id: $id) { __typename id make model owner { id } } }",
-  "824037f46d3b64652c411cce3d362f0f956e4091": "query Person($id: ID!) { person(id: $id) { __typename car { __typename id make model } id name pets { __typename id name owner { __typename id name } } } }"
-}

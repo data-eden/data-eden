@@ -1,6 +1,6 @@
 import { useMutation } from '@data-eden/react';
 import { Pet } from './DisplayPerson';
-import { RemovePetDocument } from '../__generated__/graphql';
+import { RemovePetDocument } from '../graphql/mutations/RemovePet.graphql.js';
 
 export default function DisplayPet({ pet }: { pet: Pet }) {
   const { execute } = useMutation(RemovePetDocument);
