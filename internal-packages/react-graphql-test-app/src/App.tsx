@@ -9,9 +9,6 @@ export default function App() {
             <NavLink to={'/nested'}>Nested</NavLink>
           </li>
           <li className="pb-4">
-            <NavLink to={'/broken-query'}>Broken Query</NavLink>
-          </li>
-          <li className="pb-4">
             <NavLink to={'/unrelated-queries'}>Unrelated Queries</NavLink>
           </li>
           <li className="pb-4">

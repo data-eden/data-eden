@@ -1,11 +1,27 @@
-import { useMutation } from '@data-eden/react';
+import { graphql, useMutation } from '@data-eden/react';
 import { useState } from 'react';
-import { UpdatePetDocument } from '../graphql/mutations/UpdatePet.graphql.js';
+import type {
+  UpdatePetMutation,
+  UpdatePetMutationVariables,
+} from './__generated/UpdatePet.graphql.js';
+
+const UpdatePetMutation = graphql<
+  UpdatePetMutation,
+  UpdatePetMutationVariables
+>`
+  mutation UpdatePet($petId: ID!, $input: UpdatePetInput!) {
+    updatePet(petId: $petId, input: $input) {
+      id
+      __typename
+      name
+    }
+  }
+`;
 
 export default function UpdatePet() {
   const [inputValue, setInputValue] = useState('');
 
-  const { execute } = useMutation(UpdatePetDocument);
+  const { execute } = useMutation(UpdatePetMutation);
 
   function handleInputChange(e: React.FormEvent<HTMLInputElement>) {
     setInputValue(e.currentTarget.value);

@@ -1,9 +1,50 @@
 import { useMutation } from '@data-eden/react';
 import { Pet } from './DisplayPerson';
-import { RemovePetDocument } from '../graphql/mutations/RemovePet.graphql.js';
+import { graphql } from '@data-eden/react';
+import type {
+  RemovePetMutation,
+  RemovePetMutationVariables,
+} from './__generated/DisplayPet.graphql';
+
+const RemovePetMutation = graphql<
+  RemovePetMutation,
+  RemovePetMutationVariables
+>`
+  mutation RemovePet($id: ID!) {
+    removePet(id: $id) {
+      id
+      __typename
+      name
+      owner {
+        id
+        __typename
+        pets {
+          id
+          __typename
+          name
+          owner {
+            id
+            __typename
+            name
+            pets {
+              id
+              __typename
+              name
+              owner {
+                id
+                __typename
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
 
 export default function DisplayPet({ pet }: { pet: Pet }) {
-  const { execute } = useMutation(RemovePetDocument);
+  const { execute } = useMutation(RemovePetMutation);
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();

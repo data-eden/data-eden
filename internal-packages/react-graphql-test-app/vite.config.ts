@@ -1,8 +1,16 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
 import graphql from '@rollup/plugin-graphql';
+import { babelPlugin } from '@data-eden/codegen';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), graphql()],
+  plugins: [
+    react({
+      babel: {
+        plugins: [[babelPlugin, { tagName: 'graphql' }]],
+      },
+    }),
+    graphql(),
+  ],
 });

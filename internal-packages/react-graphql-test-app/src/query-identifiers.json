@@ -1,0 +1,11 @@
+{
+  "c716249d6e62dfe347cd1dbcba70fa7289eafaa59b1a88beda2d705d8ba73f3d": "mutation CreatePet($input: CreatePetInput!) { createPet(input: $input) { __typename id name owner { __typename id pets { __typename id name owner { __typename id name pets { __typename id name owner { __typename id name pets { __typename id name owner { __typename id name } } } } } } } } }",
+  "2b0fc416adc23e2c7cc9761a868714cb5662650a21e9fe14bfa358d98c68b82c": "fragment PersonFields on Person { __typename id name } query Person($id: ID!) { person(id: $id) { __typename car { __typename id make model } pets { __typename id name owner { __typename ...PersonFields } } ...PersonFields } }",
+  "402b683c9e489fa1c769d7cd5815b644acdfb36179d8a9cfa7055e0f128698dd": "mutation RemovePet($id: ID!) { removePet(id: $id) { __typename id name owner { __typename id pets { __typename id name owner { __typename id name pets { __typename id name owner { __typename id name } } } } } } }",
+  "38a98bbd5e7b6463f8dda2de92b3b99c531ca7d53af036685dbc366e12ffc6da": "mutation UpdateCar($carId: ID!, $input: CarInput!) { updateCar(carId: $carId, input: $input) { __typename id make model } }",
+  "1eb1de91b9d83bd2e44c39aa32ebc7fa50cf65176be52f403c5abef75f6defef": "mutation UpdatePerson($input: PersonInput!, $personId: ID!) { updatePerson(personId: $personId, input: $input) { __typename id name } }",
+  "af5c6749a82a0b93e9bce39adf9627e4fb5fd249da1010f72650417b155a5f65": "mutation UpdatePet($input: UpdatePetInput!, $petId: ID!) { updatePet(petId: $petId, input: $input) { __typename id name } }",
+  "88dc7e2b9e56893669f01ccda9e1059fc91154cfe6c39404da1e721ac5f97dab": "mutation CreatePet($input: CreatePetInput!) { createPet(input: $input) { __typename id name owner { __typename id pets { __typename id name owner { __typename id name pets { __typename id name owner { __typename id name pets { __typename id name owner { __typename id name } } } } } } } } }",
+  "b1ac0b3da3bd7a65ff4f77e264b7489d5e90fc148936ec9e574e4175c48eb33a": "query Car($id: ID!) { car(id: $id) { __typename id make model owner { __typename id } } }",
+  "5f155f5eb56ce6dc4fdd2732532a82421fa72dc1794a13edf6d51a4fd9474ee9": "query Car($id: ID!) { car(id: $id) { __typename id make model owner { __typename id } } }"
+}
