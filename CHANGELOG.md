@@ -3,6 +3,57 @@
 
 
 
+
+## v0.5.0 (2023-05-12)
+
+#### :boom: Breaking Change
+* Other
+  * [#98](https://github.com/data-eden/data-eden/pull/98) Drop support for Node 14 ([@cafreeman](https://github.com/cafreeman))
+* `athena`, `codegen`
+  * [#96](https://github.com/data-eden/data-eden/pull/96) @data-eden/codegen ([@cafreeman](https://github.com/cafreeman))
+
+#### :rocket: Enhancement
+* `athena`, `codegen`, `react`
+  * [#97](https://github.com/data-eden/data-eden/pull/97) Support `gql` tags in `@data-eden/codegen` ([@cafreeman](https://github.com/cafreeman))
+* `athena`, `codegen`
+  * [#96](https://github.com/data-eden/data-eden/pull/96) @data-eden/codegen ([@cafreeman](https://github.com/cafreeman))
+* `athena`, `cache`, `ember`, `network`, `react`
+  * [#83](https://github.com/data-eden/data-eden/pull/83) Initial implementation of Athena runtime ([@cafreeman](https://github.com/cafreeman))
+* `ember`, `network`
+  * [#86](https://github.com/data-eden/data-eden/pull/86) Exported 2 more types for down stream repos to consume. ([@larry-x-yu](https://github.com/larry-x-yu))
+* `ember`, `react`
+  * [#85](https://github.com/data-eden/data-eden/pull/85) Add shells for all the incoming packages ([@cafreeman](https://github.com/cafreeman))
+
+#### :bug: Bug Fix
+* `athena`
+  * [#94](https://github.com/data-eden/data-eden/pull/94) Handle persisted queries and expand configuration options ([@cafreeman](https://github.com/cafreeman))
+
+#### :memo: Documentation
+* `athena`
+  * [#95](https://github.com/data-eden/data-eden/pull/95) Doc updates ([@abhijeetbabar](https://github.com/abhijeetbabar))
+
+#### :house: Internal
+* `cache`, `network`
+  * [#93](https://github.com/data-eden/data-eden/pull/93) enforce consistent type imports ([@cafreeman](https://github.com/cafreeman))
+* `network`
+  * [#92](https://github.com/data-eden/data-eden/pull/92) chore: remove Fetch type export ([@hjdivad](https://github.com/hjdivad))
+  * [#89](https://github.com/data-eden/data-eden/pull/89) Add test showing how to return a cached response ([@rwjblue](https://github.com/rwjblue))
+* `cache`
+  * [#91](https://github.com/data-eden/data-eden/pull/91) test: add a types test ([@hjdivad](https://github.com/hjdivad))
+* `cache`, `ember`
+  * [#90](https://github.com/data-eden/data-eden/pull/90) [Cache] Decouple Public API and impl details ([@shuba3862](https://github.com/shuba3862))
+* Other
+  * [#67](https://github.com/data-eden/data-eden/pull/67) Ensure top level `build:watch` runs `tsc --build --watch` ([@rwjblue](https://github.com/rwjblue))
+  * [#88](https://github.com/data-eden/data-eden/pull/88) Remove yarn.lock ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 6
+- Abhijeet P. Babar ([@abhijeetbabar](https://github.com/abhijeetbabar))
+- Chris Freeman ([@cafreeman](https://github.com/cafreeman))
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+- [@larry-x-yu](https://github.com/larry-x-yu)
+- ska3862 ([@shuba3862](https://github.com/shuba3862))
+
 ## v0.4.0 (2023-02-01)
 
 #### :boom: Breaking Change
