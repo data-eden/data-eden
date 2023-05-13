@@ -17,5 +17,5 @@ export type {
   LruCache,
   CacheTransactionDebugAPIs,
   CommitTransaction,
-  CommitTuple
+  CommitTuple,
 } from '../types/api.js';

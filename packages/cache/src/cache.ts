@@ -13,7 +13,7 @@ import type {
   LruCache,
   CacheTransactionDebugAPIs,
   CommitTransaction,
-  CommitTuple
+  CommitTuple,
 } from './index.js';
 
 class CacheImpl<
@@ -208,10 +208,16 @@ class CacheImpl<
     }
   }
 
-  async #commitTransaction([entries, entryRevisions]: CommitTuple<CacheKeyRegistry, Key>): Promise<void> {
-
+  async #commitTransaction([entries, entryRevisions]: CommitTuple<
+    CacheKeyRegistry,
+    Key
+  >): Promise<void> {
     for await (const entry of entries) {
-      const [key, value, state] = entry as CacheEntry<CacheKeyRegistry, Key, UserExtensionData>;
+      const [key, value, state] = entry as CacheEntry<
+        CacheKeyRegistry,
+        Key,
+        UserExtensionData
+      >;
 
       // TODO: finalizregistry
       this.#weakCache.set(key, new WeakRef(value));
@@ -223,7 +229,10 @@ class CacheImpl<
       }
     }
 
-    for await (const [cacheKey, revision] of entryRevisions as Map<Key, CachedEntityRevision<CacheKeyValue>[]>) {
+    for await (const [cacheKey, revision] of entryRevisions as Map<
+      Key,
+      CachedEntityRevision<CacheKeyValue>[]
+    >) {
       if (this.#entryRevisions.has(cacheKey)) {
         const revisions =
           this.#entryRevisions.get(cacheKey)?.concat(revision) || [];
@@ -237,9 +246,13 @@ class CacheImpl<
   async beginTransaction(): Promise<
     LiveCacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
   > {
-    const commitTransaction = (...args: CommitTuple<CacheKeyRegistry, Key, UserExtensionData>) => this.#commitTransaction(args);
+    const commitTransaction = (
+      ...args: CommitTuple<CacheKeyRegistry, Key, UserExtensionData>
+    ) => this.#commitTransaction(args);
 
-    return await LiveCacheTransactionImpl.beginLiveTransaction(this, { commitTransaction });
+    return await LiveCacheTransactionImpl.beginLiveTransaction(this, {
+      commitTransaction,
+    });
   }
 }
 
@@ -327,8 +340,12 @@ class LiveCacheTransactionImpl<
     $Debug = unknown,
     UserExtensionData = unknown
   >(
-    originalCache: CacheImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>, 
-    commitTransaction: CommitTransaction<CacheKeyRegistry, Key, UserExtensionData>
+    originalCache: CacheImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>,
+    commitTransaction: CommitTransaction<
+      CacheKeyRegistry,
+      Key,
+      UserExtensionData
+    >
   ) {
     const transactionalCache = new Map<Key, CacheKeyRegistry[Key]>();
     const entryRevisions = new Map<
@@ -512,9 +529,7 @@ class LiveCacheTransactionImpl<
     ][] = [];
 
     for await (const [cacheKey, value, state] of this.localEntries()) {
-      const latestCacheValue = await this.#originalCacheReference.get(
-        cacheKey
-      );
+      const latestCacheValue = await this.#originalCacheReference.get(cacheKey);
       let entityToCommit;
 
       // assign custom merge strategy if specified else use default
@@ -593,10 +608,9 @@ class LiveCacheTransactionImpl<
     const mergedRevisions = this.#commitingTransaction.mergedRevisions();
 
     // commit merged transaction & revisions entries to main cache
-    await this.#commitTransaction.commitTransaction(
-      trasactionCacheEntries,
-      mergedRevisions
-    ).finally();
+    await this.#commitTransaction
+      .commitTransaction(trasactionCacheEntries, mergedRevisions)
+      .finally();
   }
 }
 class CommittingTransactionImpl<

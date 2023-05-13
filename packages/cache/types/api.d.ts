@@ -6,7 +6,6 @@ export interface Cache<
   $Debug = unknown,
   UserExtensionData = unknown
 > {
-
   /**
     Evict all entries from the cache.
   */
@@ -358,14 +357,16 @@ export type CommitTuple<
 > = [
   entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[],
   entryRevisions: Map<Key, CachedEntityRevision<CacheKeyValue>[]>
-]
+];
 
 export interface CommitTransaction<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry,
   UserExtensionData = unknown
 > {
-  commitTransaction(...args: CommitTuple<CacheKeyRegistry, Key, UserExtensionData>): Promise<void>;
+  commitTransaction(
+    ...args: CommitTuple<CacheKeyRegistry, Key, UserExtensionData>
+  ): Promise<void>;
 }
 
 export interface CacheTransactionDebugAPIs {
