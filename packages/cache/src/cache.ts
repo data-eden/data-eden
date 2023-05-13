@@ -328,7 +328,7 @@ class LiveCacheTransactionImpl<
     UserExtensionData = unknown
   >(
     originalCache: CacheImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>, 
-    commitTransaction: CommitTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
+    commitTransaction: CommitTransaction<CacheKeyRegistry, Key, UserExtensionData>
   ) {
     const transactionalCache = new Map<Key, CacheKeyRegistry[Key]>();
     const entryRevisions = new Map<
