@@ -237,7 +237,7 @@ class CacheImpl<
   async beginTransaction(): Promise<
     LiveCacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
   > {
-    const commitTransaction = (...args: CommitTuple<CacheKeyRegistry, Key, $Debug, UserExtensionData>) => this.#commitTransaction(args);
+    const commitTransaction = (...args: CommitTuple<CacheKeyRegistry, Key, UserExtensionData>) => this.#commitTransaction(args);
 
     return await LiveCacheTransactionImpl.beginLiveTransaction(this, { commitTransaction });
   }

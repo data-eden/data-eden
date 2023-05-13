@@ -354,7 +354,6 @@ export interface CacheDebugAPIs {
 export type CommitTuple<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry,
-  $Debug = unknown,
   UserExtensionData = unknown
 > = [
   entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[],
@@ -364,10 +363,9 @@ export type CommitTuple<
 export interface CommitTransaction<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry,
-  $Debug = unknown,
   UserExtensionData = unknown
 > {
-  commitTransaction(...args: CommitTuple<CacheKeyRegistry, Key, $Debug, UserExtensionData>): Promise<void>;
+  commitTransaction(...args: CommitTuple<CacheKeyRegistry, Key, UserExtensionData>): Promise<void>;
 }
 
 export interface CacheTransactionDebugAPIs {
