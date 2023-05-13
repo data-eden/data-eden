@@ -350,6 +350,25 @@ export interface CacheDebugAPIs {
   history(): void;
 }
 
+export type CommitTuple<
+  CacheKeyRegistry extends DefaultRegistry,
+  Key extends keyof CacheKeyRegistry,
+  UserExtensionData = unknown
+> = [
+  entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[],
+  entryRevisions: Map<Key, CachedEntityRevision<CacheKeyValue>[]>
+];
+
+export interface CommitTransaction<
+  CacheKeyRegistry extends DefaultRegistry,
+  Key extends keyof CacheKeyRegistry,
+  UserExtensionData = unknown
+> {
+  commitTransaction(
+    ...args: CommitTuple<CacheKeyRegistry, Key, UserExtensionData>
+  ): Promise<void>;
+}
+
 export interface CacheTransactionDebugAPIs {
   size(): void;
   entries(): void;
