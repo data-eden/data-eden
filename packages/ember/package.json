@@ -101,13 +101,13 @@
   "volta": {
     "extends": "../../package.json"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "ember": {
     "edition": "octane"
   },
   "ember-addon": {
     "configPath": "tests/dummy/config"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }
