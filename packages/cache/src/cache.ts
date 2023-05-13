@@ -12,6 +12,8 @@ import type {
   DefaultRegistry,
   LruCache,
   CacheTransactionDebugAPIs,
+  CommitTransaction,
+  CommitTuple
 } from './index.js';
 
 class CacheImpl<
@@ -135,42 +137,6 @@ class CacheImpl<
     }
   }
 
-  async commitTransaction(
-    entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[],
-    entryRevisions: Map<Key, CachedEntityRevision<CacheKeyValue>[]>
-  ): Promise<void> {
-    const sortEntries = entries.sort(([, , state], [, , state1]) =>
-      state?.lastAccessed &&
-      state1?.lastAccessed &&
-      state?.lastAccessed < state1?.lastAccessed
-        ? 1
-        : -1
-    );
-
-    for await (let entry of sortEntries) {
-      let [key, value, state] = entry;
-
-      // TODO: finalizregistry
-      this.#weakCache.set(key, new WeakRef(value));
-
-      this.#cacheEntryState.set(key, state);
-
-      if (state?.retained.lru) {
-        this.#lruCache.set(key, value);
-      }
-    }
-
-    for await (const [cacheKey, revision] of entryRevisions) {
-      if (this.#entryRevisions.has(cacheKey)) {
-        const revisions =
-          this.#entryRevisions.get(cacheKey)?.concat(revision) || [];
-        this.#entryRevisions.set(cacheKey, revisions);
-      } else {
-        this.#entryRevisions.set(cacheKey, revision);
-      }
-    }
-  }
-
   /**
     Generator function for async iterable that yields iterable cache entries. This
     will include both strongly held (unexpired entries) as well as weakly held
@@ -242,10 +208,38 @@ class CacheImpl<
     }
   }
 
+  async #commitTransaction([entries, entryRevisions]: CommitTuple<CacheKeyRegistry, Key>): Promise<void> {
+
+    for await (const entry of entries) {
+      const [key, value, state] = entry as CacheEntry<CacheKeyRegistry, Key, UserExtensionData>;
+
+      // TODO: finalizregistry
+      this.#weakCache.set(key, new WeakRef(value));
+
+      this.#cacheEntryState.set(key, state);
+
+      if (state?.retained.lru) {
+        this.#lruCache.set(key, value);
+      }
+    }
+
+    for await (const [cacheKey, revision] of entryRevisions as Map<Key, CachedEntityRevision<CacheKeyValue>[]>) {
+      if (this.#entryRevisions.has(cacheKey)) {
+        const revisions =
+          this.#entryRevisions.get(cacheKey)?.concat(revision) || [];
+        this.#entryRevisions.set(cacheKey, revisions);
+      } else {
+        this.#entryRevisions.set(cacheKey, revision);
+      }
+    }
+  }
+
   async beginTransaction(): Promise<
     LiveCacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
   > {
-    return await LiveCacheTransactionImpl.beginLiveTransaction(this);
+    const commitTransaction = (...args: CommitTuple<CacheKeyRegistry, Key, $Debug, UserExtensionData>) => this.#commitTransaction(args);
+
+    return await LiveCacheTransactionImpl.beginLiveTransaction(this, { commitTransaction });
   }
 }
 
@@ -277,11 +271,13 @@ class LiveCacheTransactionImpl<
   #lruPolicy: number;
   #localRevisions: Map<Key, CachedEntityRevision<CacheKeyValue>[]>;
   #entryRevisions: Map<Key, CachedEntityRevision<CacheKeyValue>[]>;
+  #commitTransaction: CommitTransaction<CacheKeyRegistry, Key>;
 
   constructor(
     originalCache: CacheImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>,
     transactionalCacheEntryMap: Map<Key, CacheKeyRegistry[Key]>,
-    entryRevisions: Map<Key, CachedEntityRevision<CacheKeyValue>[]>
+    entryRevisions: Map<Key, CachedEntityRevision<CacheKeyValue>[]>,
+    commitTransaction: CommitTransaction<CacheKeyRegistry, Key>
   ) {
     this.#originalCacheReference = originalCache;
     this.#transactionalCache = transactionalCacheEntryMap;
@@ -289,6 +285,7 @@ class LiveCacheTransactionImpl<
     this.#cacheEntryState = new Map<Key, CacheEntryState<UserExtensionData>>();
     this.#ttlPolicy = DEFAULT_EXPIRATION.ttl;
     this.#lruPolicy = DEFAULT_EXPIRATION.lru;
+    this.#commitTransaction = commitTransaction;
 
     this.#localRevisions = new Map<
       Key,
@@ -330,7 +327,8 @@ class LiveCacheTransactionImpl<
     $Debug = unknown,
     UserExtensionData = unknown
   >(
-    originalCache: CacheImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>
+    originalCache: CacheImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>, 
+    commitTransaction: CommitTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
   ) {
     const transactionalCache = new Map<Key, CacheKeyRegistry[Key]>();
     const entryRevisions = new Map<
@@ -350,7 +348,7 @@ class LiveCacheTransactionImpl<
       Key,
       $Debug,
       UserExtensionData
-    >(originalCache, transactionalCache, entryRevisions);
+    >(originalCache, transactionalCache, entryRevisions, commitTransaction);
   }
 
   get(cacheKey: Key): CacheKeyRegistry[Key] | undefined {
@@ -507,106 +505,98 @@ class LiveCacheTransactionImpl<
   }
 
   async commit(options?: { timeout: number | false }): Promise<void> {
-    const timeout: number = options?.timeout ? options.timeout : 10000;
-    const commitLock = new Promise((resolve, reject) =>
-      setTimeout(reject, timeout)
-    );
-    const writeToCache = async () => {
-      const trasactionCacheEntries: [
-        Key,
-        CacheKeyRegistry[Key],
-        CacheEntryState<UserExtensionData> | undefined
-      ][] = [];
+    const trasactionCacheEntries: [
+      Key,
+      CacheKeyRegistry[Key],
+      CacheEntryState<UserExtensionData> | undefined
+    ][] = [];
 
-      for await (const [cacheKey, value, state] of this.localEntries()) {
-        const latestCacheValue = await this.#originalCacheReference.get(
-          cacheKey
-        );
-        let entityToCommit;
-
-        // assign custom merge strategy if specified else use default
-        const mergeStrategyFromCacheOptionHook =
-          this.#originalCacheReference.getCacheOptions()?.hooks
-            ?.entitymergeStrategy;
-        const mergeStrategy =
-          mergeStrategyFromCacheOptionHook || defaultMergeStrategy;
-
-        if (latestCacheValue) {
-          // TODO fix revision
-          entityToCommit = mergeStrategy(
-            cacheKey,
-            { entity: value as CacheKeyValue, revision: 3 },
-            latestCacheValue,
-            this
-          );
-        } else {
-          entityToCommit = value;
-        }
-        const structuredClonedValue = structuredClone(
-          entityToCommit
-        ) as CacheKeyRegistry[Key];
-
-        trasactionCacheEntries.push([cacheKey, structuredClonedValue, state]);
-
-        // Update saved revisions of the entity
-        const localRevisions = this.#localRevisions.get(cacheKey);
-        let revisionNumber =
-          localRevisions && localRevisions[localRevisions.length - 1].revision
-            ? localRevisions[localRevisions.length - 1].revision
-            : 0;
-
-        const entityRevision = {
-          entity: entityToCommit as CacheKeyValue,
-          revision: ++revisionNumber,
-        };
-        if (this.#localRevisions.has(cacheKey)) {
-          this.#localRevisions.get(cacheKey)?.push(entityRevision);
-        } else {
-          this.#localRevisions.set(cacheKey, [entityRevision]);
-        }
-
-        const revisionStrategy = this.#originalCacheReference.getCacheOptions()
-          ?.hooks?.revisionMergeStrategy
-          ? async (
-              id: Key,
-              commitTx: CommittingTransactionImpl<
-                CacheKeyRegistry,
-                Key,
-                $Debug,
-                UserExtensionData
-              >,
-              liveTx: LiveCacheTransactionImpl<
-                CacheKeyRegistry,
-                Key,
-                $Debug,
-                UserExtensionData
-              >
-            ) =>
-              this.#originalCacheReference.getCacheOptions()?.hooks
-                ?.revisionMergeStrategy
-          : defaultRevisionStrategy;
-
-        // Update revisions based on revision strategy
-        await revisionStrategy(cacheKey, this.#commitingTransaction, this);
-      }
-
-      // Call commit hook to apply custom retention policies before commit (if passed by cache options)
-      const customRetentionPolicy =
-        this.#originalCacheReference.getCacheOptions()?.hooks?.commit;
-      if (customRetentionPolicy) {
-        customRetentionPolicy(this);
-      }
-
-      const mergedRevisions = this.#commitingTransaction.mergedRevisions();
-
-      // commit merged transaction & revisions entries to main cache
-      await this.#originalCacheReference.commitTransaction(
-        trasactionCacheEntries,
-        mergedRevisions
+    for await (const [cacheKey, value, state] of this.localEntries()) {
+      const latestCacheValue = await this.#originalCacheReference.get(
+        cacheKey
       );
-    };
+      let entityToCommit;
 
-    await Promise.race([writeToCache(), commitLock]);
+      // assign custom merge strategy if specified else use default
+      const mergeStrategyFromCacheOptionHook =
+        this.#originalCacheReference.getCacheOptions()?.hooks
+          ?.entitymergeStrategy;
+      const mergeStrategy =
+        mergeStrategyFromCacheOptionHook || defaultMergeStrategy;
+
+      if (latestCacheValue) {
+        // TODO fix revision
+        entityToCommit = mergeStrategy(
+          cacheKey,
+          { entity: value as CacheKeyValue, revision: 3 },
+          latestCacheValue,
+          this
+        );
+      } else {
+        entityToCommit = value;
+      }
+      const structuredClonedValue = structuredClone(
+        entityToCommit
+      ) as CacheKeyRegistry[Key];
+
+      trasactionCacheEntries.push([cacheKey, structuredClonedValue, state]);
+
+      // Update saved revisions of the entity
+      const localRevisions = this.#localRevisions.get(cacheKey);
+      let revisionNumber =
+        localRevisions && localRevisions[localRevisions.length - 1].revision
+          ? localRevisions[localRevisions.length - 1].revision
+          : 0;
+
+      const entityRevision = {
+        entity: entityToCommit as CacheKeyValue,
+        revision: ++revisionNumber,
+      };
+      if (this.#localRevisions.has(cacheKey)) {
+        this.#localRevisions.get(cacheKey)?.push(entityRevision);
+      } else {
+        this.#localRevisions.set(cacheKey, [entityRevision]);
+      }
+
+      const revisionStrategy = this.#originalCacheReference.getCacheOptions()
+        ?.hooks?.revisionMergeStrategy
+        ? async (
+            id: Key,
+            commitTx: CommittingTransactionImpl<
+              CacheKeyRegistry,
+              Key,
+              $Debug,
+              UserExtensionData
+            >,
+            liveTx: LiveCacheTransactionImpl<
+              CacheKeyRegistry,
+              Key,
+              $Debug,
+              UserExtensionData
+            >
+          ) =>
+            this.#originalCacheReference.getCacheOptions()?.hooks
+              ?.revisionMergeStrategy
+        : defaultRevisionStrategy;
+
+      // Update revisions based on revision strategy
+      await revisionStrategy(cacheKey, this.#commitingTransaction, this);
+    }
+
+    // Call commit hook to apply custom retention policies before commit (if passed by cache options)
+    const customRetentionPolicy =
+      this.#originalCacheReference.getCacheOptions()?.hooks?.commit;
+    if (customRetentionPolicy) {
+      customRetentionPolicy(this);
+    }
+
+    const mergedRevisions = this.#commitingTransaction.mergedRevisions();
+
+    // commit merged transaction & revisions entries to main cache
+    await this.#commitTransaction.commitTransaction(
+      trasactionCacheEntries,
+      mergedRevisions
+    ).finally();
   }
 }
 class CommittingTransactionImpl<
