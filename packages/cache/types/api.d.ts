@@ -67,7 +67,7 @@ export interface Cache<
   */
   entryRevisions(
     cacheKey: Key
-  ): AsyncIterableIterator<CachedEntityRevision<CacheKeyValue>>;
+  ): AsyncIterableIterator<CachedEntityRevision<CacheKeyRegistry, Key>>;
 
   /**
     Generator function that yields each of the cache entry keys
@@ -99,23 +99,27 @@ export interface CacheTransaction<
     entry in this transaction. The return value can therefore differ from
     `cache.get`.
   */
-  get(cacheKey: Key): CacheKeyRegistry[Key] | CacheKeyValue | undefined;
+  get(
+    cacheKey: Key
+  ): Promise<CacheKeyRegistry[Key] | CacheKeyValue | undefined>;
 
   [Symbol.asyncIterator](
-    entryMap: Map<Key, CacheKeyRegistry[Key]>
+    entryMap: Map<Key, CacheKeyRegistry[Key] | Tombstone>
   ): AsyncIterableIterator<
-    [Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]
+    [Key, CacheKeyRegistry[Key] | Tombstone, CacheEntryState<UserExtensionData>]
   >;
 
   /**
     Generator function that yields each of the transaction entries including local entries and entries before transaction began.
   */
-  entries(): AsyncIterableIterator<
-    [
-      Key,
-      CacheKeyRegistry[Key] | CacheKeyValue,
-      CacheEntryState<UserExtensionData>
-    ]
+  entries(): Promise<
+    AsyncIterableIterator<
+      [
+        Key,
+        CacheKeyRegistry[Key] | CacheKeyValue,
+        CacheEntryState<UserExtensionData>
+      ]
+    >
   >;
 
   /**
@@ -134,7 +138,7 @@ export interface CacheTransaction<
   */
   localRevisions(
     cacheKey: Key
-  ): AsyncIterableIterator<CachedEntityRevision<CacheKeyValue>>;
+  ): AsyncIterableIterator<CachedEntityRevision<CacheKeyRegistry, Key>>;
 
   /**
    An async generator that produces the complete list of revisions for `key`,
@@ -143,7 +147,7 @@ export interface CacheTransaction<
   */
   entryRevisions(
     cacheKey: Key
-  ): AsyncIterableIterator<CachedEntityRevision<CacheKeyValue>>;
+  ): AsyncIterableIterator<CachedEntityRevision<CacheKeyRegistry, Key>>;
 
   $debug?: $Debug & CacheTransactionDebugAPIs;
 }
@@ -162,9 +166,17 @@ export interface LiveCacheTransaction<
    */
   merge(
     cacheKey: Key,
-    value: CachedEntityRevision<CacheKeyValue>,
+    entity: CacheKeyRegistry[Key],
     options?: {
-      $debug: $Debug;
+      revisionCounter?: number;
+      entityMergeStrategy?: EntityMergeStrategy<
+        CacheKeyRegistry,
+        Key,
+        $Debug,
+        UserExtensionData
+      >;
+      revisionContext?: string;
+      $debug?: $Debug;
     }
   ): Promise<CacheKeyRegistry[Key] | CacheKeyValue>;
 
@@ -174,7 +186,7 @@ export interface LiveCacheTransaction<
   set(
     cacheKey: Key,
     value: CacheKeyRegistry[Key] | CacheKeyValue
-  ): CacheKeyRegistry[Key] | CacheKeyValue;
+  ): Promise<CacheKeyRegistry[Key] | CacheKeyValue>;
 
   /**
    * Deletes an entry from live transction
@@ -214,7 +226,7 @@ export interface CommittingTransaction<
         UserExtensionData
       >,
       id: Key,
-      revisions: CachedEntityRevision<CacheKeyValue>[]
+      revisions: CachedEntityRevision<CacheKeyRegistry, Key>[]
     ): void;
   };
 }
@@ -265,7 +277,7 @@ export interface EntityMergeStrategy<
 > {
   (
     cacheKey: Key,
-    newEntityRevision: CachedEntityRevision<CacheKeyValue>,
+    newEntityRevision: CachedEntityRevision<CacheKeyRegistry, Key>,
     current: CacheKeyRegistry[Key] | undefined,
     tx: CacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
   ): CacheKeyValue;
@@ -282,8 +294,11 @@ export interface RevisionMergeStrategy<
   ): void;
 }
 
-export interface CachedEntityRevision<CacheKeyValue> {
-  entity: CacheKeyValue;
+export interface CachedEntityRevision<
+  CacheKeyRegistry extends DefaultRegistry,
+  Key extends keyof CacheKeyRegistry
+> {
+  entity: CacheKeyRegistry[Key];
   revision: number;
   revisionContext?: string; // Use to store queryIds that can be used for debugging
 }
@@ -356,7 +371,7 @@ export type CommitTuple<
   UserExtensionData = unknown
 > = [
   entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[],
-  entryRevisions: Map<Key, CachedEntityRevision<CacheKeyValue>[]>
+  entryRevisions: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>
 ];
 
 export interface CommitTransaction<
@@ -383,3 +398,5 @@ export interface LruCache<
 > {
   set(cacheKey: Key, value: CacheKeyRegistry[Key]): void;
 }
+
+export type Tombstone = string;

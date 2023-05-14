@@ -14,6 +14,8 @@ import type {
   CacheTransactionDebugAPIs,
   CommitTransaction,
   CommitTuple,
+  EntityMergeStrategy,
+  Tombstone,
 } from './index.js';
 
 class CacheImpl<
@@ -24,7 +26,7 @@ class CacheImpl<
 > implements Cache<CacheKeyRegistry, Key, $Debug, UserExtensionData>
 {
   #weakCache: Map<Key, WeakRef<CacheKeyRegistry[Key]>>;
-  #entryRevisions: Map<Key, CachedEntityRevision<CacheKeyValue>[]>;
+  #entryRevisions: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>;
   #cacheOptions:
     | CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData>
     | undefined;
@@ -42,7 +44,7 @@ class CacheImpl<
     this.#lruPolicy = DEFAULT_EXPIRATION.lru;
     this.#entryRevisions = new Map<
       Key,
-      CachedEntityRevision<CacheKeyValue>[]
+      CachedEntityRevision<CacheKeyRegistry, Key>[]
     >();
     this.#cacheEntryState = new Map<
       Key,
@@ -124,7 +126,7 @@ class CacheImpl<
       this.#cacheEntryState.set(key, state);
 
       const entityRevision = {
-        entity: value as CacheKeyValue,
+        entity: value,
         revision: ++revisionCounter,
       };
       if (this.#entryRevisions.has(key)) {
@@ -175,11 +177,11 @@ class CacheImpl<
 
   entryRevisions(
     cacheKey: Key
-  ): AsyncIterableIterator<CachedEntityRevision<CacheKeyValue>> {
+  ): AsyncIterableIterator<CachedEntityRevision<CacheKeyRegistry, Key>> {
     const entryRevisionIterator = {
       async *[Symbol.asyncIterator](
-        revisions: CachedEntityRevision<CacheKeyValue>[]
-      ): AsyncIterableIterator<CachedEntityRevision<CacheKeyValue>> {
+        revisions: CachedEntityRevision<CacheKeyRegistry, Key>[]
+      ): AsyncIterableIterator<CachedEntityRevision<CacheKeyRegistry, Key>> {
         for (const revision of revisions) {
           yield revision;
         }
@@ -229,10 +231,7 @@ class CacheImpl<
       }
     }
 
-    for await (const [cacheKey, revision] of entryRevisions as Map<
-      Key,
-      CachedEntityRevision<CacheKeyValue>[]
-    >) {
+    for await (const [cacheKey, revision] of entryRevisions) {
       if (this.#entryRevisions.has(cacheKey)) {
         const revisions =
           this.#entryRevisions.get(cacheKey)?.concat(revision) || [];
@@ -250,7 +249,12 @@ class CacheImpl<
       ...args: CommitTuple<CacheKeyRegistry, Key, UserExtensionData>
     ) => this.#commitTransaction(args);
 
-    return await LiveCacheTransactionImpl.beginLiveTransaction(this, {
+    return new LiveCacheTransactionImpl<
+      CacheKeyRegistry,
+      Key,
+      $Debug,
+      UserExtensionData
+    >(this, {
       commitTransaction,
     });
   }
@@ -270,8 +274,7 @@ class LiveCacheTransactionImpl<
     $Debug,
     UserExtensionData
   >;
-  #transactionalCache: Map<Key, CacheKeyRegistry[Key]>;
-  #localUpdatedEntries: Map<Key, CacheKeyRegistry[Key]>;
+  #transactionalCache: Map<Key, CacheKeyRegistry[Key] | Tombstone>;
   #commitingTransaction: CommittingTransactionImpl<
     CacheKeyRegistry,
     Key,
@@ -282,30 +285,32 @@ class LiveCacheTransactionImpl<
   #userOptionRetentionPolicy: ExpirationPolicy;
   #ttlPolicy: number;
   #lruPolicy: number;
-  #localRevisions: Map<Key, CachedEntityRevision<CacheKeyValue>[]>;
-  #entryRevisions: Map<Key, CachedEntityRevision<CacheKeyValue>[]>;
+  #localRevisions: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>;
+  #entryRevisions: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>;
   #commitTransaction: CommitTransaction<CacheKeyRegistry, Key>;
+  #deletedState: Tombstone;
 
   constructor(
     originalCache: CacheImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>,
-    transactionalCacheEntryMap: Map<Key, CacheKeyRegistry[Key]>,
-    entryRevisions: Map<Key, CachedEntityRevision<CacheKeyValue>[]>,
     commitTransaction: CommitTransaction<CacheKeyRegistry, Key>
   ) {
     this.#originalCacheReference = originalCache;
-    this.#transactionalCache = transactionalCacheEntryMap;
-    this.#localUpdatedEntries = new Map<Key, CacheKeyRegistry[Key]>();
+    this.#transactionalCache = new Map<
+      Key,
+      CacheKeyRegistry[Key] | Tombstone
+    >();
     this.#cacheEntryState = new Map<Key, CacheEntryState<UserExtensionData>>();
     this.#ttlPolicy = DEFAULT_EXPIRATION.ttl;
     this.#lruPolicy = DEFAULT_EXPIRATION.lru;
     this.#commitTransaction = commitTransaction;
-
     this.#localRevisions = new Map<
       Key,
-      CachedEntityRevision<CacheKeyValue>[]
+      CachedEntityRevision<CacheKeyRegistry, Key>[]
     >();
-    this.#entryRevisions = entryRevisions;
-
+    this.#entryRevisions = new Map<
+      Key,
+      CachedEntityRevision<CacheKeyRegistry, Key>[]
+    >();
     this.#userOptionRetentionPolicy =
       this.#originalCacheReference.getCacheOptions()?.expiration ||
       DEFAULT_EXPIRATION;
@@ -326,6 +331,8 @@ class LiveCacheTransactionImpl<
       this.#ttlPolicy = this.#userOptionRetentionPolicy.ttl;
     }
 
+    this.#deletedState = 'DELETED';
+
     this.#commitingTransaction = new CommittingTransactionImpl<
       CacheKeyRegistry,
       Key,
@@ -334,58 +341,26 @@ class LiveCacheTransactionImpl<
     >();
   }
 
-  static async beginLiveTransaction<
-    CacheKeyRegistry extends DefaultRegistry,
-    Key extends keyof CacheKeyRegistry,
-    $Debug = unknown,
-    UserExtensionData = unknown
-  >(
-    originalCache: CacheImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>,
-    commitTransaction: CommitTransaction<
-      CacheKeyRegistry,
-      Key,
-      UserExtensionData
-    >
-  ) {
-    const transactionalCache = new Map<Key, CacheKeyRegistry[Key]>();
-    const entryRevisions = new Map<
-      Key,
-      CachedEntityRevision<CacheKeyValue>[]
-    >();
-    for await (const [key, value] of originalCache.entries()) {
-      transactionalCache.set(key, { ...value });
+  async get(
+    cacheKey: Key
+  ): Promise<CacheKeyRegistry[Key] | Tombstone | undefined> {
+    // will check the transaction entries and fall back to the cache if the transaction hasn't written to the key yet.
+    let cachedValue;
 
-      for await (const entryRevision of originalCache.entryRevisions(key)) {
-        entryRevisions.set(key, [entryRevision]);
+    for await (const [key, value] of this.localEntries()) {
+      if (key === cacheKey) {
+        cachedValue = value;
+        break;
       }
     }
 
-    return new LiveCacheTransactionImpl<
-      CacheKeyRegistry,
-      Key,
-      $Debug,
-      UserExtensionData
-    >(originalCache, transactionalCache, entryRevisions, commitTransaction);
-  }
-
-  get(cacheKey: Key): CacheKeyRegistry[Key] | undefined {
-    const cacheValue = this.#transactionalCache.get(cacheKey);
-
-    if (cacheValue) {
-      // Update cache entry state
-      this.#cacheEntryState.set(cacheKey, {
-        retained: { lru: true, ttl: this.#ttlPolicy },
-        lastAccessed: Date.now(),
-      });
-    }
-
-    return cacheValue;
+    return cachedValue || (await this.#originalCacheReference.get(cacheKey));
   }
 
   async *[Symbol.asyncIterator](
-    entryMap: Map<Key, CacheKeyRegistry[Key]>
+    entryMap: Map<Key, CacheKeyRegistry[Key] | Tombstone>
   ): AsyncIterableIterator<
-    [Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]
+    [Key, CacheKeyRegistry[Key] | Tombstone, CacheEntryState<UserExtensionData>]
   > {
     for (const [key, value] of entryMap) {
       const state = this.#cacheEntryState.get(key) || DEFAULT_ENTRY_STATE;
@@ -393,25 +368,38 @@ class LiveCacheTransactionImpl<
     }
   }
 
-  entries(): AsyncIterableIterator<
-    [Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]
+  async entries(): Promise<
+    AsyncIterableIterator<
+      [
+        Key,
+        CacheKeyRegistry[Key] | Tombstone,
+        CacheEntryState<UserExtensionData>
+      ]
+    >
+  > {
+    const entryMap = new Map<Key, CacheKeyRegistry[Key]>();
+    for await (const [key] of this.localEntries()) {
+      const value = await this.#originalCacheReference.get(key);
+      if (value) {
+        entryMap.set(key, value);
+      }
+    }
+    return this[Symbol.asyncIterator](entryMap);
+  }
+
+  localEntries(): AsyncIterableIterator<
+    [Key, CacheKeyRegistry[Key] | Tombstone, CacheEntryState<UserExtensionData>]
   > {
     return this[Symbol.asyncIterator](this.#transactionalCache);
   }
 
-  localEntries(): AsyncIterableIterator<
-    [Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]
-  > {
-    return this[Symbol.asyncIterator](this.#localUpdatedEntries);
-  }
-
   localRevisions(
     cacheKey: Key
-  ): AsyncIterableIterator<CachedEntityRevision<CacheKeyValue>> {
+  ): AsyncIterableIterator<CachedEntityRevision<CacheKeyRegistry, Key>> {
     const entryRevisionIterator = {
       async *[Symbol.asyncIterator](
-        revisions: CachedEntityRevision<CacheKeyValue>[]
-      ): AsyncIterableIterator<CachedEntityRevision<CacheKeyValue>> {
+        revisions: CachedEntityRevision<CacheKeyRegistry, Key>[]
+      ): AsyncIterableIterator<CachedEntityRevision<CacheKeyRegistry, Key>> {
         for (const revision of revisions) {
           yield revision;
         }
@@ -424,11 +412,11 @@ class LiveCacheTransactionImpl<
 
   entryRevisions(
     cacheKey: Key
-  ): AsyncIterableIterator<CachedEntityRevision<CacheKeyValue>> {
+  ): AsyncIterableIterator<CachedEntityRevision<CacheKeyRegistry, Key>> {
     const entryRevisionIterator = {
       async *[Symbol.asyncIterator](
-        revisions: CachedEntityRevision<CacheKeyValue>[]
-      ): AsyncIterableIterator<CachedEntityRevision<CacheKeyValue>> {
+        revisions: CachedEntityRevision<CacheKeyRegistry, Key>[]
+      ): AsyncIterableIterator<CachedEntityRevision<CacheKeyRegistry, Key>> {
         for (const revision of revisions) {
           yield revision;
         }
@@ -443,9 +431,11 @@ class LiveCacheTransactionImpl<
     );
   }
 
-  set(cacheKey: Key, value: CacheKeyRegistry[Key]): CacheKeyRegistry[Key] {
+  async set(
+    cacheKey: Key,
+    value: CacheKeyRegistry[Key]
+  ): Promise<CacheKeyRegistry[Key]> {
     this.#transactionalCache.set(cacheKey, value);
-    this.#localUpdatedEntries.set(cacheKey, value);
 
     // Update cache entry state
     this.#cacheEntryState.set(cacheKey, {
@@ -453,30 +443,35 @@ class LiveCacheTransactionImpl<
       lastAccessed: Date.now(),
     });
 
-    return value;
+    return (await this.get(cacheKey)) as CacheKeyRegistry[Key];
   }
 
   async delete(cacheKey: Key): Promise<boolean> {
-    return new Promise((resolve) => {
-      if (this.#transactionalCache.has(cacheKey)) {
-        this.#transactionalCache.delete(cacheKey);
-      }
+    // tx.delete will actually need to write a tombstone in the transaction entries and the actual delete will occur when the transaction is committed to the cache.
+    // The semantics of tx.delete's return value should be "did i delete something?"
+    this.#transactionalCache.set(cacheKey, this.#deletedState);
 
-      if (this.#localUpdatedEntries.has(cacheKey)) {
-        this.#localUpdatedEntries.delete(cacheKey);
-      }
-
-      return resolve(
-        this.#transactionalCache.has(cacheKey) === false &&
-          this.#localUpdatedEntries.has(cacheKey) === false
-      );
+    // Update cache entry state
+    this.#cacheEntryState.set(cacheKey, {
+      retained: { lru: false, ttl: 0 },
+      lastAccessed: Date.now(),
     });
+
+    return (await this.get(cacheKey)) === this.#deletedState;
   }
 
   async merge(
     cacheKey: Key,
-    entityRevision: CachedEntityRevision<CacheKeyValue>,
+    entity: CacheKeyRegistry[Key],
     options?: {
+      revisionCounter: number;
+      entityMergeStrategy: EntityMergeStrategy<
+        CacheKeyRegistry,
+        Key,
+        $Debug,
+        UserExtensionData
+      >;
+      revisionContext: string;
       $debug: $Debug;
     }
   ): Promise<CacheKeyRegistry[Key] | CacheKeyValue> {
@@ -488,14 +483,15 @@ class LiveCacheTransactionImpl<
       mergeStrategyFromCacheOptionHook || defaultMergeStrategy;
 
     // get current cache value within this transaction
-    const currentValue = this.#transactionalCache.get(cacheKey);
+    const currentValue = await this.#originalCacheReference.get(cacheKey);
+    const revisionCounter = options?.revisionCounter || 0;
 
     const mergedEntity = mergeStrategy(
       cacheKey,
       {
-        entity: entityRevision.entity,
-        revision: entityRevision.revision,
-        revisionContext: entityRevision?.revisionContext,
+        entity,
+        revision: revisionCounter,
+        revisionContext: options?.revisionContext,
       },
       currentValue,
       this
@@ -504,13 +500,13 @@ class LiveCacheTransactionImpl<
     // TODO throw error if Merge entity is undefined
 
     // Update transactional cache with merged entity
-    this.set(cacheKey, mergedEntity as CacheKeyRegistry[Key]);
+    await this.set(cacheKey, mergedEntity as CacheKeyRegistry[Key]);
 
     // Update local & entry revisions with new revision values
     const revision = {
-      entity: mergedEntity,
-      revision: entityRevision.revision,
-      revisionContext: entityRevision?.revisionContext,
+      entity: mergedEntity as CacheKeyRegistry[Key],
+      revision: revisionCounter,
+      revisionContext: options?.revisionContext,
     };
     if (this.#localRevisions.has(cacheKey)) {
       this.#localRevisions.get(cacheKey)?.push(revision);
@@ -543,7 +539,7 @@ class LiveCacheTransactionImpl<
         // TODO fix revision
         entityToCommit = mergeStrategy(
           cacheKey,
-          { entity: value as CacheKeyValue, revision: 3 },
+          { entity: value as CacheKeyRegistry[Key], revision: 3 },
           latestCacheValue,
           this
         );
@@ -564,7 +560,7 @@ class LiveCacheTransactionImpl<
           : 0;
 
       const entityRevision = {
-        entity: entityToCommit as CacheKeyValue,
+        entity: entityToCommit as CacheKeyRegistry[Key],
         revision: ++revisionNumber,
       };
       if (this.#localRevisions.has(cacheKey)) {
@@ -622,7 +618,7 @@ class CommittingTransactionImpl<
     CommittingTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
 {
   $debug?: ($Debug & CacheTransactionDebugAPIs) | undefined;
-  #mergedRevisions: Map<Key, CachedEntityRevision<CacheKeyValue>[]>;
+  #mergedRevisions: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>;
 
   cache: {
     clearRevisions(
@@ -642,7 +638,7 @@ class CommittingTransactionImpl<
         UserExtensionData
       >,
       id: Key,
-      revisions: CachedEntityRevision<CacheKeyValue>[]
+      revisions: CachedEntityRevision<CacheKeyRegistry, Key>[]
     ): void;
   } = {
     clearRevisions(
@@ -665,7 +661,7 @@ class CommittingTransactionImpl<
         UserExtensionData
       >,
       id: Key,
-      revisions: CachedEntityRevision<CacheKeyValue>[]
+      revisions: CachedEntityRevision<CacheKeyRegistry, Key>[]
     ): void {
       if (tx.#mergedRevisions.has(id)) {
         const appendedRevisions =
@@ -680,7 +676,7 @@ class CommittingTransactionImpl<
   constructor() {
     this.#mergedRevisions = new Map<
       Key,
-      CachedEntityRevision<CacheKeyValue>[]
+      CachedEntityRevision<CacheKeyRegistry, Key>[]
     >();
   }
 
@@ -692,7 +688,7 @@ class CommittingTransactionImpl<
     throw new Error('Method not implemented.');
   }
 
-  mergedRevisions(): Map<Key, CachedEntityRevision<CacheKeyValue>[]> {
+  mergedRevisions(): Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]> {
     return this.#mergedRevisions;
   }
 }
@@ -752,11 +748,11 @@ const defaultMergeStrategy = function deepMergeStratey<
   Key extends keyof CacheKeyRegistry
 >(
   id: Key,
-  { entity, revision }: CachedEntityRevision<CacheKeyValue>,
+  { entity }: CachedEntityRevision<CacheKeyRegistry, Key>,
   current: CacheKeyRegistry[Key] | undefined,
   tx: CacheTransaction<CacheKeyRegistry, Key>
 ): CacheKeyValue {
-  return deepMerge(current as CacheKeyValue, entity);
+  return deepMerge(current as CacheKeyValue, entity as CacheKeyValue);
 };
 
 const defaultRevisionStrategy = async function retainAllRevisions<
@@ -779,7 +775,7 @@ const defaultRevisionStrategy = async function retainAllRevisions<
     UserExtensionData
   >
 ): Promise<void> {
-  const revisions: CachedEntityRevision<CacheKeyValue>[] = [];
+  const revisions: CachedEntityRevision<CacheKeyRegistry, Key>[] = [];
 
   for await (const revision of liveTx.localRevisions(id)) {
     revisions.push(revision);
