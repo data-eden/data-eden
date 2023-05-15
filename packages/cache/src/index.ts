@@ -18,5 +18,4 @@ export type {
   CacheTransactionDebugAPIs,
   CommitTransaction,
   CommitTuple,
-  Tombstone,
 } from '../types/api.js';

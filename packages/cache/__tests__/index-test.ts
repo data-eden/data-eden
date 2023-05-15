@@ -289,16 +289,8 @@ describe('@data-eden/cache', function () {
       // transaction 1 starts
       let tx = await cache.beginTransaction();
 
-      await tx.merge(
-        'book:3',
-        { 'book:3': { title: 'New Merged book' } },
-        { revisionCounter: 1 }
-      );
-      await tx.merge(
-        'book:1',
-        { 'book:1': { title: 'Conflict', sub: 'j3' } },
-        { revisionCounter: 1 }
-      );
+      await tx.merge('book:3', { 'book:3': { title: 'New Merged book' } });
+      await tx.merge('book:1', { 'book:1': { title: 'Conflict', sub: 'j3' } });
 
       // Validate Transactional entries
       expect(await tx.get('book:1')).toEqual({
@@ -355,40 +347,26 @@ describe('@data-eden/cache', function () {
       let tx2 = await cache.beginTransaction();
 
       // Merge entities from transaction 1
-      await tx1.merge(
-        'book:3',
-        { 'book:3': { title: 'New Merged book TX1' } },
-        { revisionCounter: 1 }
-      );
-      await tx1.merge(
-        'book:1',
-        { 'book:1': { title: 'original book Conflict', sub: 'j3' } },
-        { revisionCounter: 1 }
-      );
+      await tx1.merge('book:3', { 'book:3': { title: 'New Merged book TX1' } });
+      await tx1.merge('book:1', {
+        'book:1': { title: 'original book Conflict', sub: 'j3' },
+      });
 
       // Merge entities from transaction 2
-      await tx2.merge(
-        'book:3',
-        { 'book:3': { title: 'New Merged book by TX2' } },
-        { revisionCounter: 1 }
-      );
+      await tx2.merge('book:3', {
+        'book:3': { title: 'New Merged book by TX2' },
+      });
 
-      await tx2.merge(
-        'book:1',
-        {
-          'book:1': {
-            title: 'Conflict updated by TX2',
-            sub: 'j32',
-            sub2: '12',
-          },
+      await tx2.merge('book:1', {
+        'book:1': {
+          title: 'Conflict updated by TX2',
+          sub: 'j32',
+          sub2: '12',
         },
-        { revisionCounter: 1 }
-      );
-      await tx2.merge(
-        'book:4',
-        { 'book:4': { title: 'new book 4', sub: 'j32', sub2: '12' } },
-        { revisionCounter: 1 }
-      );
+      });
+      await tx2.merge('book:4', {
+        'book:4': { title: 'new book 4', sub: 'j32', sub2: '12' },
+      });
 
       // Validate entries in Transaction 1
       expect(await tx1.get('book:1')).toEqual({
@@ -484,20 +462,12 @@ describe('@data-eden/cache', function () {
 
       let tx = await cache.beginTransaction();
 
-      await tx.merge(
-        'book:3',
-        { 'book:3': { title: 'New Merged book' } },
-        { revisionCounter: 1 }
-      );
-      await tx.merge(
-        'book:1',
-        { 'book:1': { title: 'Conflict', sub: 'j3' } },
-        { revisionCounter: 1 }
-      );
+      await tx.merge('book:3', { 'book:3': { title: 'New Merged book' } });
+      await tx.merge('book:1', { 'book:1': { title: 'Conflict', sub: 'j3' } });
       const localEntries = [];
 
-      for await (const [key, value, state] of tx.localEntries()) {
-        localEntries.push([key, value, state]);
+      for await (const [key, value] of tx.localEntries()) {
+        localEntries.push([key, value]);
       }
 
       expect(localEntries[0][1]).toEqual({
@@ -527,22 +497,14 @@ describe('@data-eden/cache', function () {
       // transaction 1 starts
       let tx = await cache.beginTransaction();
 
-      await tx.merge(
-        'book:3',
-        { 'book:3': { title: 'New Merged book' } },
-        { revisionCounter: 1 }
-      );
-      await tx.merge(
-        'book:1',
-        {
-          'book:1': {
-            title: 'Conflict',
-            sub: 'j3',
-            subjects: [{ a: 1 }, { b: 2 }],
-          },
+      await tx.merge('book:3', { 'book:3': { title: 'New Merged book' } });
+      await tx.merge('book:1', {
+        'book:1': {
+          title: 'Conflict',
+          sub: 'j3',
+          subjects: [{ a: 1 }, { b: 2 }],
         },
-        { revisionCounter: 1 }
-      );
+      });
 
       // Validate Transactional entries
       expect(await tx.get('book:1')).toEqual({
@@ -611,11 +573,7 @@ describe('@data-eden/cache', function () {
       // transaction 1 starts
       let tx = await cache.beginTransaction();
 
-      await tx.merge(
-        'book:3',
-        { 'book:3': { title: 'New Merged book' } },
-        { revisionCounter: 1 }
-      );
+      await tx.merge('book:3', { 'book:3': { title: 'New Merged book' } });
 
       expect(await tx.delete('book:1')).toEqual(true);
     });
@@ -634,11 +592,7 @@ describe('@data-eden/cache', function () {
 
       let tx = await cache.beginTransaction();
 
-      await tx.merge(
-        'book:1',
-        { 'book:1': { title: 'Conflict', sub: 'j3' } },
-        { revisionCounter: 2 }
-      );
+      await tx.merge('book:1', { 'book:1': { title: 'Conflict', sub: 'j3' } });
 
       await tx.commit();
 
@@ -687,16 +641,8 @@ describe('@data-eden/cache', function () {
 
       await tx.set('book:5', { 'book:5': { title: 'A History5_lru' } });
       await tx.get('book:3');
-      await tx.merge(
-        'book:4',
-        { 'book:4': { title: 'A History4_lru' } },
-        { revisionCounter: 2 }
-      );
-      await tx.merge(
-        'book:1',
-        { 'book:1': { title: 'A History1_lru' } },
-        { revisionCounter: 1 }
-      );
+      await tx.merge('book:4', { 'book:4': { title: 'A History4_lru' } });
+      await tx.merge('book:1', { 'book:1': { title: 'A History1_lru' } });
 
       await tx.commit();
 
