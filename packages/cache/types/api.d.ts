@@ -99,39 +99,21 @@ export interface CacheTransaction<
     entry in this transaction. The return value can therefore differ from
     `cache.get`.
   */
-  get(
-    cacheKey: Key
-  ): Promise<CacheKeyRegistry[Key] | CacheKeyValue | undefined>;
+  get(cacheKey: Key): Promise<CacheKeyRegistry[Key] | undefined>;
 
-  [Symbol.asyncIterator](
-    entryMap: Map<Key, CacheKeyRegistry[Key] | Tombstone>
-  ): AsyncIterableIterator<
-    [Key, CacheKeyRegistry[Key] | Tombstone, CacheEntryState<UserExtensionData>]
+  [Symbol.asyncIterator](): AsyncIterableIterator<
+    [Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>]
   >;
 
   /**
     Generator function that yields each of the transaction entries including local entries and entries before transaction began.
   */
-  entries(): Promise<
-    AsyncIterableIterator<
-      [
-        Key,
-        CacheKeyRegistry[Key] | CacheKeyValue,
-        CacheEntryState<UserExtensionData>
-      ]
-    >
-  >;
+  entries(): Promise<AsyncIterableIterator<[Key, CacheKeyRegistry[Key]]>>;
 
   /**
     Generator function that yields each of the transaction local entries.
   */
-  localEntries(): AsyncIterableIterator<
-    [
-      Key,
-      CacheKeyRegistry[Key] | CacheKeyValue,
-      CacheEntryState<UserExtensionData>
-    ]
-  >;
+  localEntries(): AsyncIterableIterator<[Key, CacheKeyRegistry[Key]]>;
 
   /**
    An async generator that produces the revisions of `key` within this transaction.
@@ -168,7 +150,6 @@ export interface LiveCacheTransaction<
     cacheKey: Key,
     entity: CacheKeyRegistry[Key],
     options?: {
-      revisionCounter?: number;
       entityMergeStrategy?: EntityMergeStrategy<
         CacheKeyRegistry,
         Key,
@@ -261,6 +242,10 @@ export interface CacheEntryState<UserExtensionData = unknown> {
     Mainly useful for userland retention policies.
     */
   lastAccessed?: number; // timestamp
+  /**
+    If the cache entry is tombstone to be deleted
+  */
+  deletedRecordInTransaction?: boolean;
   extensions?: UserExtensionData;
 }
 
@@ -398,5 +383,3 @@ export interface LruCache<
 > {
   set(cacheKey: Key, value: CacheKeyRegistry[Key]): void;
 }
-
-export type Tombstone = string;
