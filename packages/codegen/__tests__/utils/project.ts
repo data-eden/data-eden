@@ -119,7 +119,7 @@ query chats($userId: ID!) {
 
 export const gqlFilesMap = {
   'schema.graphql': graphqlFilesMap['schema.graphql'],
-  'user.tsx': `import { graphql } from '@data-eden/athena';
+  'user.tsx': `import { gql } from '@data-eden/athena';
 
   const userFieldsFragment = graphql\`fragment UserFields on User {
     id

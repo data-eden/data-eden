@@ -1,14 +1,12 @@
-import { graphql, useMutation } from '@data-eden/react';
+import { useMutation } from '@data-eden/react';
+import { gql } from '@data-eden/codegen';
 import { useState } from 'react';
 import type {
   UpdatePetMutation,
   UpdatePetMutationVariables,
 } from './__generated/UpdatePet.graphql.js';
 
-const UpdatePetMutation = graphql<
-  UpdatePetMutation,
-  UpdatePetMutationVariables
->`
+const UpdatePetMutation = gql<UpdatePetMutation, UpdatePetMutationVariables>`
   mutation UpdatePet($petId: ID!, $input: UpdatePetInput!) {
     updatePet(petId: $petId, input: $input) {
       id
