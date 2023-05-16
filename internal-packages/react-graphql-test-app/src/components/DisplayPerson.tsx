@@ -1,4 +1,5 @@
-import { useQuery, graphql } from '@data-eden/react';
+import { useQuery } from '@data-eden/react';
+import { gql } from '@data-eden/codegen';
 import {
   type PersonQuery,
   type PersonFieldsFragment,
@@ -33,7 +34,7 @@ const PersonFieldsFragment = graphql<PersonFieldsFragment>`
   }
 `;
 
-const PersonQuery = graphql<PersonQuery, PersonQueryVariables>`
+const PersonQuery = gql<PersonQuery, PersonQueryVariables>`
   query Person($id: ID!) {
     person(id: $id) {
       ${PersonFieldsFragment}

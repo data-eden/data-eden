@@ -1,15 +1,12 @@
 import { useMutation } from '@data-eden/react';
 import { Pet } from './DisplayPerson';
-import { graphql } from '@data-eden/react';
+import { gql } from '@data-eden/codegen';
 import type {
   RemovePetMutation,
   RemovePetMutationVariables,
 } from './__generated/DisplayPet.graphql';
 
-const RemovePetMutation = graphql<
-  RemovePetMutation,
-  RemovePetMutationVariables
->`
+const RemovePetMutation = gql<RemovePetMutation, RemovePetMutationVariables>`
   mutation RemovePet($id: ID!) {
     removePet(id: $id) {
       id

@@ -1,7 +1,9 @@
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
-import type { DefaultVariables } from './types.js';
+import type { Primitive } from 'type-fest';
 
-export function graphql<
+type DefaultVariables = Record<string, object | Primitive> | undefined;
+
+export function gql<
   Data extends object = object,
   Variables extends DefaultVariables = DefaultVariables
 >(

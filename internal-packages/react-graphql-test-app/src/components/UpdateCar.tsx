@@ -1,14 +1,12 @@
-import { graphql, useMutation } from '@data-eden/react';
+import { useMutation } from '@data-eden/react';
+import { gql } from '@data-eden/codegen';
 import { useState } from 'react';
 import {
   type UpdateCarMutation,
   type UpdateCarMutationVariables,
 } from './__generated/UpdateCar.graphql.js';
 
-const UpdateCarMutation = graphql<
-  UpdateCarMutation,
-  UpdateCarMutationVariables
->`
+const UpdateCarMutation = gql<UpdateCarMutation, UpdateCarMutationVariables>`
   mutation UpdateCar($carId: ID!, $input: CarInput!) {
     updateCar(carId: $carId, input: $input) {
       id

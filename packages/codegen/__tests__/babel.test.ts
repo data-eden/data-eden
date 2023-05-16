@@ -47,7 +47,7 @@ export const FindUserDocument = {"__meta__":{"queryId":"d17490e4b9ac1f7c227df3da
     expect(result && result.code).toMatchInlineSnapshot(`
       "import { findUserDocument } from \\"./__generated/user.graphql.ts\\";
       import { userFieldsFragmentDoc } from \\"./__generated/user.graphql.ts\\";
-      import { graphql } from '@data-eden/athena';
+      import { gql } from '@data-eden/athena';
       const userFieldsFragment = userFieldsFragmentDoc;
       const findUserQuery = findUserDocument;"
     `);

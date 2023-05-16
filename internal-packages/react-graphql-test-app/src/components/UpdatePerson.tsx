@@ -1,4 +1,5 @@
-import { graphql, useMutation } from '@data-eden/react';
+import { useMutation } from '@data-eden/react';
+import { gql } from '@data-eden/codegen';
 import { useState } from 'react';
 
 import type {
@@ -6,7 +7,7 @@ import type {
   UpdatePersonMutationVariables,
 } from './__generated/UpdatePerson.graphql';
 
-const UpdatePersonMutation = graphql<
+const UpdatePersonMutation = gql<
   UpdatePersonMutation,
   UpdatePersonMutationVariables
 >`

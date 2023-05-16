@@ -1,4 +1,5 @@
-import { graphql, useQuery } from '@data-eden/react';
+import { useQuery } from '@data-eden/react';
+import { gql } from '@data-eden/codegen';
 import DisplayCar from '../components/DisplayCar';
 import DisplayPerson from '../components/DisplayPerson';
 import UpdateCar from '../components/UpdateCar';
@@ -7,7 +8,7 @@ import type {
   CarQueryVariables,
 } from './__generated/Unrelated.graphql';
 
-const CarQuery = graphql<CarQuery, CarQueryVariables>`
+const CarQuery = gql<CarQuery, CarQueryVariables>`
   query Car($id: ID!) {
     car(id: $id) {
       id
