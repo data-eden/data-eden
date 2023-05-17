@@ -210,6 +210,7 @@ export interface CommittingTransaction<
       revisions: CachedEntityRevision<CacheKeyRegistry, Key>[]
     ): void;
   };
+  mergedRevisions(): Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>;
 }
 
 /**
@@ -310,7 +311,7 @@ export interface CacheOptions<
     */
     commit?: (
       tx: CacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
-    ) => void;
+    ) => Promise<void>;
 
     /**
     An optional hook for merging new versions of an entity into the cache. This
@@ -350,28 +351,64 @@ export interface CacheDebugAPIs {
   history(): void;
 }
 
-export type CommitTuple<
-  CacheKeyRegistry extends DefaultRegistry,
-  Key extends keyof CacheKeyRegistry,
-  UserExtensionData = unknown
-> = [
-  entries: CacheEntry<CacheKeyRegistry, Key, UserExtensionData>[],
-  entryRevisions: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>
-];
-
-export interface CommitTransaction<
+export interface TransactionUpdates<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry,
   UserExtensionData = unknown
 > {
-  commitTransaction(
-    ...args: CommitTuple<CacheKeyRegistry, Key, UserExtensionData>
-  ): Promise<void>;
+  entries: [Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>][];
+  entryRevisions: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>;
+}
+
+export interface TransactionOperations<
+  CacheKeyRegistry extends DefaultRegistry,
+  Key extends keyof CacheKeyRegistry,
+  $Debug = unknown,
+  UserExtensionData = unknown
+> {
+  aquireTxCommitLock: (
+    transaction: LiveCacheTransaction<
+      CacheKeyRegistry,
+      Key,
+      $Debug,
+      UserExtensionData
+    >
+  ) => Promise<unknown>;
+
+  releaseTxCommitLock: (
+    transaction: LiveCacheTransaction<
+      CacheKeyRegistry,
+      Key,
+      $Debug,
+      UserExtensionData
+    >
+  ) => void;
+  commitUpdatesAndReleaseLock: (
+    transaction: LiveCacheTransaction<
+      CacheKeyRegistry,
+      Key,
+      $Debug,
+      UserExtensionData
+    >,
+    txUpdates: TransactionUpdates<CacheKeyRegistry, Key, UserExtensionData>
+  ) => void;
 }
 
 export interface CacheTransactionDebugAPIs {
   size(): void;
   entries(): void;
+}
+
+export interface DeferredTransactionLock<
+  CacheKeyRegistry extends DefaultRegistry,
+  Key extends keyof CacheKeyRegistry,
+  $Debug = unknown,
+  UserExtensionData = unknown
+> {
+  resolve: () => void;
+  reject: () => void;
+  promise: Promise<unknown>;
+  owner: LiveCacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>;
 }
 
 /**
