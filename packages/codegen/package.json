@@ -36,6 +36,7 @@
   ],
   "scripts": {
     "build": "tsc --build",
+    "dev": "tsc --watch",
     "test": "vitest run"
   },
   "dependencies": {

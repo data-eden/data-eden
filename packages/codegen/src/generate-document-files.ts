@@ -4,10 +4,10 @@ import { parse } from 'graphql';
 import { readFileSync } from 'node:fs';
 import { extractDefinitions } from './gql/extract-definitions.js';
 import { resolveForeignReferences } from './gql/foreign-ref-resolver.js';
-import { resolveNameCollisions } from './gql/name-collision-resolver.js';
 import { outputOperations } from './gql/output-operations.js';
 import type { ExtractedDefinitions } from './gql/types.js';
 import * as path from 'node:path';
+import type { DependencyGraph } from './gql/dependency-graph.js';
 
 type FilesMap = {
   gqlFiles: Array<string>;
@@ -17,7 +17,11 @@ type FilesMap = {
 export function generateDocumentFiles(
   schema: GraphQLSchema,
   documentPaths: Array<string>
-): Array<Types.DocumentFile> {
+): {
+  gqlFileDocuments: Array<Types.DocumentFile>;
+  gqlTagDocuments: Array<Types.DocumentFile>;
+  dependencyGraph: DependencyGraph;
+} {
   const { gqlFiles, gqlTags } = documentPaths.reduce<FilesMap>(
     (acc, docPath) => {
       const ext = path.extname(docPath);
@@ -37,9 +41,13 @@ export function generateDocumentFiles(
   );
 
   const files = handleGraphQLFiles(gqlFiles);
-  const tags = handleGraphQLTags(schema, gqlTags);
+  const { tags, dependencyGraph } = handleGraphQLTags(schema, gqlTags);
 
-  return [...files, ...tags];
+  return {
+    gqlFileDocuments: files,
+    gqlTagDocuments: tags,
+    dependencyGraph,
+  };
 }
 
 function handleGraphQLFiles(
@@ -59,7 +67,10 @@ function handleGraphQLFiles(
 function handleGraphQLTags(
   schema: GraphQLSchema,
   documentPaths: Array<string>
-): Array<Types.DocumentFile> {
+): {
+  tags: Array<Types.DocumentFile>;
+  dependencyGraph: DependencyGraph;
+} {
   const extractedQueriesMap: Map<string, ExtractedDefinitions> = new Map();
 
   documentPaths.forEach((filePath) => {
@@ -77,7 +88,5 @@ function handleGraphQLTags(
     schema
   );
 
-  resolveNameCollisions(dependencyGraph);
-
-  return outputOperations(dependencyGraph);
+  return { tags: outputOperations(dependencyGraph), dependencyGraph };
 }
