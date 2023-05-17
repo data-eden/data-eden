@@ -5,6 +5,7 @@ interface Options {
   schemaPath: string;
   documents: Array<string>;
   debug: boolean;
+  disableSchemaTypesGeneration: boolean;
   production: boolean;
   baseDir: string;
   extension: string;
@@ -25,6 +26,11 @@ export async function binMain() {
       '--production',
       'optimize codegen outputs for production builds',
       process.env.NODE_ENV === 'prod'
+    )
+    .option(
+      '--disable-schema-types-generation',
+      'skip generating schema types',
+      false
     )
     .option(
       '--base-dir <baseDir>',
