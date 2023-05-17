@@ -152,7 +152,7 @@ export interface CacheOptions<CacheKeyRegistry=DefaultRegistry,$Debug=unknown, U
 
     The default retention policies are all implementable in userland as commit hooks.
     */
-    commit?: (tx: fCacheKeyRegistry, $Debug, UserExtensionData>) => void;
+    commit?: (tx: CacheTransaction<CacheKeyRegistry, $Debug, UserExtensionData>) => void;
     /**
     An optional hook for merging new versions of an entity into the cache. This
     hook specifies the default behaviour for the cache -- a different merge
