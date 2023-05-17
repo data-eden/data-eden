@@ -356,12 +356,8 @@ export interface TransactionUpdates<
   Key extends keyof CacheKeyRegistry,
   UserExtensionData = unknown
 > {
-  entries: [
-    Key,
-    CacheKeyRegistry[Key],
-    CacheEntryState<UserExtensionData>
-  ][];
-  entryRevisions: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>
+  entries: [Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>][];
+  entryRevisions: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>;
 }
 
 export interface TransactionOperations<
@@ -370,12 +366,14 @@ export interface TransactionOperations<
   $Debug = unknown,
   UserExtensionData = unknown
 > {
-  aquireTxCommitLock: (transaction: LiveCacheTransaction<
-    CacheKeyRegistry,
-    Key,
-    $Debug,
-    UserExtensionData
-  >) => Promise<unknown>;
+  aquireTxCommitLock: (
+    transaction: LiveCacheTransaction<
+      CacheKeyRegistry,
+      Key,
+      $Debug,
+      UserExtensionData
+    >
+  ) => Promise<unknown>;
 
   releaseTxCommitLock: (
     transaction: LiveCacheTransaction<
@@ -392,11 +390,7 @@ export interface TransactionOperations<
       $Debug,
       UserExtensionData
     >,
-    txUpdates: TransactionUpdates<
-      CacheKeyRegistry,
-      Key,
-      UserExtensionData
-    >
+    txUpdates: TransactionUpdates<CacheKeyRegistry, Key, UserExtensionData>
   ) => void;
 }
 
@@ -411,7 +405,7 @@ export interface DeferredTransactionLock<
   $Debug = unknown,
   UserExtensionData = unknown
 > {
-  resolve: () => void
+  resolve: () => void;
   reject: () => void;
   promise: Promise<unknown>;
   owner: LiveCacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>;

@@ -651,26 +651,20 @@ describe('@data-eden/cache', function () {
     });
   });
 
-  describe('test commit queue & lock', function() {
+  describe('test commit queue & lock', function () {
     it('test commit for a deferred transaction from the queue', async function () {
       let cache = buildCache();
 
       await cache.load([
-        [
-          'book:1',
-          { 'book:1': { title: 'My book1' } },
-        ],
-        [
-          'book:2',
-          { 'book:2': { title: 'My book2' } },
-        ]
+        ['book:1', { 'book:1': { title: 'My book1' } }],
+        ['book:2', { 'book:2': { title: 'My book2' } }],
       ]);
 
       // transaction 1 starts
       let tx1 = await cache.beginTransaction();
       // Merge entities from transaction 1
       await tx1.merge('book:1', {
-        'book:1': { title: 'My Merged book1'},
+        'book:1': { title: 'My Merged book1' },
       });
 
       // transaction 2 starts
@@ -681,15 +675,15 @@ describe('@data-eden/cache', function () {
       });
 
       // Hold transaction 1 commit
-      const commitHoldingLock =  tx1.commit();
-    
+      const commitHoldingLock = tx1.commit();
+
       // commit transaction 2 so it gets deferred
       await tx2.commit();
 
       await commitHoldingLock;
 
       expect(await cache.get('book:1')).toEqual({
-        'book:1': { title: 'My Merged book1'},
+        'book:1': { title: 'My Merged book1' },
       });
       expect(await cache.get('book:2')).toEqual({
         'book:2': { title: 'My Merged book2' },
@@ -697,7 +691,3 @@ describe('@data-eden/cache', function () {
     });
   });
 });
-
-
-
-

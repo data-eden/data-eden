@@ -18,5 +18,5 @@ export type {
   CacheTransactionDebugAPIs,
   TransactionUpdates,
   TransactionOperations,
-  DeferredTransactionLock
+  DeferredTransactionLock,
 } from '../types/api.js';
