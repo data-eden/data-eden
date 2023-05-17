@@ -19,6 +19,7 @@ function createImportName(name: string): string {
 const babelPlugin = declare((api) => {
   let program: NodePath<Program>;
   let gqlImportIdentifier: t.Identifier | null = null;
+  let currentFileName: string | null | undefined = null;
 
   return {
     name: 'data-eden-codegen',
@@ -28,6 +29,11 @@ const babelPlugin = declare((api) => {
       },
       ImportDeclaration(path) {
         const { node } = path;
+
+        if (currentFileName !== this.file.opts.filename) {
+          currentFileName = this.file.opts.filename;
+          gqlImportIdentifier = null;
+        }
 
         if (
           t.isStringLiteral(node.source) &&

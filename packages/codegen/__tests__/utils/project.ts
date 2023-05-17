@@ -214,3 +214,23 @@ export const gqlFilesMapWithSharedFragmentsTransitive = {
     }\`
   `,
 };
+
+export const gqlFilesIgnoreMap = {
+  'schema.graphql': graphqlFilesMap['schema.graphql'],
+  'ignore.tsx': `import { gql } from '@something/else';
+
+  const userFieldsFragment = gql\`fragment UserFields on User {
+    id
+    username
+    role
+  }
+  \`;
+
+  const findUserQuery = gql\`query findUser($userId: ID!) {
+    user(id: $userId) {
+      \${userFieldsFragment}
+    }
+  }
+  \`
+`,
+};

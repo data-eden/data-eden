@@ -2,13 +2,17 @@ import { transformFileAsync } from '@babel/core';
 import { babelPlugin } from '../src/babel-plugin.js';
 import type { Project } from 'fixturify-project';
 import { describe, expect, test } from 'vitest';
-import { createFixtures, gqlFilesMap } from './utils/project.js';
+import {
+  createFixtures,
+  gqlFilesMap,
+  gqlFilesIgnoreMap,
+} from './utils/project.js';
 import * as path from 'node:path';
 
 describe('babel plugin', () => {
   let project: Project;
 
-  test('it works', async () => {
+  test('should transform code that imports @data-ethen/codegen', async () => {
     project = await createFixtures({
       ...gqlFilesMap,
       'user.graphql.ts': `import type * as Types from './schema.graphql.js';
@@ -43,6 +47,35 @@ export const FindUserDocument = {"__meta__":{"queryId":"d17490e4b9ac1f7c227df3da
       import { gql } from '@data-eden/codegen';
       const userFieldsFragment = userFieldsFragmentDoc;
       const findUserQuery = findUserDocument;"
+    `);
+  });
+
+  test('should not transform code that imports anything but @data-ethen/codegen', async () => {
+    project = await createFixtures({
+      ...gqlFilesIgnoreMap,
+    });
+
+    const result = await transformFileAsync(
+      path.join(project.baseDir, 'ignore.tsx'),
+      {
+        plugins: [[babelPlugin]],
+      }
+    );
+
+    expect(result && result.code).toMatchInlineSnapshot(`
+      "import { gql } from '@something/else';
+      const userFieldsFragment = gql\`fragment UserFields on User {
+          id
+          username
+          role
+        }
+        \`;
+      const findUserQuery = gql\`query findUser($userId: ID!) {
+          user(id: $userId) {
+            \${userFieldsFragment}
+          }
+        }
+        \`;"
     `);
   });
 });
