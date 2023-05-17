@@ -40,6 +40,10 @@ export async function createServer(): Promise<Server> {
         }
       }
 
+
+      response.writeHead(400, {'Content-Type': 'text/plain'});
+      response.end(`No handler for ${request.method} ${request.url}`);
+
       throw new Error(
         `Unhandled request: ${
           request.method ?? 'GET'

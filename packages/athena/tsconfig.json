@@ -12,6 +12,12 @@
     },
     {
       "path": "../network"
+    },
+    {
+      "path": "../codegen"
+    },
+    {
+      "path": "../../internal-packages/shared-test-utilities"
     }
   ]
 }

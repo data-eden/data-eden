@@ -21,18 +21,22 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc --build",
-    "test": "vitest run"
+    "test": "npm-run-all test:codegen test:run",
+    "test:codegen": "athena-codegen --schema-path __tests__/fixtures/client/schema.graphql --documents __tests__/fixtures/client/graphql/**/*.graphql",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@data-eden/cache": "^0.6.0",
     "lodash-es": "^4.17.21"
   },
   "devDependencies": {
+    "@data-eden/codegen": "^0.5.0",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@signalis/core": "^0.1.0",
     "@types/lodash-es": "^4.17.6",
     "graphql": "^16.6.0",
-    "type-fest": "^3.5.6"
+    "type-fest": "^3.5.6",
+    "vitest": "^0.31.1"
   },
   "peerDependencies": {
     "graphql": "^16.6.0"

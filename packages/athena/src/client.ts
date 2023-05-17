@@ -6,7 +6,7 @@ import type {
   DataEdenCache,
   DefaultVariables,
   DocumentInput,
-  GraphQLRequest,
+  BuildRequest,
   GraphQLResponse,
   IdFetcher,
   OperationResult,
@@ -21,13 +21,18 @@ export interface ClientArgs {
   buildRequest?: BuildRequest;
   adapter: ReactiveAdapter;
 }
-
-export type BuildRequest = (request: GraphQLRequest) => RequestInit;
 export type CacheKey = string;
 export type PropertyPath = string | number | Array<string | number>;
 export type AthenaClientOptions = Omit<ClientArgs, 'adapter'>;
 
-function defaultBuildRequest(request: GraphQLRequest): RequestInit {
+function defaultBuildRequest<
+  Data extends object = object,
+  Variables extends DefaultVariables = DefaultVariables
+>(
+  operation: DocumentInput<Data, Variables>,
+  variables?: Variables
+): Request | RequestInit {
+  let request = prepareOperation(operation, variables);
   return {
     method: 'POST',
     headers: {
@@ -48,7 +53,7 @@ export class AthenaClient {
   constructor(options: ClientArgs) {
     this.url = options.url;
     this.getId = options.id;
-    this.fetch = options.fetch || globalThis.fetch;
+    this.fetch = options.fetch || globalThis.fetch.bind(globalThis);
     this.buildRequest = options.buildRequest || defaultBuildRequest;
     this.signalCache = new SignalCache(options.adapter, options.id);
 
@@ -75,9 +80,9 @@ export class AthenaClient {
     operation: DocumentInput<Data, Variables>,
     variables?: Variables
   ): Promise<OperationResult<Data>> {
-    const prepared = prepareOperation<Data, Variables>(operation, variables);
-
-    return this.makeRequest<Data, Variables>(prepared);
+    return this.makeRequest<Data>(
+      this.buildRequest(operation, variables, { url: this.url })
+    );
   }
 
   async mutate<
@@ -87,26 +92,35 @@ export class AthenaClient {
     operation: DocumentInput<Data, Variables>,
     variables?: Variables
   ): Promise<OperationResult<Data>> {
-    const prepared = prepareOperation<Data, Variables>(operation, variables);
-
-    return this.makeRequest<Data, Variables>(prepared);
+    return this.makeRequest<Data>(
+      this.buildRequest(operation, variables, { url: this.url })
+    );
   }
 
-  private async makeRequest<
-    Data extends object = object,
-    Variables extends DefaultVariables = DefaultVariables
-  >(request: GraphQLRequest<Data, Variables>): Promise<OperationResult<Data>> {
+  private async makeRequest<Data extends object = object>(
+    request: Request | RequestInit
+  ): Promise<OperationResult<Data>> {
     let response: Response;
     const result: OperationResult<Data> = {};
 
-    try {
-      response = await this.fetch(this.url, this.buildRequest(request));
-    } catch (err) {
-      result.error = {
-        network: err,
-      };
+    // try {
+    response = await (request instanceof Request ? this.fetch(request) : this.fetch(this.url, request));
+    // TODO: i'm not sure why we did this
+    //
+    // } catch (err) {
+    //   result.error = {
+    //     network: err,
+    //   };
+    //
+    //   return result;
+    // }
 
-      return result;
+    if (!response.ok) {
+      // non-2xx response so we can't assume the payload is in a GraphQL format
+      let body = await response.text();
+      throw new Error(
+        `Error executing graphql request:\nstatus:${response.status}\n${body}`
+      );
     }
 
     const json = (await response.json()) as GraphQLResponse<Data>;

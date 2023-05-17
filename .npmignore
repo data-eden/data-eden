@@ -1,0 +1,3 @@
+tsconfig.*
+vitest.config.*
+__tests__/

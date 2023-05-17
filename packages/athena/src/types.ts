@@ -26,20 +26,6 @@ export type WithSignal<T> = T & {
 
 export type Scalar = string | number | boolean;
 
-export interface GraphQLRequest<
-  Data extends object = object,
-  Variables = DefaultVariables
-> {
-  query?: DocumentInput<Data, Variables>;
-  variables?: Variables;
-  extensions?: {
-    persistedQuery?: {
-      version: number;
-      sha256Hash: string;
-    };
-  };
-}
-
 export interface GraphQLResponse<Data extends object = object> {
   data?: Data;
   errors?: Array<string | GraphQLError>;
@@ -66,3 +52,15 @@ export interface ParsedEntity {
 }
 
 export type IdFetcher<T = any> = (v: T) => string;
+
+export interface BuildRequestOptions {
+  url: string;
+}
+export type BuildRequest = <
+  Data extends object = object,
+  Variables extends DefaultVariables = DefaultVariables
+>(
+  operation: DocumentInput<Data, Variables>,
+  variables: Variables,
+  options: BuildRequestOptions
+) => RequestInit;

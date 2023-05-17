@@ -1,0 +1,7 @@
+query findUser($userId: ID!) {
+  user(id: $userId) {
+    id
+    username
+    email
+  }
+}

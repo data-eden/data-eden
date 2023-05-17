@@ -9,9 +9,22 @@ import { parse, visit, print } from 'graphql';
 import type {
   DefaultVariables,
   DocumentInput,
-  GraphQLRequest,
 } from './types.js';
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
+
+export interface GraphQLRequest<
+  Data extends object = object,
+  Variables = DefaultVariables
+> {
+  query?: DocumentInput<Data, Variables>;
+  variables?: Variables;
+  extensions?: {
+    persistedQuery?: {
+      version: number;
+      sha256Hash: string;
+    };
+  };
+}
 
 const TYPENAME_FIELD: FieldNode = {
   kind: 'Field' as Kind.FIELD,
@@ -114,6 +127,7 @@ export function prepareOperation<
       },
     };
   } else {
+    // TODO: delete this branch
     const withTypename = addTypenameToDocument<Data, Variables>(parsed);
     request.query = print(withTypename);
   }

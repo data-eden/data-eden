@@ -72,7 +72,7 @@ export function buildFetch(
 
   let result: typeof fetch;
 
-  const curriedMiddlewares: NormalizedFetch = [...middlewares]
+  const curriedMiddlewares: NormalizedFetch = [...([])]
     .reverse()
     .reduce(
       (next: NormalizedFetch, middleware: Middleware): NormalizedFetch => {
