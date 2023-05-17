@@ -54,13 +54,20 @@ function handleGraphQLFiles(
   documentPaths: Array<string>
 ): Array<Types.DocumentFile> {
   return documentPaths.map((path) => {
-    const contents = readFileSync(path, 'utf-8');
-    const parsed = parse(contents);
-    return {
-      location: path,
-      document: parsed,
-      rawSDL: contents,
-    };
+    try {
+      const contents = readFileSync(path, 'utf-8');
+      const parsed = parse(contents);
+      return {
+        location: path,
+        document: parsed,
+        rawSDL: contents,
+      };
+    } catch (e) {
+      if (e instanceof Error) {
+        e.message = `[@data-eden/codegen]: Error processing .graphql file ${path}: ${e?.message}`;
+      }
+      throw e;
+    }
   });
 }
 
@@ -74,9 +81,16 @@ function handleGraphQLTags(
   const extractedQueriesMap: Map<string, ExtractedDefinitions> = new Map();
 
   documentPaths.forEach((filePath) => {
-    const extractedQueries = extractDefinitions(schema, filePath);
-    if (extractedQueries.definitions.length > 0) {
-      extractedQueriesMap.set(filePath, extractedQueries);
+    try {
+      const extractedQueries = extractDefinitions(schema, filePath);
+      if (extractedQueries.definitions.length > 0) {
+        extractedQueriesMap.set(filePath, extractedQueries);
+      }
+    } catch (e) {
+      if (e instanceof Error) {
+        e.message = `[@data-eden/codegen]: Error processing gql tags in ${filePath}: ${e?.message}`;
+      }
+      throw e;
     }
   });
 
