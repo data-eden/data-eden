@@ -11,8 +11,10 @@ import {
   createFixtures,
   gqlFilesIgnoreMap,
   gqlFilesMap,
+  gqlFilesMapWithReExportedFragments,
   gqlFilesMapWithSharedFragments,
   gqlFilesMapWithSharedFragmentsTransitive,
+  gqlFilesMapWithSharedFragmentsUsedAndExported,
   graphqlFilesMap,
 } from './utils/project.js';
 
@@ -385,9 +387,81 @@ describe('codegen', () => {
     `);
   });
 
-  // TODO: re-export fragment
-  // TODO: export fragment that is used locally in another fragment
-  // TODO: export fragment that is used locally in a query
+  // TODO: gql tags with re-exported fragments
+  test.skip('gql tags with re-exported fragments', async () => {
+    project = await createFixtures(gqlFilesMapWithReExportedFragments);
+
+    await athenaCodegen({
+      schemaPath: 'schema.graphql',
+      documents: [`${project.baseDir}/**/*.tsx`],
+      baseDir: project.baseDir,
+      extension: '.graphql.ts',
+      production: false,
+    });
+
+    expect(await read('schema.graphql.ts')).toMatchSnapshot();
+
+    expect(
+      await read('__generated/ChatView.graphql.ts')
+    ).toMatchInlineSnapshot();
+    expect(
+      await read('__generated/UserView.graphql.ts')
+    ).toMatchInlineSnapshot();
+  });
+
+  test('gql tags with fragments locally used + exported', async () => {
+    project = await createFixtures(
+      gqlFilesMapWithSharedFragmentsUsedAndExported
+    );
+
+    await athenaCodegen({
+      schemaPath: 'schema.graphql',
+      documents: [`${project.baseDir}/**/*.tsx`],
+      baseDir: project.baseDir,
+      extension: '.graphql.ts',
+      production: false,
+    });
+
+    expect(await read('schema.graphql.ts')).toMatchSnapshot();
+
+    expect(await read('__generated/ChatView.graphql.ts'))
+      .toMatchInlineSnapshot(`
+      "import type * as Types from '../schema.graphql.js';
+
+      import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+      export type ChatFieldsFragment = { __typename: 'Chat', id: string, users: Array<{ __typename: 'User', id: string, username: string }> };
+
+      export type FindMyChatsQueryVariables = Types.Exact<{ [key: string]: never; }>;
+
+
+      export type FindMyChatsQuery = { __typename: 'Query', myChats: Array<(
+          { __typename: 'Chat' }
+          & ChatFieldsFragment
+        )> };
+
+
+      export const FindMyChatsDocument = {\\"__meta__\\":{\\"queryId\\":\\"9a1cceea656312633d2f6890193132c1776249e695be24f6e5e2e3da8259a162\\",\\"$DEBUG\\":{\\"contents\\":\\"fragment ChatFields on Chat { id users { id username } } query findMyChats { myChats { __typename ...ChatFields } }\\"}}} as unknown as DocumentNode<FindMyChatsQuery, FindMyChatsQueryVariables>;"
+    `);
+    expect(await read('__generated/User.graphql.ts')).toMatchInlineSnapshot(`
+      "import type * as Types from '../schema.graphql.js';
+
+      import type { ChatFieldsFragment } from './ChatView.graphql.js';
+      import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+      export type FindUserQueryVariables = Types.Exact<{
+        userId: Types.Scalars['ID'];
+      }>;
+
+
+      export type FindUserQuery = { __typename: 'Query', user?: { __typename: 'User', chats: Array<(
+            { __typename: 'Chat' }
+            & ChatFieldsFragment
+          ) | null> } | null };
+
+
+      export const FindUserDocument = {\\"__meta__\\":{\\"queryId\\":\\"fbb63dc6cd9b42699045d88fb71d7c15042668eec947a17f21acb655c258d031\\",\\"$DEBUG\\":{\\"contents\\":\\"fragment ChatFields on Chat { id users { id username } } query findUser($userId: ID!) { user(id: $userId) { __typename chats { __typename ...ChatFields } } }\\"}}} as unknown as DocumentNode<FindUserQuery, FindUserQueryVariables>;"
+    `);
+  });
+
   // TODO: import fragment with aliasing
   //
   // TODO: import fragment from foo.graphql inside a .tsx
