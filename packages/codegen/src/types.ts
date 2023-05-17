@@ -12,6 +12,7 @@ export interface CodegenArgs {
   documents: Array<string>;
   baseDir: string;
   extension: string;
+  debug: boolean;
   production: boolean;
   hash?: (document: DocumentNode) => string;
 }

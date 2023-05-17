@@ -4,6 +4,7 @@ import { program } from 'commander';
 interface Options {
   schemaPath: string;
   documents: Array<string>;
+  debug: boolean;
   production: boolean;
   baseDir: string;
   extension: string;
@@ -19,6 +20,7 @@ export async function binMain() {
       'one or more glob patterns that match the documents you want to process',
       ','
     )
+    .option('--debug', 'output additional debugging information', false)
     .option(
       '--production',
       'optimize codegen outputs for production builds',
