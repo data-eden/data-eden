@@ -1,5 +1,5 @@
 import { useQuery } from '@data-eden/react';
-import { gql } from '@data-eden/codegen';
+import { gql } from '@data-eden/codegen/gql';
 import {
   type PersonQuery,
   type PersonQueryVariables,
@@ -8,6 +8,7 @@ import {
 import { PersonFieldsFragment } from './DisplayOwner.js';
 import DisplayCar from './DisplayCar';
 import DisplayPet from './DisplayPet';
+import { PetFieldsFragment } from '@aliased/DisplayPets';
 
 export interface Person {
   id: string;
@@ -44,12 +45,7 @@ const PersonQuery = gql<PersonQuery, PersonQueryVariables>`
         ${CarFields}
       }
       pets {
-        __typename
-        id
-        name
-        owner {
-          ${PersonFieldsFragment}
-        }
+        ${PetFieldsFragment}
       }
     }
   }

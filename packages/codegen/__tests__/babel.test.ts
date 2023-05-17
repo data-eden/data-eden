@@ -6,6 +6,7 @@ import {
   createFixtures,
   gqlFilesMap,
   gqlFilesIgnoreMap,
+  gqlFilesMapWithSharedFragmentsTransitive,
 } from './utils/project.js';
 import * as path from 'node:path';
 
@@ -15,7 +16,7 @@ describe('babel plugin', () => {
   test('should transform code that imports @data-ethen/codegen', async () => {
     project = await createFixtures({
       ...gqlFilesMap,
-      'user.graphql.ts': `import type * as Types from './schema.graphql.js';
+      'User.graphql.ts': `import type * as Types from './schema.graphql.js';
 
 import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type UserFieldsFragment = { __typename: 'User', id: string, username: string, role: Types.Role };
@@ -35,17 +36,42 @@ export const FindUserDocument = {"__meta__":{"queryId":"d17490e4b9ac1f7c227df3da
     });
 
     const result = await transformFileAsync(
-      path.join(project.baseDir, 'user.tsx'),
+      path.join(project.baseDir, 'User.tsx'),
       {
         plugins: [[babelPlugin]],
       }
     );
 
     expect(result && result.code).toMatchInlineSnapshot(`
-      "import { findUserDocument } from \\"./__generated/user.graphql.ts\\";
-      import { userFieldsFragmentDoc } from \\"./__generated/user.graphql.ts\\";
-      import { gql } from '@data-eden/codegen';
+      "import { findUserDocument } from \\"./__generated/User.graphql.ts\\";
+      import { userFieldsFragmentDoc } from \\"./__generated/User.graphql.ts\\";
+      import { gql } from '@data-eden/codegen/gql';
       const userFieldsFragment = userFieldsFragmentDoc;
+      const findUserQuery = findUserDocument;"
+    `);
+  });
+
+  test('it works', async () => {
+    project = await createFixtures(gqlFilesMapWithSharedFragmentsTransitive);
+
+    const result = await transformFileAsync(
+      path.join(project.baseDir, 'User.tsx'),
+      {
+        plugins: [
+          [
+            babelPlugin,
+            {
+              tagName: 'graphql',
+            },
+          ],
+        ],
+      }
+    );
+
+    expect(result && result.code).toMatchInlineSnapshot(`
+      "import { findUserDocument } from \\"./__generated/User.graphql.ts\\";
+      import { gql } from '@data-eden/codegen/gql';
+      import { userFieldsFragment } from './UserView.tsx';
       const findUserQuery = findUserDocument;"
     `);
   });

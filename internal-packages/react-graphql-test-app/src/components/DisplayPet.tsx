@@ -1,6 +1,6 @@
 import { useMutation } from '@data-eden/react';
 import { Pet } from './DisplayPerson';
-import { gql } from '@data-eden/codegen';
+import { gql } from '@data-eden/codegen/gql';
 import type {
   RemovePetMutation,
   RemovePetMutationVariables,

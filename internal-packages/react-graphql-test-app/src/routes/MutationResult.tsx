@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation } from '@data-eden/react';
-import { gql } from '@data-eden/codegen';
+import { gql } from '@data-eden/codegen/gql';
 import { Pet } from '../components/DisplayPerson';
 import type {
   CreatePetMutation,

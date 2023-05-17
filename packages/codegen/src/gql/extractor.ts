@@ -23,7 +23,7 @@ import {
   NoUnusedFragmentsRule,
   validate,
 } from 'graphql';
-import { dirname, join, extname } from 'node:path';
+import { dirname } from 'node:path';
 import type {
   OperationDefinitionNodeWithName,
   Definition,
@@ -32,6 +32,7 @@ import type {
 } from './types.js';
 import { createHash } from 'crypto';
 import { existsSync } from 'node:fs';
+import { type Resolver } from '../types.js';
 
 const VALIDATION_RULES = [...specifiedRules].filter(
   // This rules will be applied once we have full depedency graph for the queries resolvedx
@@ -93,7 +94,8 @@ export function getSortedTemplateElements(
 function getForeignReference(
   elem: Identifier,
   path: NodePath<TaggedTemplateExpression>,
-  localDefinitionDeclaratorMap: Map<NodePath<VariableDeclarator>, Definition>
+  localDefinitionDeclaratorMap: Map<NodePath<VariableDeclarator>, Definition>,
+  resolver: Resolver
 ): Fragment | UnresolvedFragment {
   const binding = path.scope.getBinding(elem.name);
   if (!binding) {
@@ -135,26 +137,19 @@ function getForeignReference(
     // todo: figure out why this doesn't exist on the source node
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
     const currentDir = dirname((importDeclaration.source.loc as any).filename);
-    // we want to resolve the filename if this is a local reference
-    // TODO: ensure this works for external imports because that doesn't work for sure
-    // TODO: how do we find the import filepath without thrashing the disk
-    const importLocation = importDeclaration.source.value.replace(
-      extname(importDeclaration.source.value),
-      ''
-    );
-    const actualExtension = ['.tsx', '.jsx'].find((ext) => {
-      return existsSync(join(currentDir, importLocation + ext));
+
+    const filename = resolver(importDeclaration.source.value, {
+      basedir: currentDir,
     });
 
-    if (!actualExtension) {
+    if (!filename || !existsSync(filename)) {
       throw new Error(
-        `Can not resolve the extension name for ${
-          importDeclaration.source.value
+        `Can not resolve the file ${importDeclaration.source.value} in ${
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        } in ${(importDeclaration.source.loc as any).filename}`
+          (importDeclaration.source.loc as any).filename
+        }`
       );
     }
-    const filename = join(currentDir, importLocation + actualExtension);
 
     referencedFragment = {
       location: importDeclaration.source.value,
@@ -177,7 +172,8 @@ function getForeignReference(
 export function createExtractor(
   schema: GraphQLSchema,
   filePath: string,
-  definitions: Array<Definition>
+  definitions: Array<Definition>,
+  resolver: Resolver
 ) {
   const localDefinitionDeclaratorMap = new Map<
     NodePath<VariableDeclarator>,
@@ -191,7 +187,7 @@ export function createExtractor(
 
       if (
         t.isStringLiteral(node.source) &&
-        node.source.value === '@data-eden/codegen'
+        node.source.value === '@data-eden/codegen/gql'
       ) {
         const gqlSpecifier = node.specifiers.find((specifier) => {
           if (t.isImportSpecifier(specifier)) {
@@ -236,7 +232,8 @@ export function createExtractor(
             const referencedDefinition = getForeignReference(
               elem,
               path,
-              localDefinitionDeclaratorMap
+              localDefinitionDeclaratorMap,
+              resolver
             );
 
             const fragmentPlaceholder = `__FRAGMENT_${createHash('sha256')
