@@ -50,9 +50,11 @@
     "@graphql-codegen/typescript": "^3.0.4",
     "@graphql-codegen/typescript-operations": "^3.0.4",
     "@graphql-tools/documents": "^0.1.0",
+    "@types/debug": "^4.1.7",
     "babel-plugin-graphql-tag": "^3.3.0",
     "babel-plugin-jsx": "^1.2.0",
     "commander": "^10.0.1",
+    "debug": "^4.3.4",
     "fs-extra": "^11.1.1",
     "globby": "^13.1.4"
   },

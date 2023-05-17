@@ -16,6 +16,7 @@ import { generateDocumentFiles } from './generate-document-files.js';
 import { generateSchemaTypes } from './generate-schema-types.js';
 import type { CodegenArgs, OutputFile } from './types.js';
 import { changeExtension } from './utils.js';
+import { enable as enableDebugging } from './debug.js';
 
 // TODO: replace with https://github.com/dotansimha/graphql-code-generator/blob/86ec182887698742af8e9f47ffe39f07772e54a4/packages/plugins/other/visitor-plugin-common/src/types.ts#L84
 type LoadedFragments = {
@@ -32,9 +33,14 @@ export async function athenaCodegen({
   baseDir,
   extension,
   hash,
+  debug,
   production,
 }: CodegenArgs): Promise<void> {
   const startTime = hrtime.bigint();
+
+  if (debug) {
+    enableDebugging();
+  }
 
   const outputFiles: Array<OutputFile> = [];
   const persistedQueries: Record<string, string> = {};

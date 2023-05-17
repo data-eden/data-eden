@@ -8,6 +8,9 @@ import { outputOperations } from './gql/output-operations.js';
 import type { ExtractedDefinitions } from './gql/types.js';
 import * as path from 'node:path';
 import type { DependencyGraph } from './gql/dependency-graph.js';
+import { createDebug } from './debug.js';
+
+const debug = createDebug('generate-document-files');
 
 type FilesMap = {
   gqlFiles: Array<string>;
@@ -54,6 +57,8 @@ function handleGraphQLFiles(
   documentPaths: Array<string>
 ): Array<Types.DocumentFile> {
   return documentPaths.map((path) => {
+    debug(`compile .graphql: ${path}`);
+
     try {
       const contents = readFileSync(path, 'utf-8');
       const parsed = parse(contents);
@@ -81,6 +86,7 @@ function handleGraphQLTags(
   const extractedQueriesMap: Map<string, ExtractedDefinitions> = new Map();
 
   documentPaths.forEach((filePath) => {
+    debug(`compile gql tags in : ${filePath}`);
     try {
       const extractedQueries = extractDefinitions(schema, filePath);
       if (extractedQueries.definitions.length > 0) {
