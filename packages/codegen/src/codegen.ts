@@ -34,6 +34,7 @@ export async function athenaCodegen({
   extension,
   hash,
   debug,
+  disableSchemaTypesGeneration,
   production,
 }: CodegenArgs): Promise<void> {
   const startTime = hrtime.bigint();
@@ -51,14 +52,18 @@ export async function athenaCodegen({
   const graphqlSchema = buildSchema(rawSchema);
   const hashFn = hash || defaultHash;
 
-  // Generate schema types and write to root schema file
+  // User can disable schema type generation (e.g. for cases where they have
+  // already compiled their schema types)
   const schemaTypesOutputPath = changeExtension(schemaPath, extension);
-  const schemaTypes = await generateSchemaTypes(
-    parsedSchema,
-    schemaTypesOutputPath
-  );
+  if (!disableSchemaTypesGeneration) {
+    // Generate schema types and write to root schema file
+    const schemaTypes = await generateSchemaTypes(
+      parsedSchema,
+      schemaTypesOutputPath
+    );
 
-  outputFiles.push(schemaTypes);
+    outputFiles.push(schemaTypes);
+  }
 
   // Expand glob patterns and find matching files
   const paths = await globby([...documents, `!${schemaPath}`]);

@@ -33,6 +33,7 @@ describe('codegen', () => {
       documents: [`${project.baseDir}/**/*.graphql`],
       baseDir: project.baseDir,
       extension: '.graphql.ts',
+      disableSchemaTypesGeneration: false,
       production: false,
     });
 
@@ -95,6 +96,7 @@ describe('codegen', () => {
       documents: [`${project.baseDir}/**/*.graphql`],
       baseDir: project.baseDir,
       extension: '.graphql.ts',
+      disableSchemaTypesGeneration: false,
       production: true,
     });
 
@@ -136,6 +138,7 @@ describe('codegen', () => {
       documents: [`${project.baseDir}/**/*.graphql`],
       baseDir: project.baseDir,
       extension: '.graphql.ts',
+      disableSchemaTypesGeneration: false,
       production: false,
       hash(document) {
         let operationName = 'Document';
@@ -199,6 +202,7 @@ describe('codegen', () => {
       documents: [`${project.baseDir}/**/*.tsx`],
       baseDir: project.baseDir,
       extension: '.graphql.ts',
+      disableSchemaTypesGeneration: false,
       production: false,
     });
 
@@ -233,6 +237,7 @@ describe('codegen', () => {
       documents: [`${project.baseDir}/**/*.tsx`],
       baseDir: project.baseDir,
       extension: '.graphql.ts',
+      disableSchemaTypesGeneration: false,
       production: true,
     });
 
@@ -267,6 +272,7 @@ describe('codegen', () => {
       documents: [`${project.baseDir}/**/*.tsx`],
       baseDir: project.baseDir,
       extension: '.graphql.ts',
+      disableSchemaTypesGeneration: false,
       production: false,
     });
 
@@ -285,6 +291,7 @@ describe('codegen', () => {
       documents: [`${project.baseDir}/**/*.tsx`],
       baseDir: project.baseDir,
       extension: '.graphql.ts',
+      disableSchemaTypesGeneration: false,
       production: false,
     });
 
@@ -327,6 +334,7 @@ describe('codegen', () => {
       documents: [`${project.baseDir}/**/*.tsx`],
       baseDir: project.baseDir,
       extension: '.graphql.ts',
+      disableSchemaTypesGeneration: false,
       production: false,
     });
 
@@ -396,6 +404,7 @@ describe('codegen', () => {
       documents: [`${project.baseDir}/**/*.tsx`],
       baseDir: project.baseDir,
       extension: '.graphql.ts',
+      disableSchemaTypesGeneration: false,
       production: false,
     });
 
@@ -419,6 +428,7 @@ describe('codegen', () => {
       documents: [`${project.baseDir}/**/*.tsx`],
       baseDir: project.baseDir,
       extension: '.graphql.ts',
+      disableSchemaTypesGeneration: false,
       production: false,
     });
 
