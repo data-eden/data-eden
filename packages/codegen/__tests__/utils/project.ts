@@ -234,3 +234,66 @@ export const gqlFilesIgnoreMap = {
   \`
 `,
 };
+
+export const gqlFilesMapWithReExportedFragments = {
+  'schema.graphql': graphqlFilesMap['schema.graphql'],
+  'ChatView.tsx': `
+    import { gql } from '@data-eden/codegen';
+
+    export const chatFieldsFragment = gql\`fragment ChatFields on Chat {
+      id
+      users {
+        id
+        username
+      }
+    }\`
+  `,
+  'UserView.tsx': `
+    export { chatFieldsFragment } from './ChatView.tsx';
+  `,
+  'User.tsx': `
+    import { gql } from '@data-eden/codegen';
+    import { chatFieldsFragment } from './UserView.tsx';
+
+    const findUserQuery = gql\`query findUser($userId: ID!) {
+      user(id: $userId) {
+        chats {
+          \${chatFieldsFragment}
+        }
+      }
+    }\`
+  `,
+};
+
+export const gqlFilesMapWithSharedFragmentsUsedAndExported = {
+  'schema.graphql': graphqlFilesMap['schema.graphql'],
+  'ChatView.tsx': `
+    import { gql } from '@data-eden/codegen';
+
+    export const chatFieldsFragment = gql\`fragment ChatFields on Chat {
+      id
+      users {
+        id
+        username
+      }
+    }\`
+
+    export const findMyChatsQuery = gql\`query findMyChats {
+      myChats {
+        \${chatFieldsFragment}
+      }
+    }\`
+  `,
+  'User.tsx': `
+    import { gql } from '@data-eden/codegen';
+    import { chatFieldsFragment } from './ChatView.tsx';
+
+    const findUserQuery = gql\`query findUser($userId: ID!) {
+      user(id: $userId) {
+        chats {
+          \${chatFieldsFragment}
+        }
+      }
+    }\`
+  `,
+};

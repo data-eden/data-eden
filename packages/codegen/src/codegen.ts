@@ -38,7 +38,7 @@ export async function athenaCodegen({
 }: CodegenArgs): Promise<void> {
   const startTime = hrtime.bigint();
 
-  if (debug) {
+  if (debug === true) {
     enableDebugging();
   }
 
