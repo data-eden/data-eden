@@ -1,4 +1,3 @@
-import type { PluginObj } from '@babel/core';
 import { template } from '@babel/core';
 import { declare } from '@babel/helper-plugin-utils';
 import type { NodePath } from '@babel/traverse';
@@ -6,10 +5,6 @@ import type { Program } from '@babel/types';
 import * as nodePath from 'node:path';
 import * as t from '@babel/types';
 import { changeExtension } from './utils.js';
-
-interface PluginOptions {
-  tagName: string;
-}
 
 function createImportName(name: string): string {
   if (name.endsWith('Fragment')) {
@@ -21,8 +16,9 @@ function createImportName(name: string): string {
   }
 }
 
-const babelPlugin = declare<PluginOptions>((api, options): PluginObj => {
+const babelPlugin = declare((api) => {
   let program: NodePath<Program>;
+  let gqlImportIdentifier: t.Identifier | null = null;
 
   return {
     name: 'data-eden-codegen',
@@ -30,43 +26,68 @@ const babelPlugin = declare<PluginOptions>((api, options): PluginObj => {
       Program(path) {
         program = path;
       },
+      ImportDeclaration(path) {
+        const { node } = path;
+
+        if (
+          t.isStringLiteral(node.source) &&
+          node.source.value === '@data-eden/codegen'
+        ) {
+          const gqlSpecifier = node.specifiers.find((specifier) => {
+            if (t.isImportSpecifier(specifier)) {
+              return (
+                t.isIdentifier(specifier.imported) &&
+                specifier.imported.name === 'gql'
+              );
+            }
+            return false;
+          });
+
+          if (gqlSpecifier) {
+            gqlImportIdentifier = gqlSpecifier.local;
+          }
+        }
+      },
       TaggedTemplateExpression(path, state) {
         const { node } = path;
 
-        if (!(t.isIdentifier(node.tag) && node.tag.name === options.tagName)) {
-          return;
+        if (
+          t.isIdentifier(node.tag) &&
+          gqlImportIdentifier &&
+          node.tag.name === gqlImportIdentifier.name
+        ) {
+          const parentNode = path.parentPath.node;
+
+          if (!t.isVariableDeclarator(parentNode)) {
+            return;
+          }
+
+          t.assertIdentifier(parentNode.id);
+
+          const operationOrFragmentName = createImportName(parentNode.id.name);
+
+          const filePath = state.filename;
+
+          if (!filePath) {
+            throw new Error('@data-eden/codegen: Unable to resolve filepath.');
+          }
+
+          const importPath = getRelativeImportPath(filePath);
+
+          const newImportDeclaration = template(`
+            import { %%importName%% } from %%importPath%%
+          `);
+
+          program.unshiftContainer(
+            'body',
+            newImportDeclaration({
+              importName: api.types.identifier(operationOrFragmentName),
+              importPath: api.types.stringLiteral(importPath),
+            })
+          );
+
+          path.replaceWith(api.types.identifier(operationOrFragmentName));
         }
-
-        const parentNode = path.parentPath.node;
-
-        if (!t.isVariableDeclarator(parentNode)) {
-          return;
-        }
-
-        t.assertIdentifier(parentNode.id);
-
-        const operationOrFragmentName = createImportName(parentNode.id.name);
-
-        const filePath = state.filename;
-
-        if (!filePath) {
-          throw new Error('@data-eden/codegen: Unable to resolve filepath.');
-        }
-
-        const importPath = getRelativeImportPath(filePath);
-
-        const importDeclaration = template(`
-          import { %%importName%% } from %%importPath%%
-        `);
-
-        program.unshiftContainer(
-          'body',
-          importDeclaration({
-            importName: api.types.identifier(operationOrFragmentName),
-            importPath: api.types.stringLiteral(importPath),
-          })
-        );
-        path.replaceWith(api.types.identifier(operationOrFragmentName));
       },
     },
   };

@@ -33,14 +33,7 @@ export const FindUserDocument = {"__meta__":{"queryId":"d17490e4b9ac1f7c227df3da
     const result = await transformFileAsync(
       path.join(project.baseDir, 'user.tsx'),
       {
-        plugins: [
-          [
-            babelPlugin,
-            {
-              tagName: 'gql',
-            },
-          ],
-        ],
+        plugins: [[babelPlugin]],
       }
     );
 
