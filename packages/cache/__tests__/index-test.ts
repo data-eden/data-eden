@@ -185,16 +185,6 @@ describe('@data-eden/cache', function () {
       expect(await cache.get('book:2')).toEqual(undefined);
     });
 
-    // TODO: test clear (load, get, clear, get)
-    // TODO: test save (with values, save then clear, then load, values should be restored)
-
-    // transaction testing ----------------
-    // TODO: test transactions
-
-    // memory testing -------------------
-    // TODO: test lru (unit test lru)
-    // TODO: test ttl?
-
     // TODO: --expose-gc + setTimeout global.gc() + another setTimeout() + assert weakly held things are cleaned up
 
     // TODO: requires fixing up types &c. but otherwise illustrates how a user
@@ -660,4 +650,54 @@ describe('@data-eden/cache', function () {
       expect(lru[2][0]).toEqual('book:5');
     });
   });
+
+  describe('test commit queue & lock', function() {
+    it('test commit for a deferred transaction from the queue', async function () {
+      let cache = buildCache();
+
+      await cache.load([
+        [
+          'book:1',
+          { 'book:1': { title: 'My book1' } },
+        ],
+        [
+          'book:2',
+          { 'book:2': { title: 'My book2' } },
+        ]
+      ]);
+
+      // transaction 1 starts
+      let tx1 = await cache.beginTransaction();
+      // Merge entities from transaction 1
+      await tx1.merge('book:1', {
+        'book:1': { title: 'My Merged book1'},
+      });
+
+      // transaction 2 starts
+      let tx2 = await cache.beginTransaction();
+      // Merge entities from transaction 2
+      await tx2.merge('book:2', {
+        'book:2': { title: 'My Merged book2' },
+      });
+
+      // Hold transaction 1 commit
+      const commitHoldingLock =  tx1.commit();
+    
+      // commit transaction 2 so it gets deferred
+      await tx2.commit();
+
+      await commitHoldingLock;
+
+      expect(await cache.get('book:1')).toEqual({
+        'book:1': { title: 'My Merged book1'},
+      });
+      expect(await cache.get('book:2')).toEqual({
+        'book:2': { title: 'My Merged book2' },
+      });
+    });
+  });
 });
+
+
+
+

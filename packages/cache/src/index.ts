@@ -16,7 +16,7 @@ export type {
   CacheDebugAPIs,
   LruCache,
   CacheTransactionDebugAPIs,
-  CommitTransaction,
-  TransactionCommitUpdates,
-  TransactionOptions
+  TransactionUpdates,
+  TransactionOperations,
+  DeferredTransactionLock
 } from '../types/api.js';
