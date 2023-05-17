@@ -21,8 +21,7 @@ export function extractDefinitions(schema: GraphQLSchema, fileName: string) {
 
   const definitions: Definition[] = [];
 
-  // TODO: THIS SHOULD NOT BE HARDED CODED AS GQL
-  traverse(parsed, createExtractor(schema, fileName, definitions, 'gql'));
+  traverse(parsed, createExtractor(schema, fileName, definitions));
 
   const exportedDefinitionMap = new Map<
     string,

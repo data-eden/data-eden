@@ -3,11 +3,13 @@ import type { Project } from 'fixturify-project';
 import { visit } from 'graphql';
 import * as crypto from 'node:crypto';
 import * as fs from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { athenaCodegen } from '../src/index.js';
 import {
   createFixtures,
+  gqlFilesIgnoreMap,
   gqlFilesMap,
   gqlFilesMapWithSharedFragments,
   gqlFilesMapWithSharedFragmentsTransitive,
@@ -253,6 +255,24 @@ describe('codegen', () => {
 
       export const FindUserDocument = {\\"__meta__\\":{\\"queryId\\":\\"d17490e4b9ac1f7c227df3da6e5c5cdc6686b24d7194c0cb1bc29a8189a58f5c\\"}} as unknown as DocumentNode<FindUserQuery, FindUserQueryVariables>;"
     `);
+  });
+
+  test('should not parse tags that do not come from @data-eden/codegen', async () => {
+    project = await createFixtures(gqlFilesIgnoreMap);
+
+    await athenaCodegen({
+      schemaPath: 'schema.graphql',
+      documents: [`${project.baseDir}/**/*.tsx`],
+      baseDir: project.baseDir,
+      extension: '.graphql.ts',
+      production: false,
+    });
+
+    expect(
+      existsSync(
+        path.join(project.baseDir, '__generated', 'invalid.graphql.ts')
+      )
+    ).toBeFalsy();
   });
 
   test('gql tags with shared fragments', async () => {

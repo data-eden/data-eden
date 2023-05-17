@@ -177,20 +177,47 @@ function getForeignReference(
 export function createExtractor(
   schema: GraphQLSchema,
   filePath: string,
-  definitions: Array<Definition>,
-  tagName = 'gql'
+  definitions: Array<Definition>
 ) {
   const localDefinitionDeclaratorMap = new Map<
     NodePath<VariableDeclarator>,
     Definition
   >();
+  let gqlImportIdentifier: t.Identifier | null = null;
+
   const extractor: Visitor = {
-    // TODO: we could potentially crawl import declarations to make sure context is loaded to avoid having to resolve imports and crawl twice
-    // ImportDeclaration(path) {},
+    ImportDeclaration(path) {
+      const { node } = path;
+
+      if (
+        t.isStringLiteral(node.source) &&
+        node.source.value === '@data-eden/codegen'
+      ) {
+        const gqlSpecifier = node.specifiers.find((specifier) => {
+          if (t.isImportSpecifier(specifier)) {
+            return (
+              t.isIdentifier(specifier.imported) &&
+              specifier.imported.name === 'gql'
+            );
+          }
+          return false;
+        });
+
+        if (gqlSpecifier) {
+          gqlImportIdentifier = gqlSpecifier.local;
+        }
+      }
+    },
     TaggedTemplateExpression(path) {
       const node = path.node;
 
-      if (!(t.isIdentifier(node.tag) && node.tag.name === tagName)) {
+      if (
+        !(
+          t.isIdentifier(node.tag) &&
+          gqlImportIdentifier &&
+          node.tag.name === gqlImportIdentifier.name
+        )
+      ) {
         return;
       }
 
