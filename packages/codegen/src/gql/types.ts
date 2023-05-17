@@ -6,7 +6,9 @@ import type {
 
 export interface UnresolvedFragment {
   location: string;
+  filePath: string;
   exportName: string;
+  isExternal: boolean;
   type: 'unresolvedFragment';
 }
 
@@ -45,5 +47,5 @@ export type Definition = Fragment | Operation;
 
 export interface ExtractedDefinitions {
   definitions: Definition[];
-  exportedDefinitionMap: Map<string, Definition>;
+  exportedDefinitionMap: Map<string, Definition | UnresolvedFragment>;
 }

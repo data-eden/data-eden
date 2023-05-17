@@ -18,7 +18,7 @@ export type CarQuery = {
 
 export const CarDocument = {
   __meta__: {
-    queryId: 'b1ac0b3da3bd7a65ff4f77e264b7489d5e90fc148936ec9e574e4175c48eb33a',
+    queryId: '8f6f79e36cbc21beda49d817494f6c85e302231458c543d030d1e8af901c7f36',
     $DEBUG: {
       contents:
         'query Car($id: ID!) { car(id: $id) { __typename id make model owner { __typename id } } }',

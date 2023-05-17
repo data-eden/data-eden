@@ -53,6 +53,7 @@ union SearchResult = User | Chat | ChatMessage
 
 type User implements Node {
   id: ID!
+  chats: [Chat]!
   username: String!
   email: String!
   role: Role!
@@ -119,20 +120,97 @@ query chats($userId: ID!) {
 
 export const gqlFilesMap = {
   'schema.graphql': graphqlFilesMap['schema.graphql'],
-  'user.tsx': `import { gql } from '@data-eden/athena';
+  'user.tsx': `import { gql } from '@data-eden/codegen';
 
-  const userFieldsFragment = graphql\`fragment UserFields on User {
+  const userFieldsFragment = gql\`fragment UserFields on User {
     id
     username
     role
   }
   \`;
 
-  const findUserQuery = graphql\`query findUser($userId: ID!) {
+  const findUserQuery = gql\`query findUser($userId: ID!) {
     user(id: $userId) {
       \${userFieldsFragment}
     }
   }
   \`
 `,
+};
+
+export const gqlFilesMapWithSharedFragments = {
+  'schema.graphql': graphqlFilesMap['schema.graphql'],
+  'UserView.tsx': `
+    import { gql } from '@data-eden/codegen';
+
+    export const userFieldsFragment = gql\`fragment UserFields on User {
+      id
+      username
+      email
+      role
+    }\`
+  `,
+  'User.tsx': `
+    import { gql } from '@data-eden/codegen';
+    import { userFieldsFragment } from './UserView.tsx';
+
+    const findUserQuery = gql\`query findUser($userId: ID!) {
+      user(id: $userId) {
+        \${userFieldsFragment}
+      }
+    }\`\
+  `,
+};
+
+export const gqlFilesMapWithSharedFragmentsTransitive = {
+  'schema.graphql': graphqlFilesMap['schema.graphql'],
+  'MessageView.tsx': `
+    import { gql } from '@data-eden/codegen';
+
+    export const messageFieldsFragment = gql\`fragment MessageFields on ChatMessage {
+      id
+      content
+      time
+    }\`
+  `,
+  'ChatView.tsx': `
+    import { gql } from '@data-eden/codegen';
+
+    import { messageFieldsFragment } from './MessageView.tsx';
+
+    export const chatFieldsFragment = gql\`fragment ChatFields on Chat {
+      id
+      users {
+        id
+        username
+      }
+      messages {
+        \${messageFieldsFragment}
+      }
+    }\`
+  `,
+  'UserView.tsx': `
+    import { gql } from '@data-eden/codegen';
+
+    import { chatFieldsFragment } from './ChatView.tsx';
+
+    export const userFieldsFragment = gql\`fragment UserFields on User {
+      id
+      username
+      role
+      chats {
+        \${chatFieldsFragment}
+      }
+    }\`
+  `,
+  'User.tsx': `
+    import { gql } from '@data-eden/codegen';
+    import { userFieldsFragment } from './UserView.tsx';
+
+    const findUserQuery = gql\`query findUser($userId: ID!) {
+      user(id: $userId) {
+        \${userFieldsFragment}
+      }
+    }\`
+  `,
 };

@@ -1,28 +1,38 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import type { Definition } from './types.js';
+import type { Definition, Fragment, UnresolvedFragment } from './types.js';
+
+export type DependencyGraphNode = Definition | UnresolvedFragment;
 
 export class DependencyGraph {
-  #nodes = new Set<Definition>();
-  #outgoingEdges = new Map<Definition, Set<Definition>>();
-  #incomingEdges = new Map<Definition, Set<Definition>>();
+  #fragment = new Set<Fragment>();
+  #nodes = new Set<DependencyGraphNode>();
+  #outgoingEdges = new Map<DependencyGraphNode, Set<DependencyGraphNode>>();
+  #incomingEdges = new Map<DependencyGraphNode, Set<DependencyGraphNode>>();
 
-  addDefinition(node: Definition): void {
+  addDefinition(node: DependencyGraphNode): void {
+    if (node.type === 'fragment') {
+      this.#fragment.add(node);
+    }
     this.#nodes.add(node);
-    this.#outgoingEdges.set(node, new Set<Definition>());
-    this.#incomingEdges.set(node, new Set<Definition>());
+    this.#outgoingEdges.set(node, new Set<DependencyGraphNode>());
+    this.#incomingEdges.set(node, new Set<DependencyGraphNode>());
   }
 
-  addDefinitions(nodes: Definition[]): void {
+  addDefinitions(nodes: DependencyGraphNode[]): void {
     for (const node of nodes) {
       this.addDefinition(node);
     }
   }
 
-  get definitions(): Set<Definition> {
+  get fragments(): Set<Fragment> {
+    return this.#fragment;
+  }
+
+  get definitions(): Set<DependencyGraphNode> {
     return this.#nodes;
   }
 
-  addDependency(from: Definition, to: Definition): void {
+  addDependency(from: DependencyGraphNode, to: DependencyGraphNode): void {
     if (!this.#nodes.has(from)) {
       throw new Error(`Definition ${from} is not in the graph`);
     }

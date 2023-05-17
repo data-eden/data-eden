@@ -43,11 +43,13 @@ function replaceForeignReferencesWithOutputName(
     // eslint-disable-next-line @typescript-eslint/naming-convention
     FragmentSpread(node) {
       const foreignRef = definition.foreignReferences.get(node.name.value);
+
       if (!foreignRef) {
         throw new Error(
-          `Cannot find foreign reference for definition in ${definition.filePath}`
+          `Cannot find foreign reference for definition in ${definition.filePath} for ${node.name.value}`
         );
       }
+
       if (foreignRef.type !== 'fragment') {
         throw new Error(
           `Unexpected foreign reference type: ${foreignRef.type} found at definition in ${definition.filePath}`
@@ -66,6 +68,7 @@ function replaceForeignReferencesWithOutputName(
 }
 
 function generateFinalOperationString(
+  fragments: Set<Fragment>,
   operation: Operation,
   outputStringsByDefinition: Map<Definition, string>
 ): string {
@@ -78,9 +81,21 @@ function generateFinalOperationString(
     if (visitedSet.has(def)) {
       continue;
     }
+
     opStr = outputStringsByDefinition.get(def)! + '\n\n' + opStr;
+
+    // We do not want to add fragments that are going to be added in after the fact by the codegen
     visitQueue.push(
-      ...(def.foreignReferences.values() as IterableIterator<Fragment>)
+      ...[
+        ...(def.foreignReferences.values() as IterableIterator<Fragment>),
+      ].filter((fragment) => {
+        return ![...fragments.values()].find((_fragment) => {
+          return (
+            _fragment.filePath === fragment.filePath &&
+            _fragment.outputName === fragment.outputName
+          );
+        });
+      })
     );
     visitedSet.add(def);
   }
@@ -92,19 +107,47 @@ export function outputOperations(
   dependencyGraph: DependencyGraph
 ): Array<Types.DocumentFile> {
   const outputStringsByDefinition = new Map<Definition, string>();
-  for (const definition of dependencyGraph.definitions) {
+  for (let definition of dependencyGraph.definitions) {
+    if (definition.type === 'unresolvedFragment') {
+      throw new Error(
+        `Could not resolve ${definition.exportName} from ${definition.filePath}`
+      );
+    }
+
     outputStringsByDefinition.set(
       definition,
       print(replaceForeignReferencesWithOutputName(definition))
     );
   }
 
+  const updatedFragments = new Set<Fragment>();
+
+  // TODO: we need to clean this up. Since we use these fragments later on in the build we need to resolve the foreign refs in them here
+  for (let fragment of dependencyGraph.fragments) {
+    updatedFragments.add({
+      ...fragment,
+      ast: {
+        ...fragment.ast,
+        ...replaceForeignReferencesWithOutputName(fragment),
+      } as FragmentDefinitionNode,
+    });
+  }
+
+  dependencyGraph.fragments.clear();
+
+  // TODO: this needs to be fixed
+  for (let fragment of updatedFragments) {
+    dependencyGraph.fragments.add(fragment);
+  }
+
   const operations = [...dependencyGraph.definitions].filter(
-    (def): def is Operation => def.type === 'operation'
+    (def): def is Operation =>
+      def.type === 'operation' || def.type === 'fragment'
   );
 
   return operations.map((operation) => {
     const opStr = generateFinalOperationString(
+      dependencyGraph.fragments,
       operation,
       outputStringsByDefinition
     );

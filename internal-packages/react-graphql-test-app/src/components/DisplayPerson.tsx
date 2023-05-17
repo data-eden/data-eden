@@ -2,9 +2,10 @@ import { useQuery } from '@data-eden/react';
 import { gql } from '@data-eden/codegen';
 import {
   type PersonQuery,
-  type PersonFieldsFragment,
   type PersonQueryVariables,
+  type CarFieldsFragment,
 } from './__generated/DisplayPerson.graphql.js';
+import { PersonFieldsFragment } from './DisplayOwner.js';
 import DisplayCar from './DisplayCar';
 import DisplayPet from './DisplayPet';
 
@@ -26,11 +27,12 @@ export interface Car {
   model: string;
 }
 
-const PersonFieldsFragment = graphql<PersonFieldsFragment>`
-  fragment PersonFields on Person {
-    id
+export const CarFields = gql<CarFieldsFragment>`
+  fragment CarFields on Car {
     __typename
-    name
+    id
+    make
+    model
   }
 `;
 
@@ -39,14 +41,11 @@ const PersonQuery = gql<PersonQuery, PersonQueryVariables>`
     person(id: $id) {
       ${PersonFieldsFragment}
       car {
-        id
-        __typename
-        make
-        model
+        ${CarFields}
       }
       pets {
-        id
         __typename
+        id
         name
         owner {
           ${PersonFieldsFragment}

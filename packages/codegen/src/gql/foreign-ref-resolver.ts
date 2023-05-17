@@ -19,6 +19,7 @@ import type {
   Fragment,
   UnresolvedFragment,
 } from './types.js';
+import { resolvedUnresolvedFragment } from '../utils.js';
 
 function PossibleFragmentSpreadRules(
   foreignReferences: Map<string, Fragment | UnresolvedFragment>
@@ -71,6 +72,10 @@ export function resolveForeignReferences(
   }
 
   for (const definition of dependencyGraph.definitions) {
+    if (definition.type === 'unresolvedFragment') {
+      continue;
+    }
+
     for (const [
       placeholder,
       foreignReference,
@@ -92,7 +97,12 @@ export function resolveForeignReferences(
         projectDefinitions.get(foreignFilePath + '.ts') ||
         projectDefinitions.get(foreignFilePath + '.tsx') ||
         projectDefinitions.get(join(foreignFilePath, 'index.ts')) ||
-        projectDefinitions.get(join(foreignFilePath, 'index.tsx'));
+        projectDefinitions.get(join(foreignFilePath, 'index.tsx')) ||
+        projectDefinitions.get(definition.filePath) ||
+        projectDefinitions.get(definition.filePath + '.ts') ||
+        projectDefinitions.get(definition.filePath + '.tsx') ||
+        projectDefinitions.get(join(definition.filePath, 'index.ts')) ||
+        projectDefinitions.get(join(definition.filePath, 'index.tsx'));
 
       if (!foreignDefinitionMap) {
         throw new Error(
@@ -100,12 +110,28 @@ export function resolveForeignReferences(
         );
       }
 
-      const foreignDefinition =
+      let foreignDefinition =
         foreignDefinitionMap.exportedDefinitionMap.get(exportName);
 
       if (!foreignDefinition) {
         throw new Error(
           `Could not find an exported definition at ${exportName} in ${definition.filePath}`
+        );
+      }
+
+      if (
+        foreignDefinition &&
+        foreignDefinition.type === 'unresolvedFragment'
+      ) {
+        foreignDefinition = resolvedUnresolvedFragment(
+          dependencyGraph.definitions,
+          foreignDefinition
+        );
+      }
+
+      if (!foreignDefinition) {
+        throw new Error(
+          `Foreign operation reference at ${definition.ast.name} in ${definition.filePath} is unresolveable`
         );
       }
 
@@ -116,6 +142,11 @@ export function resolveForeignReferences(
       }
 
       definition.foreignReferences.set(placeholder, foreignDefinition);
+      // we want to make sure we have the placeholder and also the reoslved value
+      definition.foreignReferences.set(
+        foreignDefinition.outputName,
+        foreignDefinition
+      );
       dependencyGraph.addDependency(definition, foreignDefinition);
     }
     const errors = validate(

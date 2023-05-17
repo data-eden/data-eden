@@ -1,5 +1,25 @@
 # @data-eden/athena
 
+## Installation
+
+```sh
+yarn add @data-eden/athena @data-eden/codegen @data-eden/cache @data-eden/network @data-eden/react
+```
+
+## Usage
+
+```js title=babel.config.js
+import { babelPlugin } from '@data-eden/codegen';
+
+const config = {
+  plugins: [[babelPlugin, { tagName: 'graphql' }]],
+};
+
+export default config;
+```
+
+## Ethos
+
 This library has several key components:
 
 **GraphQL Client** The main interface of Athena is a GraphQL client that closely follows the API of urql. This client uses a custom fetch function from @data-eden/network and includes a caching layer built on top of @data-eden/cache.

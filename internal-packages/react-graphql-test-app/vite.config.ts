@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [
     react({
       babel: {
-        plugins: [[babelPlugin, { tagName: 'graphql' }]],
+        plugins: [[babelPlugin, { tagName: 'gql' }]],
       },
     }),
     graphql(),

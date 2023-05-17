@@ -23,12 +23,15 @@ import {
   NoUnusedFragmentsRule,
   validate,
 } from 'graphql';
+import { dirname, join, extname } from 'node:path';
 import type {
   OperationDefinitionNodeWithName,
   Definition,
   Fragment,
   UnresolvedFragment,
 } from './types.js';
+import { createHash } from 'crypto';
+import { existsSync } from 'node:fs';
 
 const VALIDATION_RULES = [...specifiedRules].filter(
   // This rules will be applied once we have full depedency graph for the queries resolvedx
@@ -36,11 +39,12 @@ const VALIDATION_RULES = [...specifiedRules].filter(
 );
 
 function getDefinition(
-  documentAst: DocumentNode
+  documentAst: DocumentNode,
+  filePath: string
 ): OperationDefinitionNodeWithName | FragmentDefinitionNode {
   if (documentAst.definitions.length !== 1) {
     throw new Error(
-      'Only single definitions allowed per usage of the graphql tag'
+      `Only single definitions allowed per usage of the graphql tag at "${filePath}"`
     );
   }
   const definition = documentAst.definitions.at(0)!;
@@ -128,8 +132,34 @@ function getForeignReference(
     const importDeclaration = identifierDefPath.parentPath
       ?.node as ImportDeclaration;
 
+    // todo: figure out why this doesn't exist on the source node
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    const currentDir = dirname((importDeclaration.source.loc as any).filename);
+    // we want to resolve the filename if this is a local reference
+    // TODO: ensure this works for external imports because that doesn't work for sure
+    // TODO: how do we find the import filepath without thrashing the disk
+    const importLocation = importDeclaration.source.value.replace(
+      extname(importDeclaration.source.value),
+      ''
+    );
+    const actualExtension = ['.tsx', '.jsx'].find((ext) => {
+      return existsSync(join(currentDir, importLocation + ext));
+    });
+
+    if (!actualExtension) {
+      throw new Error(
+        `Can not resolve the extension name for ${
+          importDeclaration.source.value
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        } in ${(importDeclaration.source.loc as any).filename}`
+      );
+    }
+    const filename = join(currentDir, importLocation + actualExtension);
+
     referencedFragment = {
       location: importDeclaration.source.value,
+      filePath: filename,
+      isExternal: true,
       exportName: (importSpecifier.imported as Identifier).name,
       type: 'unresolvedFragment',
     };
@@ -155,6 +185,8 @@ export function createExtractor(
     Definition
   >();
   const extractor: Visitor = {
+    // TODO: we could potentially crawl import declarations to make sure context is loaded to avoid having to resolve imports and crawl twice
+    // ImportDeclaration(path) {},
     TaggedTemplateExpression(path) {
       const node = path.node;
 
@@ -179,15 +211,20 @@ export function createExtractor(
               path,
               localDefinitionDeclaratorMap
             );
-            const fragmentPlaceholder = `__FRAGMENT_${placeholder++}__`;
+
+            const fragmentPlaceholder = `__FRAGMENT_${createHash('sha256')
+              .update(filePath)
+              .digest('hex')}_${placeholder++}__`;
+
             foreignReferences.set(fragmentPlaceholder, referencedDefinition);
+
             return `...${fragmentPlaceholder}`;
           }
         })
         .join('');
 
       const documentNode = graphqlParse(generatedDefinitionString);
-      const defAst = getDefinition(documentNode);
+      const defAst = getDefinition(documentNode, filePath);
       let def: Definition;
 
       const errors = validate(schema, documentNode, VALIDATION_RULES);

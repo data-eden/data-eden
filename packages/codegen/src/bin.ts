@@ -16,7 +16,8 @@ export async function binMain() {
     .requiredOption('--schema-path <schemaPath>', 'path to your schema file')
     .requiredOption(
       '--documents <patterns...>',
-      'one or more glob patterns that match the documents you want to process'
+      'one or more glob patterns that match the documents you want to process',
+      ','
     )
     .option(
       '--production',
