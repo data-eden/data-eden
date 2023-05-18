@@ -14,8 +14,8 @@ import * as path from 'node:path';
 import { defaultHash } from './default-hash.js';
 import { generateDocumentFiles } from './generate-document-files.js';
 import { generateSchemaTypes } from './generate-schema-types.js';
-import type { CodegenArgs, OutputFile } from './types.js';
-import { changeExtension } from './utils.js';
+import type { CodegenArgs, OutputFile, Resolver } from './types.js';
+import { changeExtension, extensionAwareResolver } from './utils.js';
 import { enable as enableDebugging } from './debug.js';
 
 // TODO: replace with https://github.com/dotansimha/graphql-code-generator/blob/86ec182887698742af8e9f47ffe39f07772e54a4/packages/plugins/other/visitor-plugin-common/src/types.ts#L84
@@ -36,6 +36,7 @@ export async function athenaCodegen({
   debug,
   disableSchemaTypesGeneration,
   production,
+  resolver,
 }: CodegenArgs): Promise<void> {
   const startTime = hrtime.bigint();
 
@@ -66,11 +67,27 @@ export async function athenaCodegen({
   }
 
   // Expand glob patterns and find matching files
-  const paths = await globby([...documents, `!${schemaPath}`]);
+  const paths = await globby([...documents, `!${schemaPath}`], {
+    absolute: true,
+  });
+
+  // we want to wrap any resolver we are passed with an extension aware resolver
+  const defaultResolver: Resolver = (importPath, options) => {
+    const extensions = ['.tsx', '.jsx', '.js', '.ts'];
+    const potentiallyResolvedValueFromResolver = resolver
+      ? resolver(importPath, options)
+      : undefined;
+    return potentiallyResolvedValueFromResolver
+      ? extensionAwareResolver(potentiallyResolvedValueFromResolver, extensions)
+      : extensionAwareResolver(
+          path.resolve(options.basedir, importPath),
+          extensions
+        );
+  };
 
   // Create DocumentFile objects for use in the preset builder
   const { gqlTagDocuments, gqlFileDocuments, dependencyGraph } =
-    generateDocumentFiles(graphqlSchema, paths);
+    generateDocumentFiles(graphqlSchema, paths, defaultResolver);
 
   const exportedGqlTagFragments: LoadedFragments[] = Array.from(
     dependencyGraph.fragments.values()

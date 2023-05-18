@@ -1,5 +1,5 @@
 import { useQuery } from '@data-eden/react';
-import { gql } from '@data-eden/codegen';
+import { gql } from '@data-eden/codegen/gql';
 import DisplayCar from '../components/DisplayCar';
 import { useState } from 'react';
 import type {

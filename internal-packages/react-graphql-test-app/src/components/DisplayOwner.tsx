@@ -1,4 +1,4 @@
-import { gql } from '@data-eden/codegen';
+import { gql } from '@data-eden/codegen/gql';
 
 import { type PersonFieldsSharedFragment as PersonFieldsFragmentType } from './__generated/DisplayOwner.graphql.js';
 

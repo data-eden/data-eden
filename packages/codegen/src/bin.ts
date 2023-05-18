@@ -1,5 +1,8 @@
 import { athenaCodegen } from './codegen.js';
 import { program } from 'commander';
+import { resolve } from 'path';
+
+import { type Resolver } from './types.js';
 
 interface Options {
   schemaPath: string;
@@ -9,6 +12,15 @@ interface Options {
   production: boolean;
   baseDir: string;
   extension: string;
+  resolver: Promise<Resolver>;
+}
+
+interface ModuleWithDefault {
+  default: Resolver;
+}
+
+function isResolverModule(o: any): o is Promise<ModuleWithDefault> {
+  return typeof o === 'object';
 }
 
 export async function binMain() {
@@ -41,11 +53,27 @@ export async function binMain() {
       '--extension <extension>',
       'extension for newly generated files',
       '.graphql.ts'
+    )
+    .option(
+      '--resolver <resolverImportPath>',
+      'path to resolver script',
+      async (resolverImportPath) => {
+        const resolverPath = resolve(process.cwd(), resolverImportPath);
+
+        return import(resolverPath);
+      }
     );
 
   program.parse();
 
   const options = program.opts<Options>();
 
-  await athenaCodegen(options);
+  let resolver = isResolverModule(options.resolver)
+    ? (await options.resolver).default
+    : undefined;
+
+  await athenaCodegen({
+    ...options,
+    resolver,
+  });
 }

@@ -120,7 +120,7 @@ query chats($userId: ID!) {
 
 export const gqlFilesMap = {
   'schema.graphql': graphqlFilesMap['schema.graphql'],
-  'user.tsx': `import { gql } from '@data-eden/codegen';
+  'User.tsx': `import { gql } from '@data-eden/codegen/gql';
 
   const userFieldsFragment = gql\`fragment UserFields on User {
     id
@@ -141,7 +141,7 @@ export const gqlFilesMap = {
 export const gqlFilesMapWithSharedFragments = {
   'schema.graphql': graphqlFilesMap['schema.graphql'],
   'UserView.tsx': `
-    import { gql } from '@data-eden/codegen';
+    import { gql } from '@data-eden/codegen/gql';
 
     export const userFieldsFragment = gql\`fragment UserFields on User {
       id
@@ -151,7 +151,7 @@ export const gqlFilesMapWithSharedFragments = {
     }\`
   `,
   'User.tsx': `
-    import { gql } from '@data-eden/codegen';
+    import { gql } from '@data-eden/codegen/gql';
     import { userFieldsFragment } from './UserView.tsx';
 
     const findUserQuery = gql\`query findUser($userId: ID!) {
@@ -165,7 +165,7 @@ export const gqlFilesMapWithSharedFragments = {
 export const gqlFilesMapWithSharedFragmentsTransitive = {
   'schema.graphql': graphqlFilesMap['schema.graphql'],
   'MessageView.tsx': `
-    import { gql } from '@data-eden/codegen';
+    import { gql } from '@data-eden/codegen/gql';
 
     export const messageFieldsFragment = gql\`fragment MessageFields on ChatMessage {
       id
@@ -174,7 +174,7 @@ export const gqlFilesMapWithSharedFragmentsTransitive = {
     }\`
   `,
   'ChatView.tsx': `
-    import { gql } from '@data-eden/codegen';
+    import { gql } from '@data-eden/codegen/gql';
 
     import { messageFieldsFragment } from './MessageView.tsx';
 
@@ -190,7 +190,7 @@ export const gqlFilesMapWithSharedFragmentsTransitive = {
     }\`
   `,
   'UserView.tsx': `
-    import { gql } from '@data-eden/codegen';
+    import { gql } from '@data-eden/codegen/gql';
 
     import { chatFieldsFragment } from './ChatView.tsx';
 
@@ -204,7 +204,7 @@ export const gqlFilesMapWithSharedFragmentsTransitive = {
     }\`
   `,
   'User.tsx': `
-    import { gql } from '@data-eden/codegen';
+    import { gql } from '@data-eden/codegen/gql';
     import { userFieldsFragment } from './UserView.tsx';
 
     const findUserQuery = gql\`query findUser($userId: ID!) {
@@ -238,7 +238,7 @@ export const gqlFilesIgnoreMap = {
 export const gqlFilesMapWithReExportedFragments = {
   'schema.graphql': graphqlFilesMap['schema.graphql'],
   'ChatView.tsx': `
-    import { gql } from '@data-eden/codegen';
+    import { gql } from '@data-eden/codegen/gql';
 
     export const chatFieldsFragment = gql\`fragment ChatFields on Chat {
       id
@@ -252,7 +252,7 @@ export const gqlFilesMapWithReExportedFragments = {
     export { chatFieldsFragment } from './ChatView.tsx';
   `,
   'User.tsx': `
-    import { gql } from '@data-eden/codegen';
+    import { gql } from '@data-eden/codegen/gql';
     import { chatFieldsFragment } from './UserView.tsx';
 
     const findUserQuery = gql\`query findUser($userId: ID!) {
@@ -268,7 +268,7 @@ export const gqlFilesMapWithReExportedFragments = {
 export const gqlFilesMapWithSharedFragmentsUsedAndExported = {
   'schema.graphql': graphqlFilesMap['schema.graphql'],
   'ChatView.tsx': `
-    import { gql } from '@data-eden/codegen';
+    import { gql } from '@data-eden/codegen/gql';
 
     export const chatFieldsFragment = gql\`fragment ChatFields on Chat {
       id
@@ -285,7 +285,7 @@ export const gqlFilesMapWithSharedFragmentsUsedAndExported = {
     }\`
   `,
   'User.tsx': `
-    import { gql } from '@data-eden/codegen';
+    import { gql } from '@data-eden/codegen/gql';
     import { chatFieldsFragment } from './ChatView.tsx';
 
     const findUserQuery = gql\`query findUser($userId: ID!) {
@@ -295,5 +295,29 @@ export const gqlFilesMapWithSharedFragmentsUsedAndExported = {
         }
       }
     }\`
+  `,
+};
+
+export const gqlFilesMapWithAliasedPaths = {
+  'schema.graphql': graphqlFilesMap['schema.graphql'],
+  'UserView.tsx': `
+    import { gql } from '@data-eden/codegen/gql';
+
+    export const userFieldsFragment = gql\`fragment UserFields on User {
+      id
+      username
+      email
+      role
+    }\`
+  `,
+  'User.tsx': `
+    import { gql } from '@data-eden/codegen/gql';
+    import { userFieldsFragment } from '@components/UserView.tsx';
+
+    const findUserQuery = gql\`query findUser($userId: ID!) {
+      user(id: $userId) {
+        \${userFieldsFragment}
+      }
+    }\`\
   `,
 };

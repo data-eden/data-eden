@@ -1,5 +1,5 @@
 import { useMutation } from '@data-eden/react';
-import { gql } from '@data-eden/codegen';
+import { gql } from '@data-eden/codegen/gql';
 import { useState } from 'react';
 import type {
   UpdatePetMutation,

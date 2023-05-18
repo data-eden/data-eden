@@ -8,6 +8,7 @@ import { outputOperations } from './gql/output-operations.js';
 import type { ExtractedDefinitions } from './gql/types.js';
 import * as path from 'node:path';
 import type { DependencyGraph } from './gql/dependency-graph.js';
+import { type Resolver } from './types.js';
 import { createDebug } from './debug.js';
 
 const debug = createDebug('generate-document-files');
@@ -19,7 +20,8 @@ type FilesMap = {
 
 export function generateDocumentFiles(
   schema: GraphQLSchema,
-  documentPaths: Array<string>
+  documentPaths: Array<string>,
+  resolver: Resolver
 ): {
   gqlFileDocuments: Array<Types.DocumentFile>;
   gqlTagDocuments: Array<Types.DocumentFile>;
@@ -44,7 +46,11 @@ export function generateDocumentFiles(
   );
 
   const files = handleGraphQLFiles(gqlFiles);
-  const { tags, dependencyGraph } = handleGraphQLTags(schema, gqlTags);
+  const { tags, dependencyGraph } = handleGraphQLTags(
+    schema,
+    gqlTags,
+    resolver
+  );
 
   return {
     gqlFileDocuments: files,
@@ -78,7 +84,8 @@ function handleGraphQLFiles(
 
 function handleGraphQLTags(
   schema: GraphQLSchema,
-  documentPaths: Array<string>
+  documentPaths: Array<string>,
+  resolver: Resolver
 ): {
   tags: Array<Types.DocumentFile>;
   dependencyGraph: DependencyGraph;
@@ -88,7 +95,7 @@ function handleGraphQLTags(
   documentPaths.forEach((filePath) => {
     debug(`compile gql tags in : ${filePath}`);
     try {
-      const extractedQueries = extractDefinitions(schema, filePath);
+      const extractedQueries = extractDefinitions(schema, filePath, resolver);
       if (extractedQueries.definitions.length > 0) {
         extractedQueriesMap.set(filePath, extractedQueries);
       }

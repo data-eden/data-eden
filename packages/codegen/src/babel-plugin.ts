@@ -37,7 +37,7 @@ const babelPlugin = declare((api) => {
 
         if (
           t.isStringLiteral(node.source) &&
-          node.source.value === '@data-eden/codegen'
+          node.source.value === '@data-eden/codegen/gql'
         ) {
           const gqlSpecifier = node.specifiers.find((specifier) => {
             if (t.isImportSpecifier(specifier)) {

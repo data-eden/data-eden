@@ -15,6 +15,20 @@
         "default": "./dist/index.js"
       },
       "default": "./dist/index.js"
+    },
+    "./babel-plugin": {
+      "import": {
+        "types": "./dist/babel-plugin.d.ts",
+        "default": "./dist/babel-plugin.js"
+      },
+      "default": "./dist/babel-plugin.js"
+    },
+    "./gql": {
+      "import": {
+        "types": "./dist/gql.d.ts",
+        "default": "./dist/gql.js"
+      },
+      "default": "./dist/gql.js"
     }
   },
   "main": "./dist/index.js",
