@@ -543,4 +543,5 @@ describe('codegen', () => {
 
   // TODO: import fragment from foo.graphql inside a .tsx
   // TODO: import fragment from foo.tsx inside a .graphql
+  // TODO: catch throw when multiple things are defined in one gql tag
 });

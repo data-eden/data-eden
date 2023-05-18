@@ -6,13 +6,42 @@ import * as nodePath from 'node:path';
 import * as t from '@babel/types';
 import { changeExtension } from './utils.js';
 
-function createImportName(name: string): string {
-  if (name.endsWith('Fragment')) {
-    return `${name}Doc`;
-  } else if (name.endsWith('Query')) {
-    return name.replace('Query', 'Document');
+/**
+ *
+  This takes the following example:
+
+  ```
+  const memberFeedDetailPageQuery = gql<MemberFeedDetailPageQuery>`
+    query MemberFeedDetailPage($urn: Urn!) {}
+  `
+  ```
+
+  and converts it to:
+
+  export const memberFeedDetailPageQuery = MemberFeedDetailPageDocument
+ */
+// TODO: we should parse the fragment, query or mutation name from the gql tag content via regex
+function createImportName(name: string) {
+  /*
+  since we want to have the ability to have the following
+
+  export const memberFeedDetailPageQuery = gql<MemberFeedDetailPageQuery>`
+    query MemberFeedDetailPage {}
+  `
+
+  We want to uppercase the first character of the name to avoid collisions
+  ```
+  */
+  let importName = name;
+
+  importName = importName.charAt(0).toUpperCase() + importName.slice(1);
+
+  if (importName.endsWith('Fragment')) {
+    return `${importName}Doc`;
+  } else if (importName.endsWith('Query')) {
+    return importName.replace('Query', 'Document');
   } else {
-    return name.replace('Mutation', 'Document');
+    return importName.replace('Mutation', 'Document');
   }
 }
 
