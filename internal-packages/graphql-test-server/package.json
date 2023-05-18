@@ -1,23 +1,23 @@
 {
   "name": "graphql-test-server",
+  "version": "0.6.0",
   "private": true,
-  "version": "0.5.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "tsx watch src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 0"
+  "homepage": "https://github.com/data-eden/data-eden#readme",
+  "bugs": {
+    "url": "https://github.com/data-eden/data-eden/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/data-eden/data-eden.git"
   },
-  "author": "Chris Freeman",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/data-eden/data-eden/issues"
+  "author": "Chris Freeman",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsx watch src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 0"
   },
-  "homepage": "https://github.com/data-eden/data-eden#readme",
   "dependencies": {
     "@graphql-yoga/plugin-persisted-operations": "^1.9.1",
     "fs-extra": "^11.1.1",

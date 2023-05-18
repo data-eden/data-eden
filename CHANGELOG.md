@@ -4,6 +4,45 @@
 
 
 
+
+## v0.6.0 (2023-05-18)
+
+#### :boom: Breaking Change
+* `athena`, `codegen`, `react`
+  * [#115](https://github.com/data-eden/data-eden/pull/115) [codegen] export gql from codegen not @data-eden/react ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :rocket: Enhancement
+* `codegen`
+  * [#123](https://github.com/data-eden/data-eden/pull/123) [codegen] be able to configure file resolver ([@gabrielcsapo](https://github.com/gabrielcsapo))
+  * [#121](https://github.com/data-eden/data-eden/pull/121) feat: add --disable-schema-types-generation ([@hjdivad](https://github.com/hjdivad))
+  * [#119](https://github.com/data-eden/data-eden/pull/119) feat: add --debug ([@hjdivad](https://github.com/hjdivad))
+  * [#117](https://github.com/data-eden/data-eden/pull/117) chore: Improve errors ([@hjdivad](https://github.com/hjdivad))
+* `athena`, `codegen`
+  * [#106](https://github.com/data-eden/data-eden/pull/106) feat: adds ability to share fragments across components ([@gabrielcsapo](https://github.com/gabrielcsapo))
+* `athena`, `codegen`, `react`
+  * [#115](https://github.com/data-eden/data-eden/pull/115) [codegen] export gql from codegen not @data-eden/react ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :bug: Bug Fix
+* `codegen`
+  * [#125](https://github.com/data-eden/data-eden/pull/125) chore: multiple fixes to integrate into next application ([@gabrielcsapo](https://github.com/gabrielcsapo))
+  * [#116](https://github.com/data-eden/data-eden/pull/116) [codegen] ensure we check the import for gql ([@gabrielcsapo](https://github.com/gabrielcsapo))
+* `cache`
+  * [#122](https://github.com/data-eden/data-eden/pull/122)  [cache] restructure tx.commit with cache locking ([@shuba3862](https://github.com/shuba3862))
+
+#### :house: Internal
+* `codegen`
+  * [#118](https://github.com/data-eden/data-eden/pull/118) tests: add tests ([@hjdivad](https://github.com/hjdivad))
+* `cache`
+  * [#104](https://github.com/data-eden/data-eden/pull/104) refactor delete, merge and tx iterators ([@shuba3862](https://github.com/shuba3862))
+  * [#103](https://github.com/data-eden/data-eden/pull/103) [Cache] refactor tx architecture ([@shuba3862](https://github.com/shuba3862))
+* `cache`, `ember`
+  * [#102](https://github.com/data-eden/data-eden/pull/102) Make cache.commitTransaction private ([@shuba3862](https://github.com/shuba3862))
+
+#### Committers: 3
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+- ska3862 ([@shuba3862](https://github.com/shuba3862))
+
 ## v0.5.0 (2023-05-12)
 
 #### :boom: Breaking Change
