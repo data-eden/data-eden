@@ -123,10 +123,17 @@ export function resolveForeignReferences(
         foreignDefinition &&
         foreignDefinition.type === 'unresolvedFragment'
       ) {
+        const oldforeignDefinition = foreignDefinition;
         foreignDefinition = resolvedUnresolvedFragment(
           dependencyGraph.definitions,
           foreignDefinition
         );
+
+        if (!foreignDefinition) {
+          throw new Error(
+            `Foreign operation reference failed to resolve for ${oldforeignDefinition.exportName} at ${definition.ast.name} in ${definition.filePath} is unresolveable`
+          );
+        }
       }
 
       if (!foreignDefinition) {

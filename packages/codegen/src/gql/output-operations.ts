@@ -84,19 +84,6 @@ function generateFinalOperationString(
 
     opStr = outputStringsByDefinition.get(def)! + '\n\n' + opStr;
 
-    // We do not want to add fragments that are going to be added in after the fact by the codegen
-    visitQueue.push(
-      ...[
-        ...(def.foreignReferences.values() as IterableIterator<Fragment>),
-      ].filter((fragment) => {
-        return ![...fragments.values()].find((_fragment) => {
-          return (
-            _fragment.filePath === fragment.filePath &&
-            _fragment.outputName === fragment.outputName
-          );
-        });
-      })
-    );
     visitedSet.add(def);
   }
 

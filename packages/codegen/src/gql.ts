@@ -1,5 +1,13 @@
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
-import type { Primitive } from 'type-fest';
+
+export type Primitive =
+  | null
+  | undefined
+  | string
+  | number
+  | boolean
+  | symbol
+  | bigint;
 
 type DefaultVariables = Record<string, object | Primitive> | undefined;
 

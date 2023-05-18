@@ -43,11 +43,11 @@ export const FindUserDocument = {"__meta__":{"queryId":"d17490e4b9ac1f7c227df3da
     );
 
     expect(result && result.code).toMatchInlineSnapshot(`
-      "import { findUserDocument } from \\"./__generated/User.graphql.ts\\";
-      import { userFieldsFragmentDoc } from \\"./__generated/User.graphql.ts\\";
+      "import { FindUserDocument } from \\"./__generated/User.graphql.ts\\";
+      import { UserFieldsFragmentDoc } from \\"./__generated/User.graphql.ts\\";
       import { gql } from '@data-eden/codegen/gql';
-      const userFieldsFragment = userFieldsFragmentDoc;
-      const findUserQuery = findUserDocument;"
+      const userFieldsFragment = UserFieldsFragmentDoc;
+      const findUserQuery = FindUserDocument;"
     `);
   });
 
@@ -69,10 +69,10 @@ export const FindUserDocument = {"__meta__":{"queryId":"d17490e4b9ac1f7c227df3da
     );
 
     expect(result && result.code).toMatchInlineSnapshot(`
-      "import { findUserDocument } from \\"./__generated/User.graphql.ts\\";
+      "import { FindUserDocument } from \\"./__generated/User.graphql.ts\\";
       import { gql } from '@data-eden/codegen/gql';
       import { userFieldsFragment } from './UserView.tsx';
-      const findUserQuery = findUserDocument;"
+      const findUserQuery = FindUserDocument;"
     `);
   });
 
