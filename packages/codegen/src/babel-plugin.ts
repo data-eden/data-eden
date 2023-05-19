@@ -37,7 +37,7 @@ function createImportName(name: string) {
   importName = importName.charAt(0).toUpperCase() + importName.slice(1);
 
   if (importName.endsWith('Fragment')) {
-    return `${importName}Doc`;
+    return `${importName}Fragment`;
   } else if (importName.endsWith('Query')) {
     return importName.replace('Query', 'Document');
   } else {
@@ -104,27 +104,40 @@ const babelPlugin = declare((api) => {
 
           const operationOrFragmentName = createImportName(parentNode.id.name);
 
-          const filePath = state.filename;
+          if (operationOrFragmentName.indexOf('Fragment') > -1) {
+            // Replace the fragment with a Symbol
+            const replacementSymbol = t.callExpression(
+              t.identifier('Symbol.for'),
+              [t.stringLiteral('build-time-graphql-fragment')]
+            );
 
-          if (!filePath) {
-            throw new Error('@data-eden/codegen: Unable to resolve filepath.');
-          }
+            // Replace the fragment definition with the Symbol
+            path.replaceWith(replacementSymbol);
+          } else {
+            const filePath = state.filename;
 
-          const importPath = getRelativeImportPath(filePath);
+            if (!filePath) {
+              throw new Error(
+                '@data-eden/codegen: Unable to resolve filepath.'
+              );
+            }
 
-          const newImportDeclaration = template(`
+            const importPath = getRelativeImportPath(filePath);
+
+            const newImportDeclaration = template(`
             import { %%importName%% } from %%importPath%%
           `);
 
-          program.unshiftContainer(
-            'body',
-            newImportDeclaration({
-              importName: api.types.identifier(operationOrFragmentName),
-              importPath: api.types.stringLiteral(importPath),
-            })
-          );
+            program.unshiftContainer(
+              'body',
+              newImportDeclaration({
+                importName: api.types.identifier(operationOrFragmentName),
+                importPath: api.types.stringLiteral(importPath),
+              })
+            );
 
-          path.replaceWith(api.types.identifier(operationOrFragmentName));
+            path.replaceWith(api.types.identifier(operationOrFragmentName));
+          }
         }
       },
     },
