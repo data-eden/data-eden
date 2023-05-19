@@ -80,6 +80,9 @@ const babelPlugin = declare((api) => {
 
           if (gqlSpecifier) {
             gqlImportIdentifier = gqlSpecifier.local;
+
+            // we do not watch to ship this to the client and it is a dead import at this point.
+            path.remove();
           }
         }
       },
