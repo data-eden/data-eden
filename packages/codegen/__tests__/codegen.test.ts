@@ -6,7 +6,7 @@ import * as fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import { describe, expect, test } from 'vitest';
-import { athenaCodegen } from '../src/index.js';
+import { athenaCodegen } from '@data-eden/codegen';
 import {
   createFixtures,
   gqlFilesIgnoreMap,

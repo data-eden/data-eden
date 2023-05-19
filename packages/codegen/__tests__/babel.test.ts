@@ -1,5 +1,5 @@
 import { transformFileAsync } from '@babel/core';
-import { babelPlugin } from '../src/babel-plugin.js';
+import { babelPlugin } from '@data-eden/codegen/babel-plugin.js';
 import type { Project } from 'fixturify-project';
 import { describe, expect, test } from 'vitest';
 import {
