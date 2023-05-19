@@ -17,9 +17,7 @@ import {
   getPendingRequestState,
 } from '@data-eden/network';
 
-// TODO: this should actually be import { _setupDefaultRequestsCompletedOptions } from '#settled-tracking-middleware'
-//   but we need https://github.com/vitejs/vite/pull/7770 to land in order to leverage subpath imports properly
-import { _setupDefaultRequestsCompletedOptions } from '@data-eden/network/-private/settled-tracking-middleware';
+import { _setupDefaultRequestsCompletedOptions } from '#settled-tracking-middleware';
 
 import type * as http from 'http';
 
@@ -189,16 +187,16 @@ describe('@data-eden/network: settled-tracking-middleware', async function () {
             {
               "method": "GET",
               "stack": "Error:
-              at SettledTrackingMiddleware (file:///packages/network/src/settled-tracking-middleware.ts)
-              at file:///packages/network/src/fetch.ts",
+              at SettledTrackingMiddleware (/packages/network/src/settled-tracking-middleware.ts)
+              at /packages/network/src/fetch.ts",
               "startTime": 99999999,
               "url": "/resource",
             },
             {
               "method": "GET",
               "stack": "Error:
-              at SettledTrackingMiddleware (file:///packages/network/src/settled-tracking-middleware.ts)
-              at file:///packages/network/src/fetch.ts",
+              at SettledTrackingMiddleware (/packages/network/src/settled-tracking-middleware.ts)
+              at /packages/network/src/fetch.ts",
               "startTime": 99999999,
               "url": "/resource",
             },
@@ -211,16 +209,16 @@ describe('@data-eden/network: settled-tracking-middleware', async function () {
             {
               "method": "GET",
               "stack": "Error:
-              at SettledTrackingMiddleware (file:///packages/network/src/settled-tracking-middleware.ts)
-              at file:///packages/network/src/fetch.ts",
+              at SettledTrackingMiddleware (/packages/network/src/settled-tracking-middleware.ts)
+              at /packages/network/src/fetch.ts",
               "startTime": 99999999,
               "url": "/resource",
             },
             {
               "method": "GET",
               "stack": "Error:
-              at SettledTrackingMiddleware (file:///packages/network/src/settled-tracking-middleware.ts)
-              at file:///packages/network/src/fetch.ts",
+              at SettledTrackingMiddleware (/packages/network/src/settled-tracking-middleware.ts)
+              at /packages/network/src/fetch.ts",
               "startTime": 99999999,
               "url": "/resource",
             },
