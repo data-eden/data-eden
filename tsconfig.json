@@ -1,7 +1,6 @@
 {
   "files": [],
   "references": [
-    { "path": "./packages/config" },
     {
       "path": "./packages/athena"
     },

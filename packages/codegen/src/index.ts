@@ -5,3 +5,4 @@ export { generateSchemaTypes } from './generate-schema-types.js';
 export { binMain } from './bin.js';
 export { babelPlugin } from './babel-plugin.js';
 export { gql } from './gql.js';
+export { defineConfig } from './utils.js';

@@ -1,4 +1,4 @@
-import { defineConfig } from '@data-eden/config';
+import { defineConfig } from '@data-eden/codegen';
 import { readFileSync } from 'node:fs';
 import { createMatchPath } from 'tsconfig-paths';
 

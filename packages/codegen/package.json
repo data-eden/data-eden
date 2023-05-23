@@ -57,7 +57,6 @@
     "@babel/core": "^7.21.8",
     "@babel/helper-plugin-utils": "^7.21.5",
     "@babel/types": "^7.21.5",
-    "@data-eden/config": "^0.6.0",
     "@graphql-codegen/core": "^3.1.0",
     "@graphql-codegen/near-operation-file-preset": "^2.5.0",
     "@graphql-codegen/plugin-helpers": "^4.2.0",

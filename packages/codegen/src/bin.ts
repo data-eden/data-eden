@@ -1,10 +1,10 @@
-import { loadConfig } from '@data-eden/config';
 import { program } from 'commander';
 import { resolve } from 'path';
 
 import { athenaCodegen } from './codegen.js';
-import type { CodegenConfig} from './types.js';
+import type { CodegenConfig } from './types.js';
 import { type Resolver } from './types.js';
+import { loadConfig } from './utils.js';
 
 interface Options {
   projectRoot: string;

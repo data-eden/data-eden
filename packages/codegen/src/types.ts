@@ -32,9 +32,3 @@ export type OutputFile = {
   location: string;
   contents: string;
 };
-
-declare module '@data-eden/config' {
-  interface Config {
-    codegen: CodegenConfig;
-  }
-}
