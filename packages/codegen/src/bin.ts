@@ -1,9 +1,9 @@
 import { loadConfig } from '@data-eden/config';
 import { program } from 'commander';
 import { resolve } from 'path';
-import lodash from 'lodash';
 
 import { athenaCodegen } from './codegen.js';
+import type { CodegenConfig} from './types.js';
 import { type Resolver } from './types.js';
 
 interface Options {
@@ -82,9 +82,12 @@ export async function binMain(process: NodeJS.Process) {
     : undefined;
 
   // TODO: we need to check the values before we passed to codegen for required fields to actually exist
-  let optionsMerged = lodash.merge(loadedConfig?.codegen, options, {
-    resolver: resolverFromArgs || loadedConfig?.codegen?.resolver,
-  });
+  let optionsMerged: CodegenConfig = Object.assign(
+    loadedConfig?.codegen || {},
+    Object.assign(options, {
+      resolver: resolverFromArgs || loadedConfig?.codegen?.resolver,
+    })
+  );
 
   if (!optionsMerged.baseDir) {
     optionsMerged.baseDir = process.cwd();

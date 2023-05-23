@@ -72,8 +72,7 @@
     "commander": "^10.0.1",
     "debug": "^4.3.4",
     "fs-extra": "^11.1.1",
-    "globby": "^13.1.4",
-    "lodash": "^4.17.21"
+    "globby": "^13.1.4"
   },
   "devDependencies": {
     "@types/babel__core": "^7.20.0",
