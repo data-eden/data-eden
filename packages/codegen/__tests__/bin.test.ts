@@ -19,13 +19,11 @@ describe('codegen', () => {
       ...{
         '.dataedenrc.js': `
             module.exports = {
-                codegen: {
-                    schemaPath: 'schema.graphql',
-                    documents: ['./**/*.graphql'],
-                    extension: '.graphql.ts',
-                    disableSchemaTypesGeneration: false,
-                    production: false
-                }
+                schemaPath: 'schema.graphql',
+                documents: ['./**/*.graphql'],
+                extension: '.graphql.ts',
+                disableSchemaTypesGeneration: false,
+                production: false
             }
         `,
       },
