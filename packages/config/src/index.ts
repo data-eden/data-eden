@@ -27,17 +27,10 @@ export async function loadConfig(baseDir: string): Promise<Config | null> {
     searchPlaces: [
       // tracking mjs support https://github.com/cosmiconfig/cosmiconfig/issues/224
       'package.json',
-      `.${moduleName}rc`,
-      `.${moduleName}rc.json`,
-      `.${moduleName}rc.yaml`,
-      `.${moduleName}rc.yml`,
       `.${moduleName}rc.js`,
       `.${moduleName}rc.mjs`,
       `.${moduleName}rc.cjs`,
       `.config/${moduleName}rc`,
-      `.config/${moduleName}rc.json`,
-      `.config/${moduleName}rc.yaml`,
-      `.config/${moduleName}rc.yml`,
       `.config/${moduleName}rc.js`,
       `.config/${moduleName}rc.mjs`,
       `.config/${moduleName}rc.cjs`,
