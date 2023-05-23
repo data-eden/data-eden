@@ -60,10 +60,6 @@ export function extensionAwareResolver(
   );
 }
 
-export interface Config {
-  codegen: CodegenConfig;
-}
-
 // tracking mjs support https://github.com/cosmiconfig/cosmiconfig/issues/224
 const loadJs: Loader = async function loadJs(filepath, content) {
   try {
@@ -76,7 +72,9 @@ const loadJs: Loader = async function loadJs(filepath, content) {
   }
 };
 
-export async function loadConfig(baseDir: string): Promise<Config | null> {
+export async function loadConfig(
+  baseDir: string
+): Promise<CodegenConfig | null> {
   const moduleName = 'dataeden';
   const explorer = cosmiconfig(moduleName, {
     loaders: {
@@ -101,9 +99,9 @@ export async function loadConfig(baseDir: string): Promise<Config | null> {
   const potentialConfig = await explorer.search(baseDir);
 
   // TODO: we should properly type narrow this
-  return potentialConfig?.config as unknown as Config;
+  return potentialConfig?.config as unknown as CodegenConfig;
 }
 
-export function defineConfig(config: Config): Config {
+export function defineConfig(config: CodegenConfig): CodegenConfig {
   return config;
 }

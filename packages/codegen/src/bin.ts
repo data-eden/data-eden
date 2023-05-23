@@ -83,9 +83,9 @@ export async function binMain(process: NodeJS.Process) {
 
   // TODO: we need to check the values before we passed to codegen for required fields to actually exist
   let optionsMerged: CodegenConfig = Object.assign(
-    loadedConfig?.codegen || {},
+    loadedConfig || {},
     Object.assign(options, {
-      resolver: resolverFromArgs || loadedConfig?.codegen?.resolver,
+      resolver: resolverFromArgs || loadedConfig?.resolver,
     })
   );
 
