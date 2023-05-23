@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "build": "rm -rf dist && tsc && vite build",
-    "codegen": "athena-codegen --schema-path schema.graphql --base-dir src/graphql --documents '**/*.graphql' '**/*.tsx' --resolver ./resolver.js",
+    "codegen": "athena-codegen",
     "dev": "vite",
     "preview": "vite preview"
   },
   "dependencies": {
     "@data-eden/athena": "0.6.0",
     "@data-eden/cache": "0.6.0",
+    "@data-eden/config": "^0.6.0",
     "@data-eden/network": "0.6.0",
     "@data-eden/react": "^0.6.0",
     "react": "^18.2.0",
