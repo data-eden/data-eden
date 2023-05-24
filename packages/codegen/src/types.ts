@@ -16,7 +16,7 @@ export type Resolver = (
   options: ResolveOptions
 ) => string | undefined;
 
-export interface CodegenArgs {
+export type CodegenConfig = {
   schemaPath: string;
   documents: Array<string>;
   baseDir: string;
@@ -26,7 +26,7 @@ export interface CodegenArgs {
   production: boolean;
   hash?: (document: DocumentNode) => string;
   resolver?: Resolver;
-}
+};
 
 export type OutputFile = {
   location: string;

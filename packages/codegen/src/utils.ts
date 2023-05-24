@@ -1,7 +1,12 @@
+import { existsSync } from 'fs';
+import { extname, parse, format } from 'node:path';
+import { cosmiconfig, defaultLoaders, type Loader } from 'cosmiconfig';
+
+import { pathToFileURL } from 'url';
+
 import type { DependencyGraphNode } from './gql/dependency-graph.js';
 import type { Definition, UnresolvedFragment } from './gql/types.js';
-import { extname, parse, format } from 'node:path';
-import { existsSync } from 'fs';
+import type { CodegenConfig } from './types.js';
 
 export function changeExtension(fileName: string, ext: string): string {
   const parts = parse(fileName);
@@ -53,4 +58,50 @@ export function extensionAwareResolver(
       })
       .filter((path) => path !== false)[0] || undefined
   );
+}
+
+// tracking mjs support https://github.com/cosmiconfig/cosmiconfig/issues/224
+const loadJs: Loader = async function loadJs(filepath, content) {
+  try {
+    const { href } = pathToFileURL(filepath);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+    return (await import(href)).default;
+  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return defaultLoaders['.js'](filepath, content);
+  }
+};
+
+export async function loadConfig(
+  baseDir: string
+): Promise<CodegenConfig | null> {
+  const moduleName = 'dataeden';
+  const explorer = cosmiconfig(moduleName, {
+    loaders: {
+      '.mjs': loadJs,
+    },
+    searchPlaces: [
+      // tracking mjs support https://github.com/cosmiconfig/cosmiconfig/issues/224
+      'package.json',
+      `.${moduleName}rc.js`,
+      `.${moduleName}rc.mjs`,
+      `.${moduleName}rc.cjs`,
+      `.config/${moduleName}rc`,
+      `.config/${moduleName}rc.js`,
+      `.config/${moduleName}rc.mjs`,
+      `.config/${moduleName}rc.cjs`,
+      `${moduleName}.config.js`,
+      `${moduleName}.config.mjs`,
+      `${moduleName}.config.cjs`,
+    ],
+  });
+
+  const potentialConfig = await explorer.search(baseDir);
+
+  // TODO: we should properly type narrow this
+  return potentialConfig?.config as unknown as CodegenConfig;
+}
+
+export function defineConfig(config: CodegenConfig): CodegenConfig {
+  return config;
 }

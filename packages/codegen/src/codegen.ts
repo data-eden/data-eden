@@ -14,7 +14,7 @@ import * as path from 'node:path';
 import { defaultHash } from './default-hash.js';
 import { generateDocumentFiles } from './generate-document-files.js';
 import { generateSchemaTypes } from './generate-schema-types.js';
-import type { CodegenArgs, OutputFile, Resolver } from './types.js';
+import type { CodegenConfig, OutputFile, Resolver } from './types.js';
 import { changeExtension, extensionAwareResolver } from './utils.js';
 import { enable as enableDebugging } from './debug.js';
 
@@ -37,7 +37,7 @@ export async function athenaCodegen({
   disableSchemaTypesGeneration,
   production,
   resolver,
-}: CodegenArgs): Promise<void> {
+}: CodegenConfig): Promise<void> {
   const startTime = hrtime.bigint();
 
   if (debug === true) {

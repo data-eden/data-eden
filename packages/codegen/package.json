@@ -89,6 +89,7 @@
     "graphql": "^16.6.0"
   },
   "volta": {
+    "node": "16.20.0",
     "extends": "../../package.json"
   },
   "publishConfig": {
