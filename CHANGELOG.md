@@ -5,6 +5,26 @@
 
 
 
+
+## v0.7.0 (2023-05-24)
+
+#### :rocket: Enhancement
+* `codegen`
+  * [#136](https://github.com/data-eden/data-eden/pull/136) [codegen] support primary key aliasing ([@gabrielcsapo](https://github.com/gabrielcsapo))
+  * [#135](https://github.com/data-eden/data-eden/pull/135) [codgen] support a config file for easier setup ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :bug: Bug Fix
+* `codegen`
+  * [#130](https://github.com/data-eden/data-eden/pull/130) [codegen] fragment replacement results in warnings in build ([@gabrielcsapo](https://github.com/gabrielcsapo))
+  * [#127](https://github.com/data-eden/data-eden/pull/127) [codegen] remove @data-eden/codegen/gql when running babel transform ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :house: Internal
+* `athena`, `cache`, `codegen`, `network`
+  * [#131](https://github.com/data-eden/data-eden/pull/131) chore: make it possible to have tests update on src file changes ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
 ## v0.6.0 (2023-05-18)
 
 #### :boom: Breaking Change
