@@ -1,5 +1,5 @@
 import type { Types } from '@graphql-codegen/plugin-helpers';
-import type { GraphQLSchema } from 'graphql';
+import type { DocumentNode, GraphQLSchema } from 'graphql';
 import { parse } from 'graphql';
 import { readFileSync } from 'node:fs';
 import { extractDefinitions } from './gql/extract-definitions.js';
@@ -8,8 +8,10 @@ import { outputOperations } from './gql/output-operations.js';
 import type { ExtractedDefinitions } from './gql/types.js';
 import * as path from 'node:path';
 import type { DependencyGraph } from './gql/dependency-graph.js';
+import type { PrimaryKeyAlias } from './types.js';
 import { type Resolver } from './types.js';
 import { createDebug } from './debug.js';
+import { addPrimaryKeyAliasToGraphqlAST } from './utils.js';
 
 const debug = createDebug('generate-document-files');
 
@@ -21,6 +23,7 @@ type FilesMap = {
 export function generateDocumentFiles(
   schema: GraphQLSchema,
   documentPaths: Array<string>,
+  primaryKeyAlias: PrimaryKeyAlias | null,
   resolver: Resolver
 ): {
   gqlFileDocuments: Array<Types.DocumentFile>;
@@ -45,11 +48,12 @@ export function generateDocumentFiles(
     }
   );
 
-  const files = handleGraphQLFiles(gqlFiles);
+  const files = handleGraphQLFiles(gqlFiles, primaryKeyAlias);
   const { tags, dependencyGraph } = handleGraphQLTags(
     schema,
     gqlTags,
-    resolver
+    resolver,
+    primaryKeyAlias
   );
 
   return {
@@ -59,15 +63,21 @@ export function generateDocumentFiles(
   };
 }
 
+// TODO: resolver should be passed here to be able to resolve import paths
 function handleGraphQLFiles(
-  documentPaths: Array<string>
+  documentPaths: Array<string>,
+  primaryKeyAlias: PrimaryKeyAlias | null
 ): Array<Types.DocumentFile> {
   return documentPaths.map((path) => {
     debug(`compile .graphql: ${path}`);
 
     try {
       const contents = readFileSync(path, 'utf-8');
-      const parsed = parse(contents);
+      const parsed = addPrimaryKeyAliasToGraphqlAST(
+        parse(contents),
+        primaryKeyAlias
+      ) as DocumentNode;
+
       return {
         location: path,
         document: parsed,
@@ -85,7 +95,8 @@ function handleGraphQLFiles(
 function handleGraphQLTags(
   schema: GraphQLSchema,
   documentPaths: Array<string>,
-  resolver: Resolver
+  resolver: Resolver,
+  primaryKeyAlias: PrimaryKeyAlias | null
 ): {
   tags: Array<Types.DocumentFile>;
   dependencyGraph: DependencyGraph;
@@ -95,7 +106,12 @@ function handleGraphQLTags(
   documentPaths.forEach((filePath) => {
     debug(`compile gql tags in : ${filePath}`);
     try {
-      const extractedQueries = extractDefinitions(schema, filePath, resolver);
+      const extractedQueries = extractDefinitions(
+        schema,
+        filePath,
+        resolver,
+        primaryKeyAlias
+      );
       if (extractedQueries.definitions.length > 0) {
         extractedQueriesMap.set(filePath, extractedQueries);
       }

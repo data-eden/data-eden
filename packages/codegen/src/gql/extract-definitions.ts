@@ -4,12 +4,13 @@ import type { GraphQLSchema } from 'graphql';
 import { readFileSync } from 'node:fs';
 import { createExtractor } from './extractor.js';
 import type { Definition, UnresolvedFragment } from './types.js';
-import { type Resolver } from '../types.js';
+import { type PrimaryKeyAlias, type Resolver } from '../types.js';
 
 export function extractDefinitions(
   schema: GraphQLSchema,
   fileName: string,
-  resolver: Resolver
+  resolver: Resolver,
+  primaryKeyAlias: PrimaryKeyAlias | null
 ) {
   const document = readFileSync(fileName, 'utf-8');
   const parsed = parse(document, {
@@ -26,7 +27,10 @@ export function extractDefinitions(
 
   const definitions: Definition[] = [];
 
-  traverse(parsed, createExtractor(schema, fileName, definitions, resolver));
+  traverse(
+    parsed,
+    createExtractor(schema, fileName, definitions, resolver, primaryKeyAlias)
+  );
 
   const exportedDefinitionMap = new Map<
     string,

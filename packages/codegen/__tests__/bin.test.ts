@@ -6,7 +6,7 @@ import { createFixtures, graphqlFilesMap } from './utils/project.js';
 
 import { binMain } from '../src/bin';
 
-describe('codegen', () => {
+describe('bin', () => {
   let project: Project;
 
   async function read(relativePath: string) {

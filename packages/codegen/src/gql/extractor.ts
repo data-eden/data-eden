@@ -32,7 +32,9 @@ import type {
 } from './types.js';
 import { createHash } from 'crypto';
 import { existsSync } from 'node:fs';
+import type { PrimaryKeyAlias } from '../types.js';
 import { type Resolver } from '../types.js';
+import { addPrimaryKeyAliasToGraphqlAST } from '../utils.js';
 
 const VALIDATION_RULES = [...specifiedRules].filter(
   // This rules will be applied once we have full depedency graph for the queries resolvedx
@@ -173,7 +175,8 @@ export function createExtractor(
   schema: GraphQLSchema,
   filePath: string,
   definitions: Array<Definition>,
-  resolver: Resolver
+  resolver: Resolver,
+  primaryKeyAlias: PrimaryKeyAlias | null
 ) {
   const localDefinitionDeclaratorMap = new Map<
     NodePath<VariableDeclarator>,
@@ -247,7 +250,10 @@ export function createExtractor(
         })
         .join('');
 
-      const documentNode = graphqlParse(generatedDefinitionString);
+      const documentNode = addPrimaryKeyAliasToGraphqlAST(
+        graphqlParse(generatedDefinitionString),
+        primaryKeyAlias
+      ) as DocumentNode;
       const defAst = getDefinition(documentNode, filePath);
       let def: Definition;
 
