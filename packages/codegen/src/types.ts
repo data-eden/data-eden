@@ -16,6 +16,13 @@ export type Resolver = (
   options: ResolveOptions
 ) => string | undefined;
 
+export type PrimaryKeyAlias = {
+  primaryKey: string;
+  fields: {
+    [key: string]: string;
+  };
+};
+
 export type CodegenConfig = {
   schemaPath: string;
   documents: Array<string>;
@@ -26,6 +33,7 @@ export type CodegenConfig = {
   production: boolean;
   hash?: (document: DocumentNode) => string;
   resolver?: Resolver;
+  primaryKeyAlias?: PrimaryKeyAlias;
 };
 
 export type OutputFile = {

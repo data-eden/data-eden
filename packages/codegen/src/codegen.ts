@@ -37,6 +37,7 @@ export async function athenaCodegen({
   disableSchemaTypesGeneration,
   production,
   resolver,
+  primaryKeyAlias,
 }: CodegenConfig): Promise<void> {
   const startTime = hrtime.bigint();
 
@@ -87,7 +88,12 @@ export async function athenaCodegen({
 
   // Create DocumentFile objects for use in the preset builder
   const { gqlTagDocuments, gqlFileDocuments, dependencyGraph } =
-    generateDocumentFiles(graphqlSchema, paths, defaultResolver);
+    generateDocumentFiles(
+      graphqlSchema,
+      paths,
+      primaryKeyAlias ?? null,
+      defaultResolver
+    );
 
   const exportedGqlTagFragments: LoadedFragments[] = Array.from(
     dependencyGraph.fragments.values()

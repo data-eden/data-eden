@@ -6,7 +6,8 @@ import { pathToFileURL } from 'url';
 
 import type { DependencyGraphNode } from './gql/dependency-graph.js';
 import type { Definition, UnresolvedFragment } from './gql/types.js';
-import type { CodegenConfig } from './types.js';
+import type { CodegenConfig, PrimaryKeyAlias } from './types.js';
+import { visit, Kind, type ASTNode, type ASTVisitor } from 'graphql';
 
 export function changeExtension(fileName: string, ext: string): string {
   const parts = parse(fileName);
@@ -58,6 +59,101 @@ export function extensionAwareResolver(
       })
       .filter((path) => path !== false)[0] || undefined
   );
+}
+
+export function addPrimaryKeyAliasToGraphqlAST(
+  ast: ASTNode,
+  primaryKeyAlias: PrimaryKeyAlias | null
+): ASTNode {
+  if (!primaryKeyAlias) return ast;
+
+  const visitor: ASTVisitor = {
+    FragmentDefinition(node, key, parent, path, ancestors) {
+      // Only modify the fields within the Car fragment
+      if (primaryKeyAlias.fields[node.typeCondition.name.value]) {
+        const selectionSet = node.selectionSet;
+        const fields = selectionSet.selections;
+
+        // Create a new FieldNode for the id field
+        const idField = {
+          kind: Kind.FIELD,
+          name: {
+            kind: Kind.NAME,
+            value: primaryKeyAlias.fields[node.typeCondition.name.value],
+          },
+          alias: {
+            kind: Kind.NAME,
+            value: primaryKeyAlias.primaryKey,
+          },
+        };
+
+        // Add the id field to the existing fields
+        const modifiedFields = [...fields, idField];
+
+        // Create a new SelectionSetNode with the modified fields
+        const modifiedSelectionSet = {
+          kind: Kind.SELECTION_SET,
+          selections: modifiedFields,
+        };
+
+        // Create a new FragmentDefinition node with the modified selection set
+        const modifiedNode = {
+          ...node,
+          selectionSet: modifiedSelectionSet,
+        };
+
+        return modifiedNode;
+      }
+
+      // Continue visiting other nodes
+      return undefined;
+    },
+    InlineFragment(node, key, parent, path, ancestors) {
+      // Only modify the fields within the Car inline fragment
+      if (
+        node?.typeCondition?.name?.value &&
+        primaryKeyAlias.fields[node.typeCondition.name.value]
+      ) {
+        const selectionSet = node.selectionSet;
+        const fields = selectionSet.selections;
+
+        // Create a new FieldNode for the id field
+        const idField = {
+          kind: Kind.FIELD,
+          name: {
+            kind: Kind.NAME,
+            value: primaryKeyAlias.fields[node.typeCondition.name.value],
+          },
+          alias: {
+            kind: Kind.NAME,
+            value: primaryKeyAlias.primaryKey,
+          },
+        };
+
+        // Add the id field to the existing fields
+        const modifiedFields = [...fields, idField];
+
+        // Create a new SelectionSetNode with the modified fields
+        const modifiedSelectionSet = {
+          kind: Kind.SELECTION_SET,
+          selections: modifiedFields,
+        };
+
+        // Create a new InlineFragment node with the modified selection set
+        const modifiedNode = {
+          ...node,
+          selectionSet: modifiedSelectionSet,
+        };
+
+        return modifiedNode;
+      }
+
+      // Continue visiting other nodes
+      return undefined;
+    },
+  };
+
+  return visit(ast, visitor);
 }
 
 // tracking mjs support https://github.com/cosmiconfig/cosmiconfig/issues/224
