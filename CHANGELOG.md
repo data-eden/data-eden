@@ -6,6 +6,17 @@
 
 
 
+
+## v0.7.1 (2023-05-26)
+
+#### :bug: Bug Fix
+* `network`
+  * [#137](https://github.com/data-eden/data-eden/pull/137) Ensure that TrackingInfoPerFetch is always shared across all versions. ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 1
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v0.7.0 (2023-05-24)
 
 #### :rocket: Enhancement
