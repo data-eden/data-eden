@@ -7,6 +7,17 @@
 
 
 
+
+## v0.7.2 (2023-05-26)
+
+#### :rocket: Enhancement
+* `network`
+  * [#138](https://github.com/data-eden/data-eden/pull/138) Add a `$debug` property to the `buildFetch` result. ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 1
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v0.7.1 (2023-05-26)
 
 #### :bug: Bug Fix
