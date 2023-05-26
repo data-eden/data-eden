@@ -21,32 +21,13 @@ import { _setupDefaultRequestsCompletedOptions } from '#settled-tracking-middlew
 
 import type * as http from 'http';
 
-import { fileURLToPath } from 'url';
-import * as path from 'path';
-
-import { createServer } from '@data-eden/shared-test-utilities';
+import {
+  createServer,
+  sanitizeStacktrace,
+} from '@data-eden/shared-test-utilities';
 
 describe('@data-eden/network: settled-tracking-middleware', async function () {
   const server = await createServer();
-
-  function sanitizeStacktrace(errorStack: string): string {
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const prefix = path.resolve(__dirname, '../../../');
-    const lines = errorStack.split('\n');
-
-    return (
-      lines
-        // only look at the first 3 stack frames to avoid including a bunch of node_modules and whatnot
-        .slice(0, 3)
-        // strip the repo root prefix from the stacks to ensure stable across users
-        .map((line: string) => line.replace(prefix, ''))
-        // strip line:col information
-        .map((line: string) => line.replace(/:\d+:\d+/, ''))
-        // remove trailing whitespace (avoids snapshot instability for editors that auto delete trailing whitespace)
-        .map((line: string) => line.trimEnd())
-        .join('\n')
-    );
-  }
 
   function sanitizeServerUrl(input: string): string {
     const baseUrl = server.buildUrl('');
@@ -398,5 +379,70 @@ describe('@data-eden/network: settled-tracking-middleware', async function () {
     } finally {
       await fetchPromise;
     }
+  });
+
+  type FetchWithDebug = typeof fetch & {
+    $debug: {
+      settledness: {
+        hasPendingRequests: boolean;
+      };
+    };
+  };
+
+  test('provides additional functionality in $debug', async () => {
+    const fetch = buildFetch([SettledTrackingMiddleware], {
+      debug: true,
+    }) as FetchWithDebug;
+
+    // no $debug.settledness property until the first fetch
+    expect(Object.keys(fetch.$debug)).toMatchInlineSnapshot(`
+      [
+        "creationStack",
+        "middlewares",
+      ]
+    `);
+
+    const fetch1 = fetch(server.buildUrl('/resource'));
+
+    expect(Object.keys(fetch.$debug)).toMatchInlineSnapshot(`
+      [
+        "creationStack",
+        "middlewares",
+        "settledness",
+      ]
+    `);
+    expect(Object.keys(fetch.$debug.settledness)).toMatchInlineSnapshot(`
+      [
+        "pendingRequestState",
+        "hasPendingRequests",
+        "requestsCompleted",
+      ]
+    `);
+
+    const fetch2 = fetch(server.buildUrl('/resource'));
+
+    expect(fetch.$debug.settledness.hasPendingRequests).toEqual(true);
+
+    await fetch1;
+
+    expect(fetch.$debug.settledness.hasPendingRequests).toEqual(true);
+
+    await fetch2;
+
+    expect(fetch.$debug.settledness.hasPendingRequests).toEqual(false);
+  });
+
+  test('does not augment $debug when `buildFetch([], { debug: false })`', async () => {
+    const fetch = buildFetch([SettledTrackingMiddleware], {
+      debug: false,
+    }) as FetchWithDebug;
+
+    expect(fetch.$debug).toBeUndefined();
+
+    const fetch1 = fetch(server.buildUrl('/resource'));
+
+    expect(fetch.$debug).toBeUndefined();
+
+    await fetch1;
   });
 });
