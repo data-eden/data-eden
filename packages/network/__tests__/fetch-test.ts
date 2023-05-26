@@ -15,7 +15,10 @@ import type {
   NormalizedFetch,
 } from '@data-eden/network';
 import { buildFetch } from '@data-eden/network';
-import { createServer } from '@data-eden/shared-test-utilities';
+import {
+  createServer,
+  sanitizeStacktrace,
+} from '@data-eden/shared-test-utilities';
 
 function getPrefixedIncomingHttpHeaders(
   headers: http.IncomingHttpHeaders,
@@ -550,5 +553,41 @@ describe('@data-eden/fetch', async function () {
         "status": "success",
       }
     `);
+  });
+
+  type FetchWithDebug = typeof fetch & {
+    $debug: {
+      creationStack: string;
+      middlewares: Middleware[];
+    };
+  };
+
+  test('a $debug property is specified if no options are passed (e.g. defaults to debug mode)', async () => {
+    const middlewares = [noopMiddleware];
+    const fetch = buildFetch(middlewares) as FetchWithDebug;
+
+    expect({
+      ...fetch.$debug,
+      creationStack: sanitizeStacktrace(fetch.$debug.creationStack),
+    }).toMatchInlineSnapshot(`
+      {
+        "creationStack": "Error:
+          at Module.buildFetch (/packages/network/src/fetch.ts)
+          at /packages/network/__tests__/fetch-test.ts",
+        "middlewares": [
+          [Function],
+        ],
+      }
+    `);
+
+    expect(fetch.$debug.middlewares).toStrictEqual(middlewares);
+  });
+
+  test('specifying { debug: false } in options does not add a $debug property', async () => {
+    const fetch = buildFetch([noopMiddleware], {
+      debug: false,
+    }) as FetchWithDebug;
+
+    expect(fetch.$debug).toBeUndefined();
   });
 });

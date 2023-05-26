@@ -1,6 +1,17 @@
+import type { FetchWithDebug as _FetchWithDebug } from './dev.js';
 import type { MiddlewareMetadata, NormalizedFetch } from './fetch.js';
 
 type Fetch = typeof fetch;
+
+type FetchWithDebug = _FetchWithDebug & {
+  $debug: {
+    settledness: {
+      pendingRequestState: FetchDebugInfo[];
+      hasPendingRequests: boolean;
+      requestsCompleted: Promise<unknown>;
+    };
+  };
+};
 
 /**
   Debug information that is exposed via `getPendingRequestState(...)`.
@@ -230,6 +241,26 @@ export default async function SettledTrackingMiddleware(
   const error = new Error();
 
   const originatingFetch = metadata.fetch;
+
+  if (typeof (originatingFetch as FetchWithDebug).$debug !== 'undefined') {
+    const originatingFetchWithDebug = originatingFetch as FetchWithDebug;
+
+    if (originatingFetchWithDebug.$debug.settledness === undefined) {
+      originatingFetchWithDebug.$debug.settledness = {
+        get pendingRequestState() {
+          return getPendingRequestState(originatingFetchWithDebug);
+        },
+
+        get hasPendingRequests() {
+          return hasPendingRequests(originatingFetchWithDebug);
+        },
+
+        get requestsCompleted() {
+          return requestsCompleted(originatingFetchWithDebug);
+        },
+      };
+    }
+  }
 
   let fetchDebugInfos = TrackingInfoPerFetch.get(originatingFetch);
   if (fetchDebugInfos === undefined) {

@@ -1,3 +1,4 @@
+import type { FetchWithDebug } from './dev.js';
 export type NormalizedFetch = (request: Request) => Promise<Response>;
 
 export interface MiddlewareMetadata {
@@ -41,10 +42,19 @@ export interface BuildFetchOptions {
    * themselves.
    */
   disableMessage?: string;
+
   /**
    * override the default fetch implementation
    */
-  fetch: typeof fetch;
+  fetch?: typeof fetch;
+
+  /**
+   * Whether to enable debug mode. This is useful for debugging through the
+   * middleware stack. The default value is `true` `buildFetch` will add a
+   * `$debug` property on the `fetch` function that is returned with helpful
+   * debug information.
+   */
+  debug?: boolean;
 }
 
 function globalFetch(request: Request): Promise<Response> {
@@ -91,6 +101,20 @@ export function buildFetch(
     const normalizedRequest = new Request(rawRequest, init);
     return curriedMiddlewares(normalizedRequest);
   };
+
+  if (options?.debug !== false) {
+    const error = new Error();
+    // eslint-disable-next-line
+    (result as FetchWithDebug).$debug = {
+      get creationStack() {
+        return error.stack;
+      },
+
+      get middlewares() {
+        return middlewares;
+      },
+    };
+  }
 
   return result;
 }
