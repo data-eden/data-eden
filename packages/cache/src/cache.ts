@@ -327,6 +327,9 @@ class CacheImpl<
 
       this.#weakCache.set(key, new WeakRef(value));
 
+      // Register FinalizationRegistry so strongly held keys are removed
+      this.#cleanup.register(value, key);
+
       this.#cacheEntryState.set(key, state);
 
       if (state?.retained.lru) {
