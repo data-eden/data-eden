@@ -36,6 +36,7 @@ class CacheImpl<
   #cacheEntryState: Map<Key, CacheEntryState<UserExtensionData> | undefined>;
   #lruCache: LruCacheImpl<CacheKeyRegistry, Key>;
   #lruPolicy: number;
+  #cleanup: FinalizationRegistry<Key>;
 
   #txCommitLockOwner: LiveCacheTransaction<
     CacheKeyRegistry,
@@ -76,6 +77,14 @@ class CacheImpl<
 
     this.#txCommitLockOwner = null;
     this.#txCommitLockQueue = [];
+
+    // A `FinalizationRegistry` is created to remove the strongly held keys after the value is garbage-collected.
+    this.#cleanup = new FinalizationRegistry((key: Key) => {
+      // See note below on concurrency considerations.
+      const cache = this.#weakCache;
+      const ref = cache.get(key);
+      if (ref && !ref.deref()) cache.delete(key);
+    });
   }
 
   /**
@@ -138,9 +147,11 @@ class CacheImpl<
     for await (let entry of entries) {
       let [key, value, state] = entry;
 
-      // TODO: finalizregistry
       let clone = structuredClone(value) as CacheKeyRegistry[Key];
       this.#weakCache.set(key, new WeakRef(clone));
+
+      // Register FinalizationRegistry so strongly held keys are removed
+      this.#cleanup.register(clone, key);
 
       this.#lruCache.set(key, clone);
       this.#cacheEntryState.set(key, state);
@@ -314,8 +325,10 @@ class CacheImpl<
         UserExtensionData
       >;
 
-      // TODO: finalizregistry
       this.#weakCache.set(key, new WeakRef(value));
+
+      // Register FinalizationRegistry so strongly held keys are removed
+      this.#cleanup.register(value, key);
 
       this.#cacheEntryState.set(key, state);
 
