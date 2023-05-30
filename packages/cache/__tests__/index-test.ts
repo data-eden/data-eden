@@ -293,7 +293,7 @@ describe('@data-eden/cache', function () {
         'book:3': { title: 'New Merged book' },
       });
 
-      //Validate Cache before commit
+      // Validate Cache before commit
       expect(await cache.get('book:1')).toEqual({
         'book:1': { title: 'A History of the English speaking peoples' },
       });

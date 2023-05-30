@@ -156,7 +156,7 @@ export interface LiveCacheTransaction<
         $Debug,
         UserExtensionData
       >;
-      revisionContext?: string;
+      revisionContext?: unknown;
       $debug?: $Debug;
     }
   ): Promise<CacheKeyRegistry[Key] | CacheKeyValue>;
@@ -185,32 +185,21 @@ export interface CommittingTransaction<
   Key extends keyof CacheKeyRegistry = keyof CacheKeyRegistry,
   $Debug = unknown,
   UserExtensionData = unknown
-> extends Omit<
-    CacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>,
-    'get' | 'entries' | 'localEntries' | 'localRevisions' | 'entryRevisions'
-  > {
+> extends CacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData> {
   cache: {
-    clearRevisions(
-      tx: CommittingTransaction<
-        CacheKeyRegistry,
-        Key,
-        $Debug,
-        UserExtensionData
-      >,
-      id: Key
-    ): void;
+    clearRevisions(id: Key): void;
     appendRevisions(
-      tx: CommittingTransaction<
-        CacheKeyRegistry,
-        Key,
-        $Debug,
-        UserExtensionData
-      >,
       id: Key,
       revisions: CachedEntityRevision<CacheKeyRegistry, Key>[]
     ): void;
   };
-  mergedRevisions(): Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>;
+  mergedEntryRevisions(): Map<
+    Key,
+    CachedEntityRevision<CacheKeyRegistry, Key>[]
+  >;
+  updateRevisions(
+    localRevisionsMap: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>
+  ): void;
 }
 
 /**
@@ -276,8 +265,13 @@ export interface RevisionMergeStrategy<
 > {
   (
     cacheKey: Key,
-    tx: CommittingTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
-  ): void;
+    commitingRevisionTx: CommittingTransaction<
+      CacheKeyRegistry,
+      Key,
+      $Debug,
+      UserExtensionData
+    >
+  ): Promise<void>;
 }
 
 export interface CachedEntityRevision<
@@ -286,7 +280,7 @@ export interface CachedEntityRevision<
 > {
   entity: CacheKeyRegistry[Key];
   revision: number;
-  revisionContext?: string; // Use to store queryIds that can be used for debugging
+  revisionContext?: unknown; // Use to store queryIds that can be used for debugging
 }
 
 export type ExpirationPolicy =
@@ -357,7 +351,7 @@ export interface TransactionUpdates<
   UserExtensionData = unknown
 > {
   entries: [Key, CacheKeyRegistry[Key], CacheEntryState<UserExtensionData>][];
-  entryRevisions: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>;
+  //entryRevisions: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>;
 }
 
 export interface TransactionOperations<
@@ -382,6 +376,18 @@ export interface TransactionOperations<
       $Debug,
       UserExtensionData
     >
+  ) => void;
+  applyRetentionPolicies: (
+    cacheKey: Key,
+    transaction: LiveCacheTransaction<
+      CacheKeyRegistry,
+      Key,
+      $Debug,
+      UserExtensionData
+    >
+  ) => Promise<void>;
+  updateSavedRevisions: (
+    localRevisionsMap: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>
   ) => void;
   commitUpdatesAndReleaseLock: (
     transaction: LiveCacheTransaction<
