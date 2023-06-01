@@ -261,7 +261,7 @@ export class SignalCache {
         // of entities). In that case, we make sure to remove the entity from the proxy's array
         // as well
         const toRemove = parentArray.filter((v) => {
-          return !value.includes(this.getId(v));
+          return !value.includes(this.getId(v, root));
         });
 
         for (let entity of toRemove) {
@@ -287,22 +287,11 @@ export class SignalCache {
         parentKey = null;
       }
 
-      // If this node has already been visited, we know it has already been fully traveresed
-      // and don't need to continue
-      if (visited.has(value)) {
-        return false;
-      }
-
-      // If this node is already being explored, we're in a cycle and need to bail
-      if (exploring.has(value)) {
-        return false;
-      }
-
       exploring.add(value);
 
       const resolved = this.resolve(value, visited, exploring);
       if (resolved) {
-        if (parentArray) {
+        if (parentArray && typeof parseInt(key) === 'number') {
           // If parentArray exists, then we know we are traversing through an array, so each key
           // is an index number
           parentArray[key as unknown as number] = resolved;

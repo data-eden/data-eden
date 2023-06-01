@@ -48,7 +48,7 @@ export class AthenaClient {
   constructor(options: ClientArgs) {
     this.url = options.url;
     this.getId = options.id;
-    this.fetch = options.fetch || globalThis.fetch;
+    this.fetch = options.fetch || globalThis.fetch.bind(globalThis);
     this.buildRequest = options.buildRequest || defaultBuildRequest;
     this.signalCache = new SignalCache(options.adapter, options.id);
 
@@ -60,6 +60,7 @@ export class AthenaClient {
             const [key, entity] = entry;
             // Entity can also be string | number so we need to make sure it's actually an object here
             if (isEntity(entity)) {
+              console.log(key, entity);
               signalCache.storeEntity(key, entity);
             }
           }
@@ -127,8 +128,6 @@ export class AthenaClient {
   async processEntities<Data extends { [key: string]: any }>(
     response: Data
   ): Promise<Data> {
-    let fakeRevisionCounter = 0;
-
     const parsedEntitiesList = parseEntities(response);
 
     // This object maps "root" entities from a graphql docment to the key used to store them in the
@@ -154,7 +153,7 @@ export class AthenaClient {
     for (const parsedEntities of parsedEntitiesList) {
       const tx = await this.cache.beginTransaction();
       for (const { parent, prop, entity } of parsedEntities) {
-        const key = this.getId(entity);
+        const key = this.getId(entity, parent);
 
         // replace the entity object with the key we're using to store it in the cache so that we can
         // later replace the key with the reactive entity
@@ -167,9 +166,7 @@ export class AthenaClient {
           roots.set(prop, key);
         }
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        await tx.merge(key, { entity, revision: fakeRevisionCounter++ });
+        await tx.merge(key, entity);
       }
       await tx.commit();
     }
