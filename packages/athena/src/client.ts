@@ -127,8 +127,6 @@ export class AthenaClient {
   async processEntities<Data extends { [key: string]: any }>(
     response: Data
   ): Promise<Data> {
-    let fakeRevisionCounter = 0;
-
     const parsedEntitiesList = parseEntities(response);
 
     // This object maps "root" entities from a graphql docment to the key used to store them in the
@@ -167,9 +165,7 @@ export class AthenaClient {
           roots.set(prop, key);
         }
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        await tx.merge(key, { entity, revision: fakeRevisionCounter++ });
+        await tx.merge(key, entity);
       }
       await tx.commit();
     }
