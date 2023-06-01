@@ -435,6 +435,58 @@ describe('signal cache', () => {
       expect(result.owner.pets[0].name).toEqual('Hitch');
       expect(result.owner.pets[0].owner.__typename).toEqual('Person');
     });
+
+    test('can resolve cycle with array property with multiple values', () => {
+      cache.evict('Person:1');
+      cache.evict('Pet:1');
+
+      cache.storeEntity('Person:1', {
+        ...Person1,
+        pets: [
+          {
+            __link: 'Pet:1',
+          },
+          {
+            __link: 'Pet:2',
+          },
+        ],
+      });
+
+      cache.storeEntity('Pet:1', {
+        ...Pet1,
+        owner: {
+          __link: 'Person:1',
+        },
+      });
+
+      cache.storeEntity('Pet:2', {
+        ...Pet2,
+        owner: {
+          __link: 'Person:1',
+        },
+      });
+
+      const pet1 = cache.resolve('Pet:1');
+
+      expect(pet1.__typename).toEqual('Pet');
+      expect(pet1.name).toEqual('Hitch');
+      expect(pet1.owner.__typename).toEqual('Person');
+      expect(pet1.owner.name).toEqual('Foo');
+      expect(pet1.owner.pets[0].name).toEqual('Hitch');
+      expect(pet1.owner.pets[0].owner.__typename).toEqual('Person');
+
+      const pet2 = cache.resolve('Pet:2');
+
+      expect(pet2.__typename).toEqual('Pet');
+      expect(pet2.name).toEqual('Dre');
+      expect(pet2.owner.__typename).toEqual('Person');
+      expect(pet2.owner.name).toEqual('Foo');
+      expect(pet2.owner.pets[1].name).toEqual('Dre');
+      expect(pet2.owner.pets[1].owner.__typename).toEqual('Person');
+
+      // Owners for both pets should be the same object
+      expect(pet1.owner).toBe(pet2.owner);
+    });
   });
 
   describe('cache#evict', () => {

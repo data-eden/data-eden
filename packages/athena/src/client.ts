@@ -16,7 +16,7 @@ import { prepareOperation } from './utils.js';
 
 export interface ClientArgs {
   url: string;
-  id: IdFetcher;
+  getCacheKey: IdFetcher;
   fetch?: typeof fetch;
   buildRequest?: BuildRequest;
   adapter: ReactiveAdapter;
@@ -41,16 +41,16 @@ export class AthenaClient {
   private url: string;
   private fetch: typeof fetch;
   private cache: DataEdenCache;
-  private getId: IdFetcher;
+  private getCacheKey: IdFetcher;
   private signalCache: SignalCache;
   private buildRequest: BuildRequest;
 
   constructor(options: ClientArgs) {
     this.url = options.url;
-    this.getId = options.id;
-    this.fetch = options.fetch || globalThis.fetch;
+    this.getCacheKey = options.getCacheKey;
+    this.fetch = options.fetch || globalThis.fetch.bind(globalThis);
     this.buildRequest = options.buildRequest || defaultBuildRequest;
-    this.signalCache = new SignalCache(options.adapter, options.id);
+    this.signalCache = new SignalCache(options.adapter, options.getCacheKey);
 
     const signalCache = this.signalCache;
     this.cache = buildCache({
@@ -152,7 +152,7 @@ export class AthenaClient {
     for (const parsedEntities of parsedEntitiesList) {
       const tx = await this.cache.beginTransaction();
       for (const { parent, prop, entity } of parsedEntities) {
-        const key = this.getId(entity);
+        const key = this.getCacheKey(entity, parent);
 
         // replace the entity object with the key we're using to store it in the cache so that we can
         // later replace the key with the reactive entity

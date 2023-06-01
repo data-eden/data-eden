@@ -13,6 +13,18 @@ type Entity = {
   id: string;
 };
 
+function hashCode(str: string) {
+  let hash = 0;
+  for (let i = 0, len = str.length; i < len; i++) {
+    let chr = str.charCodeAt(i);
+    // eslint-disable-next-line no-bitwise
+    hash = (hash << 5) - hash + chr;
+    // eslint-disable-next-line no-bitwise
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash.toString();
+}
+
 describe('client', () => {
   let client: AthenaClient;
 
@@ -20,8 +32,10 @@ describe('client', () => {
     client = new AthenaClient({
       url: '/example',
       adapter: adapter,
-      id: (v: Entity) => {
-        return `${v.__typename}:${v.id}`;
+      getCacheKey: (v: Entity, parent: Entity) => {
+        return `${v.__typename}:${(
+          v?.id ?? hashCode(JSON.stringify({ ...v, parent: parent?.id }))
+        ).replace(/:/g, '&')}`;
       },
     });
   });
@@ -197,6 +211,70 @@ describe('client', () => {
               "model": "Mustang",
             },
           ],
+        }
+      `);
+    });
+
+    test('resolves all links in an array where the entities have the same link', async () => {
+      const document = {
+        foo: {
+          id: '1',
+          __typename: 'Foo',
+          comments: [
+            {
+              id: '1',
+              __typename: 'Comment',
+              message: 'first comment',
+              author: {
+                id: '1',
+                __typename: 'Author',
+                name: 'Foo',
+              },
+            },
+            {
+              id: '2',
+              __typename: 'Comment',
+              message: 'second comment',
+              author: {
+                id: '1',
+                __typename: 'Author',
+                name: 'Foo',
+              },
+            },
+          ],
+        },
+      };
+
+      const result = await client.processEntities(document);
+
+      expect(result).toMatchInlineSnapshot(`
+        {
+          "foo": {
+            "__typename": "Foo",
+            "comments": [
+              {
+                "__typename": "Comment",
+                "author": {
+                  "__typename": "Author",
+                  "id": "1",
+                  "name": "Foo",
+                },
+                "id": "1",
+                "message": "first comment",
+              },
+              {
+                "__typename": "Comment",
+                "author": {
+                  "__typename": "Author",
+                  "id": "1",
+                  "name": "Foo",
+                },
+                "id": "2",
+                "message": "second comment",
+              },
+            ],
+            "id": "1",
+          },
         }
       `);
     });

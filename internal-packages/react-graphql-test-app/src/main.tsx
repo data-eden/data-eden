@@ -19,7 +19,7 @@ interface Entity {
 
 export const client = createClient({
   url: 'http://localhost:4000/graphql',
-  id: (v: Entity) => `${v.__typename}:${v.id}`,
+  getCacheKey: (v: Entity) => `${v.__typename}:${v.id}`,
   fetch: buildFetch([]),
 });
 
