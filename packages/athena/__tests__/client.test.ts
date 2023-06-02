@@ -241,6 +241,26 @@ describe('client', () => {
                 name: 'Foo',
               },
             },
+            {
+              id: '3',
+              __typename: 'Comment',
+              message: 'third comment',
+              author: {
+                id: '1',
+                __typename: 'Author',
+                name: 'Foo',
+              },
+            },
+            {
+              id: '4',
+              __typename: 'Comment',
+              message: 'fourth comment',
+              author: {
+                id: '1',
+                __typename: 'Author',
+                name: 'Foo',
+              },
+            },
           ],
         },
       };
@@ -271,6 +291,26 @@ describe('client', () => {
                 },
                 "id": "2",
                 "message": "second comment",
+              },
+              {
+                "__typename": "Comment",
+                "author": {
+                  "__typename": "Author",
+                  "id": "1",
+                  "name": "Foo",
+                },
+                "id": "3",
+                "message": "third comment",
+              },
+              {
+                "__typename": "Comment",
+                "author": {
+                  "__typename": "Author",
+                  "id": "1",
+                  "name": "Foo",
+                },
+                "id": "4",
+                "message": "fourth comment",
               },
             ],
             "id": "1",

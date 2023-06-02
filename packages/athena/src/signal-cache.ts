@@ -312,12 +312,6 @@ export class SignalCache {
         }
       }
 
-      // If this node has already been visited, we know it has already been fully traversed
-      // and don't need to continue
-      if (visited.has(value)) {
-        return false;
-      }
-
       // If we've made it here, it means that we've fully traversed all the elements in this path
       // and can mark this node as having been visited so we don't traverse it again
       exploring.delete(value);
