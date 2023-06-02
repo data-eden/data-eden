@@ -1,6 +1,6 @@
 {
   "name": "@data-eden/react",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "",
   "homepage": "https://github.com/data-eden/data-eden#readme",
   "bugs": {
@@ -27,7 +27,7 @@
     "build": "tsc --build"
   },
   "dependencies": {
-    "@data-eden/athena": "^0.8.0",
+    "@data-eden/athena": "^0.8.1",
     "@signalis/core": "^0.1.0",
     "graphql": "^16.6.0"
   },

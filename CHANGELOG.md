@@ -9,6 +9,17 @@
 
 
 
+
+## v0.8.1 (2023-06-02)
+
+#### :bug: Bug Fix
+* `athena`
+  * [#142](https://github.com/data-eden/data-eden/pull/142) [athena] remove duplicate visited check in resolve ([@cafreeman](https://github.com/cafreeman))
+
+#### Committers: 1
+- Chris Freeman ([@cafreeman](https://github.com/cafreeman))
+
+
 ## v0.8.0 (2023-06-02)
 
 #### :rocket: Enhancement
