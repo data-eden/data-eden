@@ -8,6 +8,23 @@
 
 
 
+
+## v0.8.0 (2023-06-02)
+
+#### :rocket: Enhancement
+* `athena`, `ember`, `react`
+  * [#141](https://github.com/data-eden/data-eden/pull/141) [athena] Fix bug in cycle detection and a few minor tweaks ([@cafreeman](https://github.com/cafreeman))
+
+#### :bug: Bug Fix
+* `athena`, `ember`, `react`
+  * [#141](https://github.com/data-eden/data-eden/pull/141) [athena] Fix bug in cycle detection and a few minor tweaks ([@cafreeman](https://github.com/cafreeman))
+
+#### Committers: 3
+- Chris Freeman ([@cafreeman](https://github.com/cafreeman))
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+- ska3862 ([@shuba3862](https://github.com/shuba3862))
+
+
 ## v0.7.2 (2023-05-26)
 
 #### :rocket: Enhancement
