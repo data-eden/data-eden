@@ -28,7 +28,7 @@ export interface Car {
   model: string;
 }
 
-export const CarFields = gql<CarFieldsFragment>`
+export const carFieldsFragment = gql<CarFieldsFragment>`
   fragment CarFields on Car {
     __typename
     id
@@ -37,12 +37,12 @@ export const CarFields = gql<CarFieldsFragment>`
   }
 `;
 
-const PersonQuery = gql<PersonQuery, PersonQueryVariables>`
+const personQuery = gql<PersonQuery, PersonQueryVariables>`
   query Person($id: ID!) {
     person(id: $id) {
       ${PersonFieldsFragment}
       car {
-        ${CarFields}
+        ${carFieldsFragment}
       }
       pets {
         ${PetFieldsFragment}
@@ -71,7 +71,7 @@ const DisplayPets = ({ pets }: { pets: Array<Pet> }) => {
 };
 
 export default function DisplayPerson() {
-  const { loading, data } = useQuery(PersonQuery, {
+  const { loading, data } = useQuery(personQuery, {
     id: '1',
   });
 
