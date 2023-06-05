@@ -5,3 +5,4 @@
 /internal-packages/*/node_modules
 /internal-packages/website/build
 /internal-packages/website/.docusaurus
+.rollup.cache

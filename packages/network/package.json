@@ -13,19 +13,18 @@
   },
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "default": "./dist/index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/data-eden-network.js",
+      "require": "./dist/data-eden-network.umd.cjs"
     },
     "./NOTE01": "This should be removed once https://github.com/vitejs/vite/pull/7770 lands, and we can use `imports` properly",
     "./-private/settled-tracking-middleware": "./dist/settled-tracking-middleware.js"
   },
-  "main": "./dist/index.js",
+  "main": "./dist/data-eden-network.umd.cjs",
+  "module": "./dist/data-eden-network.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc --build",
+    "build": "vite build && tsc -p tsconfig.build.json",
     "test": "vitest run"
   },
   "dependencies": {},
