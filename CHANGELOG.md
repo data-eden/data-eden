@@ -10,6 +10,16 @@
 
 
 
+
+## v0.8.2 (2023-06-05)
+
+#### :rocket: Enhancement
+* `athena`, `cache`, `codegen`, `network`, `react`
+  * [#143](https://github.com/data-eden/data-eden/pull/143) build esm and cjs bundles ([@cafreeman](https://github.com/cafreeman))
+
+#### Committers: 1
+- Chris Freeman ([@cafreeman](https://github.com/cafreeman))
+
 ## v0.8.1 (2023-06-02)
 
 #### :bug: Bug Fix
