@@ -10,28 +10,23 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "default": "./dist/index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./babel-plugin": {
-      "import": {
-        "types": "./dist/babel-plugin.d.ts",
-        "default": "./dist/babel-plugin.js"
-      },
-      "default": "./dist/babel-plugin.js"
+      "types": "./dist/babel-plugin.d.ts",
+      "import": "./dist/babel-plugin.js",
+      "require": "./dist/babel-plugin.cjs"
     },
     "./gql": {
-      "import": {
-        "types": "./dist/gql.d.ts",
-        "default": "./dist/gql.js"
-      },
-      "default": "./dist/gql.js"
+      "types": "./dist/gql.d.ts",
+      "import": "./dist/gql.js",
+      "require": "./dist/gql.cjs"
     }
   },
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "typesVersions": {
     "*": {
@@ -49,7 +44,7 @@
     "bin"
   ],
   "scripts": {
-    "build": "tsc --build",
+    "build": "rollup -c rollup.config.js",
     "dev": "tsc --watch",
     "test": "vitest run"
   },
@@ -74,6 +69,10 @@
     "globby": "^13.1.4"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-typescript": "^11.1.1",
     "@types/babel__core": "^7.20.0",
     "@types/babel__generator": "^7.6.4",
     "@types/babel__helper-plugin-utils": "^7.10.0",
@@ -83,6 +82,7 @@
     "@types/node": "^18.16.1",
     "fixturify-project": "^5.2.0",
     "rimraf": "^5.0.0",
+    "rollup": "^3.23.1",
     "vitest": "^0.30.1"
   },
   "peerDependencies": {

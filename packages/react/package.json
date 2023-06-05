@@ -15,16 +15,16 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
+      "types": "./dist/index.d.ts",
+      "import": "./dist/data-eden-react.js",
+      "require": "./dist/data-eden-react.umd.cjs"
     }
   },
-  "main": "./dist/index.js",
+  "main": "./dist/data-eden-react.umd.cjs",
+  "module": "./dist/data-eden-react.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc --build"
+    "build": "vite build && tsc -p tsconfig.build.json"
   },
   "dependencies": {
     "@data-eden/athena": "^0.8.1",

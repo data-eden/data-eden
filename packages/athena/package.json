@@ -10,17 +10,16 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "default": "./dist/index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/data-eden-athena.js",
+      "require": "./dist/data-eden-athena.umd.cjs"
     }
   },
-  "main": "./dist/index.js",
+  "main": "./dist/data-eden-athena.umd.cjs",
+  "module": "./dist/data-eden-athena.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc --build",
+    "build": "vite build && tsc -p tsconfig.build.json",
     "dev": "tsc --watch",
     "test": "vitest run"
   },
