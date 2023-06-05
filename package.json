@@ -17,7 +17,7 @@
     "internal-packages/*"
   ],
   "scripts": {
-    "build": "npm run build -w @data-eden/cache -w @data-eden/network -w @data-eden/athena -w @data-eden/react -w @data-eden/codegen",
+    "build": "npm run build -w @data-eden/shared-test-utilities -w @data-eden/cache -w @data-eden/network -w @data-eden/athena -w @data-eden/react -w @data-eden/codegen",
     "build:watch": "npm run build --- --watch",
     "prepublish": "npm run build",
     "postinstall": "patch-package",
