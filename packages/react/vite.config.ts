@@ -8,5 +8,8 @@ export default defineConfig({
       name: '@data-eden/react',
       fileName: 'data-eden-react',
     },
+    rollupOptions: {
+      external: ['react'],
+    },
   },
 });
