@@ -6,3 +6,4 @@
 /internal-packages/react-graphql-test-app
 /internal-packages/graphql-test-server
 /packages/codegen/**/__graphql-project
+.rollup.cache
