@@ -3,11 +3,11 @@ import type {
   DefaultVariables,
   DocumentInput,
 } from '@data-eden/athena';
-import { isSignalProxy, traverse, unwrap } from '@data-eden/athena';
-import { Reaction } from '@signalis/core';
+import type { Reaction } from '@signalis/core';
 import { useCallback, useReducer, useRef, useState } from 'react';
 import { useAthenaClient } from './provider.js';
-import { safeIncrement } from './utils.js';
+import { setupDependencyTracking } from './setup-dependency-tracking.js';
+import { EMPTY, safeIncrement } from './utils.js';
 
 export function useMutation<
   Data extends object = object,
@@ -20,6 +20,24 @@ export function useMutation<
   const [, forceUpdate] = useReducer(safeIncrement, 0);
   const reactionRef = useRef<Reaction>();
 
+  const trackDeps = useCallback((data?: Data, error?: ClientError) => {
+    setupDependencyTracking(
+      () => {
+        if (data) {
+          setResult(data);
+        }
+
+        if (error) {
+          setError(error);
+        }
+
+        forceUpdate();
+      },
+      reactionRef,
+      data
+    );
+  }, EMPTY);
+
   const execute = useCallback(
     async (variables: Variables) => {
       setLoading(true);
@@ -30,52 +48,7 @@ export function useMutation<
           variables
         );
 
-        if (!reactionRef.current) {
-          const reaction = new Reaction(() => {
-            if (data) {
-              setResult(data);
-            }
-
-            if (error) {
-              setError(error);
-            }
-
-            forceUpdate();
-          });
-
-          reaction.trap(() => {
-            let foundRoot = false;
-            let visited = new WeakSet<object>();
-            traverse(data, (_key, value, _parent) => {
-              // DFS through the root object and if we find any other signals, we also subscribe
-              // to them so that deeply nested updates propagate through to React
-              if (isSignalProxy(value)) {
-                if (visited.has(value)) {
-                  return false;
-                }
-                visited.add(value);
-                if (!foundRoot) {
-                  foundRoot = true;
-                }
-                unwrap(value);
-                return true;
-              }
-
-              if (Array.isArray(value)) {
-                return true;
-              }
-
-              if (!foundRoot) {
-                return true;
-              }
-
-              return false;
-            });
-          });
-
-          reactionRef.current = reaction;
-          reaction.compute();
-        }
+        trackDeps(data, error);
 
         return data;
       } finally {

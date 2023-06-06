@@ -2,11 +2,8 @@ import type {
   ClientError,
   DefaultVariables,
   DocumentInput,
-  Entity,
-  WithSignal,
 } from '@data-eden/athena';
-import { isSignalProxy, traverse, unwrap } from '@data-eden/athena';
-import { Reaction } from '@signalis/core';
+import type { Reaction } from '@signalis/core';
 import {
   useCallback,
   useEffect,
@@ -16,6 +13,7 @@ import {
   useState,
 } from 'react';
 import { useAthenaClient } from './provider.js';
+import { setupDependencyTracking } from './setup-dependency-tracking.js';
 import { EMPTY, safeIncrement } from './utils.js';
 
 // Key and memoize the variables object so we determine when the variables themselves have
@@ -53,12 +51,18 @@ interface QueryResponse<
   refetch: (variables?: Variables) => Promise<void>;
 }
 
+interface UseQueryOptions<Data extends object = object> {
+  initialData?: Data;
+  lazy?: boolean;
+}
+
 export function useQuery<
   Data extends object = object,
   Variables extends DefaultVariables = DefaultVariables
 >(
   query: DocumentInput<Data, Variables>,
-  variables?: Variables
+  variables?: Variables,
+  options: UseQueryOptions<Data> = {}
 ): QueryResponse<Data> {
   const client = useAthenaClient();
   const [loading, setLoading] = useState(false);
@@ -67,6 +71,39 @@ export function useQuery<
   const [, forceUpdate] = useReducer(safeIncrement, 0);
   const reactionRef = useRef<Reaction>();
   const vars = useVariables(variables);
+  const { initialData } = options;
+
+  const trackDeps = useCallback((data?: Data, error?: ClientError) => {
+    setupDependencyTracking(
+      () => {
+        if (data) {
+          setResult(data);
+        }
+
+        if (error) {
+          setError(error);
+        }
+
+        forceUpdate();
+      },
+      reactionRef,
+      data
+    );
+  }, EMPTY);
+
+  if (initialData) {
+    useEffect(() => {
+      void (async function () {
+        const data = await client.processEntities(initialData);
+        trackDeps(data);
+      })();
+
+      return () => {
+        reactionRef.current?.dispose();
+        reactionRef.current = undefined;
+      };
+    }, EMPTY);
+  }
 
   const refetch = useCallback(async function <
     Variables extends DefaultVariables = DefaultVariables
@@ -81,69 +118,23 @@ export function useQuery<
         variables || vars
       );
 
-      if (!reactionRef.current) {
-        const reaction = new Reaction(() => {
-          if (data) {
-            setResult(data);
-          }
-
-          if (error) {
-            setError(error);
-          }
-
-          forceUpdate();
-        });
-
-        reaction.trap(() => {
-          let foundRoot = false;
-          let visited = new WeakSet<WithSignal<Entity>>();
-
-          traverse(data, (_key, value, _parent) => {
-            // In case we have a cycle, we don't want to blow everything up recursing infinitely
-            if (visited.has(value)) {
-              return false;
-            }
-
-            // DFS through the root object and if we find any other signals, we also subscribe
-            // to them so that deeply nested updates propagate through to React
-            if (isSignalProxy(value)) {
-              if (!foundRoot) {
-                foundRoot = true;
-              }
-              visited.add(value);
-              unwrap(value);
-              return true;
-            }
-
-            if (Array.isArray(value)) {
-              return true;
-            }
-
-            if (!foundRoot) {
-              return true;
-            }
-
-            return false;
-          });
-        });
-
-        reactionRef.current = reaction;
-        reaction.compute();
-      }
+      trackDeps(data, error);
     } finally {
       setLoading(false);
     }
   },
   EMPTY);
 
-  useEffect(() => {
-    void refetch(vars);
+  if (!options.lazy) {
+    useEffect(() => {
+      void refetch(vars);
 
-    return () => {
-      reactionRef.current?.dispose();
-      reactionRef.current = undefined;
-    };
-  }, [query, vars]);
+      return () => {
+        reactionRef.current?.dispose();
+        reactionRef.current = undefined;
+      };
+    }, [query, vars]);
+  }
 
   return { data: result, loading, error, refetch };
 }
