@@ -1,6 +1,6 @@
 {
   "name": "@data-eden/athena",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/data-eden/data-eden.git",
@@ -24,7 +24,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@data-eden/cache": "^0.8.2",
+    "@data-eden/cache": "^0.9.0",
     "lodash-es": "^4.17.21"
   },
   "devDependencies": {
