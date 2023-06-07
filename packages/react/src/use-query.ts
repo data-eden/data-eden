@@ -66,7 +66,7 @@ export function useQuery<
 ): QueryResponse<Data> {
   const client = useAthenaClient();
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<Data>();
+  const [result, setResult] = useState<Data | undefined>(options.initialData);
   const [error, setError] = useState<ClientError>();
   const [, forceUpdate] = useReducer(safeIncrement, 0);
   const reactionRef = useRef<Reaction>();
