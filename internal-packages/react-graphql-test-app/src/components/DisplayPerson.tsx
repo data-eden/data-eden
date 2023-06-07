@@ -9,6 +9,7 @@ import { PersonFieldsFragment } from './DisplayOwner.js';
 import DisplayCar from './DisplayCar';
 import DisplayPet from './DisplayPet';
 import { PetFieldsFragment } from '@aliased/DisplayPets';
+import DisplayPersonData from '../default-data/display-person-data.js';
 
 export interface Person {
   id: string;
@@ -71,9 +72,13 @@ const DisplayPets = ({ pets }: { pets: Array<Pet> }) => {
 };
 
 export default function DisplayPerson() {
-  const { loading, data } = useQuery(personQuery, {
-    id: '1',
-  });
+  const { loading, data } = useQuery(
+    personQuery,
+    {
+      id: '1',
+    },
+    { lazy: true, initialData: DisplayPersonData }
+  );
 
   const person = data?.person;
 
