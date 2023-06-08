@@ -17,6 +17,9 @@
       "path": "./packages/codegen"
     },
     {
+      "path": "./packages/mocker"
+    },
+    {
       "path": "./packages/network/__tests__/"
     },
     {
