@@ -1,3 +1,14 @@
+enum Breed {
+  SHEPARD
+  BULLDOG
+  POODLE
+  GERMAN_SHEPHERD
+  LABRADOR_RETRIEVER
+  GOLDEN_RETRIEVER
+}
+
+union Owner = Person | Company
+
 type Person {
   id: ID!
   name: String!
@@ -13,7 +24,12 @@ type Car {
   id: ID!
   make: String!
   model: String!
-  owner: Person!
+  owner: Owner!
+}
+
+type Company {
+  id: ID!
+  name: String!
 }
 
 input CarInput {
@@ -25,6 +41,7 @@ type Pet {
   id: ID!
   name: String!
   owner: Person!
+  breed: Breed!
 }
 
 input UpdatePetInput {

@@ -1,0 +1,42 @@
+{
+  "name": "@data-eden/mocker",
+  "version": "0.9.0",
+  "description": "",
+  "homepage": "https://github.com/data-eden/data-eden#readme",
+  "bugs": {
+    "url": "https://github.com/data-eden/data-eden/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/data-eden/data-eden.git"
+  },
+  "license": "ISC",
+  "author": "Gabriel Csapo <gabecsapo@gmail.com>",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/data-eden-mocker.js",
+      "require": "./dist/data-eden-mocker.umd.cjs"
+    }
+  },
+  "main": "./dist/data-eden-mocker.umd.cjs",
+  "module": "./dist/data-eden-mocker.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@faker-js/faker": "8.0.2",
+    "graphql": "^16.6.0"
+  },
+  "devDependencies": {
+    "vitest": "^0.30.1"
+  },
+  "volta": {
+    "extends": "../../package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
