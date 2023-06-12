@@ -1,10 +1,10 @@
 import type {
   GraphQLSchema,
-  DefinitionNode,
   GraphQLNamedType,
   SelectionNode,
   GraphQLType,
   GraphQLEnumValue,
+  DocumentNode,
 } from 'graphql';
 import {
   buildSchema,
@@ -68,6 +68,14 @@ function assertHasSelectionSet(
   }
 }
 
+type QueryOrMutationWrapped = {
+  __meta__: {
+    $DEBUG: {
+      ast: DocumentNode;
+    };
+  };
+};
+
 export class Mocker {
   private faker: Faker;
   private fieldGenerators: FieldGenerators;
@@ -96,7 +104,15 @@ export class Mocker {
     this.faker.seed(2345678);
   }
 
-  async mock(definition: DefinitionNode, mockData: JSONObject) {
+  async mock(
+    documentNode: DocumentNode | QueryOrMutationWrapped,
+    mockData: JSONObject
+  ) {
+    const definition =
+      '__meta__' in documentNode
+        ? documentNode.__meta__.$DEBUG.ast.definitions[0]
+        : documentNode.definitions[0];
+
     let typeName: string;
     let selections: readonly SelectionNode[];
 
@@ -160,118 +176,124 @@ export class Mocker {
       } else {
         const fieldName = field.name.value;
 
-        if (
-          !type ||
-          !('getFields' in type) ||
-          !type.getFields ||
-          !type.getFields()[fieldName]
-        ) {
-          throw new Error(
-            `Field ${fieldName} does not exist in the schema for type ${type?.name}`
-          );
-        }
-
-        let fieldType = type.getFields()[fieldName].type;
-
-        // If it's a NonNull type, unwrap it
-        if (fieldType instanceof GraphQLNonNull) {
-          fieldType = fieldType.ofType;
-        }
-
-        // Handle list types (arrays)
-        if (fieldType instanceof GraphQLList) {
-          let elementType: GraphQLType = fieldType.ofType;
-
-          // If it's a NonNull type, unwrap it again to get the actual element type
-          if (elementType instanceof GraphQLNonNull) {
-            elementType = elementType.ofType;
-          }
-
-          // If no mock data is provided for the list, create an empty array
-          if (!mockData || !mockData[fieldName]) {
-            result[fieldName] = [];
-          } else {
-            // Check if the element is an object type, and if so, recursively generate the mock data
-            if (elementType instanceof GraphQLObjectType) {
-              result[fieldName] = (mockData[fieldName] as JSONArray).map(
-                (item) => {
-                  assertHasSelectionSet(field);
-
-                  return this.generateMockDataForFields(
-                    field.selectionSet.selections,
-                    elementType as GraphQLObjectType,
-                    item as JSONObject
-                  );
-                }
-              );
-            } else {
-              // Handle scalar type arrays (e.g., [Int], [String])
-              result[fieldName] = (mockData[fieldName] as JSONArray).map(
-                (item) =>
-                  this.generateMockDataForType(
-                    type.name,
-                    fieldName,
-                    elementType,
-                    item
-                  )
-              );
-            }
-          }
-        } else if (fieldType instanceof GraphQLObjectType) {
-          // Recursively handle object types
-          assertHasSelectionSet(field);
-
-          result[fieldName] = this.generateMockDataForFields(
-            field.selectionSet.selections,
-            fieldType,
-            mockData
-          );
-        } else if (fieldType instanceof GraphQLEnumType) {
-          // Handle enum types
-          const enumValues = fieldType.getValues();
-          result[fieldName] = this.generateMockDataForEnum(
-            fieldType.name,
-            enumValues,
-            mockData && mockData[fieldName]
-          );
-        } else if (fieldType instanceof GraphQLUnionType) {
-          // Handle union types
-          const possibleTypes = fieldType.getTypes();
-
-          // Check if mockData is provided for the union field
-          if (mockData && mockData[fieldName]) {
-            const mockDataUnionType = (mockData[fieldName] as JSONObject)
-              .__typename;
-            const matchingType = possibleTypes.find(
-              (type) => type.name === mockDataUnionType
-            );
-            if (matchingType) {
-              assertHasSelectionSet(field);
-              result[fieldName] = this.generateMockDataForFields(
-                field.selectionSet.selections,
-                matchingType,
-                mockData[fieldName] as JSONObject
-              );
-              return;
-            }
-          }
-
-          const randomIndex = Math.floor(Math.random() * possibleTypes.length);
-          const randomType = possibleTypes[randomIndex];
-          assertHasSelectionSet(field);
-          result[fieldName] = this.generateMockDataForFields(
-            field.selectionSet.selections,
-            randomType,
-            mockData
-          );
+        if (fieldName === '__typename') {
+          result[fieldName] = type.name;
         } else {
-          // Generate mock data for scalar fields
-          result[fieldName] = this.generateMockDataForType(
-            type.name,
-            fieldName,
-            fieldType,
-            mockData && mockData[fieldName]
-          );
+          if (
+            !type ||
+            !('getFields' in type) ||
+            !type.getFields ||
+            !type.getFields()[fieldName]
+          ) {
+            throw new Error(
+              `Field ${fieldName} does not exist in the schema for type ${type?.name}`
+            );
+          }
+
+          let fieldType = type.getFields()[fieldName].type;
+
+          // If it's a NonNull type, unwrap it
+          if (fieldType instanceof GraphQLNonNull) {
+            fieldType = fieldType.ofType;
+          }
+
+          // Handle list types (arrays)
+          if (fieldType instanceof GraphQLList) {
+            let elementType: GraphQLType = fieldType.ofType;
+
+            // If it's a NonNull type, unwrap it again to get the actual element type
+            if (elementType instanceof GraphQLNonNull) {
+              elementType = elementType.ofType;
+            }
+
+            // If no mock data is provided for the list, create an empty array
+            if (!mockData || !mockData[fieldName]) {
+              result[fieldName] = [];
+            } else {
+              // Check if the element is an object type, and if so, recursively generate the mock data
+              if (elementType instanceof GraphQLObjectType) {
+                result[fieldName] = (mockData[fieldName] as JSONArray).map(
+                  (item) => {
+                    assertHasSelectionSet(field);
+
+                    return this.generateMockDataForFields(
+                      field.selectionSet.selections,
+                      elementType as GraphQLObjectType,
+                      item as JSONObject
+                    );
+                  }
+                );
+              } else {
+                // Handle scalar type arrays (e.g., [Int], [String])
+                result[fieldName] = (mockData[fieldName] as JSONArray).map(
+                  (item) =>
+                    this.generateMockDataForType(
+                      type.name,
+                      fieldName,
+                      elementType,
+                      item
+                    )
+                );
+              }
+            }
+          } else if (fieldType instanceof GraphQLObjectType) {
+            // Recursively handle object types
+            assertHasSelectionSet(field);
+
+            result[fieldName] = this.generateMockDataForFields(
+              field.selectionSet.selections,
+              fieldType,
+              mockData
+            );
+          } else if (fieldType instanceof GraphQLEnumType) {
+            // Handle enum types
+            const enumValues = fieldType.getValues();
+            result[fieldName] = this.generateMockDataForEnum(
+              fieldType.name,
+              enumValues,
+              mockData && mockData[fieldName]
+            );
+          } else if (fieldType instanceof GraphQLUnionType) {
+            // Handle union types
+            const possibleTypes = fieldType.getTypes();
+
+            // Check if mockData is provided for the union field
+            if (mockData && mockData[fieldName]) {
+              const mockDataUnionType = (mockData[fieldName] as JSONObject)
+                .__typename;
+              const matchingType = possibleTypes.find(
+                (type) => type.name === mockDataUnionType
+              );
+              if (matchingType) {
+                assertHasSelectionSet(field);
+                result[fieldName] = this.generateMockDataForFields(
+                  field.selectionSet.selections,
+                  matchingType,
+                  mockData[fieldName] as JSONObject
+                );
+                return;
+              }
+            }
+
+            const randomIndex = Math.floor(
+              Math.random() * possibleTypes.length
+            );
+            const randomType = possibleTypes[randomIndex];
+            assertHasSelectionSet(field);
+            result[fieldName] = this.generateMockDataForFields(
+              field.selectionSet.selections,
+              randomType,
+              mockData
+            );
+          } else {
+            // Generate mock data for scalar fields
+            result[fieldName] = this.generateMockDataForType(
+              type.name,
+              fieldName,
+              fieldType,
+              mockData && mockData[fieldName]
+            );
+          }
         }
       }
     });

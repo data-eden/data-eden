@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { describe, test, expect } from 'vitest';
-import { parse } from 'graphql';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
 import { Mocker } from '@data-eden/mocker';
+
+import { gql } from '@data-eden/codegen/gql';
 
 const schema = readFileSync(
   resolve(
@@ -20,33 +20,26 @@ const schema = readFileSync(
 describe('mocker', () => {
   describe('fragments', () => {
     test('fragment with default data', async () => {
-      const parsedFragment = parse(`
-        fragment car on Car {
-            id
-            make
+      const carOneFragment = gql`
+        fragment carOne on Car {
+          id
+          make
         }
-    `);
-      const fragmentDef = parsedFragment.definitions[0];
+      `;
 
       const mocker = new Mocker({ schema });
-      const result = await mocker.mock(fragmentDef, { id: 1234 });
+      const result = await mocker.mock(carOneFragment, { id: 1234 });
 
-      expect(result).toMatchInlineSnapshot(`
-      {
-        "id": 1234,
-        "make": "whose nor",
-      }
-    `);
+      expect(result).toMatchSnapshot();
     });
 
     test('fragment with default data and fieldGenerator', async () => {
-      const parsedFragment = parse(`
-        fragment car on Car {
-            id
-            make
+      const carTwoFragment = gql`
+        fragment carTwo on Car {
+          id
+          make
         }
-    `);
-      const fragmentDef = parsedFragment.definitions[0];
+      `;
 
       const mocker = new Mocker({
         schema,
@@ -58,29 +51,23 @@ describe('mocker', () => {
           },
         },
       });
-      const result = await mocker.mock(fragmentDef, { id: 1234 });
+      const result = await mocker.mock(carTwoFragment, { id: 1234 });
 
-      expect(result).toMatchInlineSnapshot(`
-      {
-        "id": 1234,
-        "make": "Acura",
-      }
-    `);
+      expect(result).toMatchSnapshot();
     });
 
     test('fragment with enum values', async () => {
-      const parsedFragment = parse(`
-        fragment pet on Pet {
-            id
-            breed
+      const petOneFragment = gql`
+        fragment petOne on Pet {
+          id
+          breed
         }
-    `);
-      const fragmentDef = parsedFragment.definitions[0];
+      `;
 
       const mocker = new Mocker({
         schema,
       });
-      const result = await mocker.mock(fragmentDef, { id: 1234 });
+      const result = await mocker.mock(petOneFragment, { id: 1234 });
 
       expect(Object.keys(result)).toMatchInlineSnapshot(`
         [
@@ -89,114 +76,95 @@ describe('mocker', () => {
         ]
       `);
       expect(
-        [
-          'SHEPARD',
-          'BULLDOG',
-          'POODLE',
-          'GERMAN_SHEPHERD',
-          'LABRADOR_RETRIEVER',
-          'GOLDEN_RETRIEVER',
-        ].indexOf(result.breed) > -1
+        result.breed &&
+          typeof result.breed === 'string' &&
+          [
+            'SHEPARD',
+            'BULLDOG',
+            'POODLE',
+            'GERMAN_SHEPHERD',
+            'LABRADOR_RETRIEVER',
+            'GOLDEN_RETRIEVER',
+          ].indexOf(result.breed) > -1
       ).toBeTruthy();
     });
 
     test('fragment with union values', async () => {
-      const parsedFragment = parse(`
-        fragment car on Car {
-            id
-            make
-            owner {
-                ... on Person {
-                    id
-                    name
-                }
-                ... on Company {
-                    id
-                    name
-                }
+      const carThreeFragment = gql`
+        fragment carThree on Car {
+          id
+          make
+          owner {
+            ... on Person {
+              id
+              name
             }
+            ... on Company {
+              id
+              name
+            }
+          }
         }
-    `);
-      const fragmentDef = parsedFragment.definitions[0];
+      `;
 
       const mocker = new Mocker({
         schema,
       });
-      const result = await mocker.mock(fragmentDef, { id: 1234 });
+      const result = await mocker.mock(carThreeFragment, { id: 1234 });
 
-      expect(result).toMatchInlineSnapshot(`
-        {
-          "id": 1234,
-          "make": "whose nor",
-          "owner": {
-            "id": 1234,
-            "name": "tie",
-          },
-        }
-      `);
+      expect(result).toMatchSnapshot();
     });
 
     test('fragment with enum values (with provided enum value)', async () => {
-      const parsedFragment = parse(`
-        fragment pet on Pet {
-            id
-            breed
+      const petTwoFragment = gql`
+        fragment petTwo on Pet {
+          id
+          breed
         }
-    `);
-      const fragmentDef = parsedFragment.definitions[0];
+      `;
 
       const mocker = new Mocker({
         schema,
       });
-      const result = await mocker.mock(
-        fragmentDef,
-        { id: 1234, breed: 'SHEPARD' },
-        schema
-      );
+      const result = await mocker.mock(petTwoFragment, {
+        id: 1234,
+        breed: 'SHEPARD',
+      });
 
-      expect(result).toMatchInlineSnapshot(`
-        {
-          "breed": "SHEPARD",
-          "id": 1234,
-        }
-      `);
+      expect(result).toMatchSnapshot();
     });
 
     test("fragment with enum values (with provided enum value that doesn't match, this should throw)", async () => {
-      const parsedFragment = parse(`
-        fragment pet on Pet {
-            id
-            breed
+      const petThreeFragment = gql`
+        fragment petThree on Pet {
+          id
+          breed
         }
-    `);
-      const fragmentDef = parsedFragment.definitions[0];
+      `;
 
       const mocker = new Mocker({
         schema,
       });
 
       await expect(() =>
-        mocker.mock(fragmentDef, { id: 1234, breed: 'SHARK' })
-      ).rejects.toThrowErrorMatchingInlineSnapshot(
-        '"Trying to mock Breed with enum value SHARK does not match known enum values \\"[SHEPARD,BULLDOG,POODLE,GERMAN_SHEPHERD,LABRADOR_RETRIEVER,GOLDEN_RETRIEVER]\\""'
-      );
+        mocker.mock(petThreeFragment, { id: 1234, breed: 'SHARK' })
+      ).rejects.toMatchSnapshot();
     });
 
     test('fragment with default data and fieldGenerator with array of values', async () => {
-      const parsedFragment = parse(`
-        fragment person on Person {
+      const personOneFragment = gql`
+        fragment personOne on Person {
+          id
+          name
+          car {
+            id
+          }
+          pets {
             id
             name
-            car {
-                id
-            }
-            pets {
-                id
-                name
-            }
+          }
         }
-    `);
-      const fragmentDef = parsedFragment.definitions[0];
+      `;
 
       const mocker = new Mocker({
         schema,
@@ -206,47 +174,26 @@ describe('mocker', () => {
           },
         },
       });
-      const result = await mocker.mock(
-        fragmentDef,
-        { id: 1234, pets: [{}, { id: 99999, name: 'Bob' }] },
-        schema
-      );
+      const result = await mocker.mock(personOneFragment, {
+        id: 1234,
+        pets: [{}, { id: 99999, name: 'Bob' }],
+      });
 
-      expect(result).toMatchInlineSnapshot(`
-        {
-          "car": {
-            "id": 1234,
-          },
-          "id": 1234,
-          "name": "whose nor",
-          "pets": [
-            {
-              "id": 1234557,
-              "name": "imperfect offensively thwack",
-            },
-            {
-              "id": 99999,
-              "name": "Bob",
-            },
-          ],
-        }
-      `);
+      expect(result).toMatchSnapshot();
     });
   });
 
   describe('queries', () => {
     test('should work with basic query (no overrides)', async () => {
-      const parsedQuery = parse(`
-        query {
-            car(id: 124) {
-                id
-                make
-                model
-            }
+      const carOneQuery = gql`
+        query carOne {
+          car(id: 124) {
+            id
+            make
+            model
+          }
         }
-    `);
-      const queryDef = parsedQuery.definitions[0];
-
+      `;
       const mocker = new Mocker({
         schema,
         typeGenerators: {
@@ -262,35 +209,23 @@ describe('mocker', () => {
           },
         },
       });
-      // todo use the default value not the type generator
-      const result = await mocker.mock(queryDef, { id: 1234 });
 
-      expect(result).toMatchInlineSnapshot(`
-        {
-          "car": {
-            "id": 1234,
-            "make": "Italian Car",
-            "model": "whose nor",
-          },
-        }
-      `);
+      const result = await mocker.mock(carOneQuery, { id: 1234 });
+
+      expect(result).toMatchSnapshot();
     });
   });
 
   describe('mutations', () => {
     test('should work with basic mutation (no overrides)', async () => {
-      const parsedQuery = parse(`
-        mutation {
-            createPet(input: {
-                name: "Bob"
-                personId: 1234
-            }) {
-                id
-                name
-            }
+      const createOnePetMutation = gql`
+        mutation createOnePet {
+          createPet(input: { name: "Bob", personId: 1234 }) {
+            id
+            name
+          }
         }
-    `);
-      const queryDef = parsedQuery.definitions[0];
+      `;
 
       const mocker = new Mocker({
         schema,
@@ -300,17 +235,10 @@ describe('mocker', () => {
           },
         },
       });
-      // todo use the default value not the type generator
-      const result = await mocker.mock(queryDef, { id: 1234 });
 
-      expect(result).toMatchInlineSnapshot(`
-        {
-          "createPet": {
-            "id": 1234,
-            "name": "whose nor",
-          },
-        }
-      `);
+      const result = await mocker.mock(createOnePetMutation, { id: 1234 });
+
+      expect(result).toMatchSnapshot();
     });
   });
 });

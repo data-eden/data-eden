@@ -44,7 +44,8 @@ export const FindUserDocument = {"__meta__":{"queryId":"d17490e4b9ac1f7c227df3da
 
     expect(result && result.code).toMatchInlineSnapshot(`
       "import { FindUserDocument } from \\"./__generated/User.graphql.ts\\";
-      const userFieldsFragment = Symbol.for(\\"build-time-graphql-fragment\\");
+      import { UserFieldsFragmentDoc } from \\"./__generated/User.graphql.ts\\";
+      const userFieldsFragment = UserFieldsFragmentDoc;
       const findUserQuery = FindUserDocument;"
     `);
   });
