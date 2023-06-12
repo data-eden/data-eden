@@ -123,7 +123,10 @@ export async function athenaCodegen({
         queryId,
       };
     } else {
-      return { queryId, $DEBUG: { contents: materializedDocumentString } };
+      return {
+        queryId,
+        $DEBUG: { contents: materializedDocumentString, ast: documentNode },
+      };
     }
   }
 
@@ -186,17 +189,23 @@ export async function athenaCodegen({
           },
         },
         {
-          typedDocumentNode: {
-            // Tell typedDocumentNode that all fragments are external to
-            // prevent it from generating ASTs for fragments
-            //
-            // We'll still get the fragment types by way of
-            // typescriptOperations
-            externalFragments: exportedGqlTagFragments,
-            addTypenameToSelectionSets: true,
-            unstable_omitDefinitions: true,
-            unstable_onExecutableDocumentNode: onExecutableDocumentNode,
-          },
+          typedDocumentNode: production
+            ? {
+                // Tell typedDocumentNode that all fragments are external to
+                // prevent it from generating ASTs for fragments
+                //
+                // We'll still get the fragment types by way of
+                // typescriptOperations
+                externalFragments: exportedGqlTagFragments,
+                addTypenameToSelectionSets: true,
+                unstable_omitDefinitions: true,
+                unstable_onExecutableDocumentNode: onExecutableDocumentNode,
+              }
+            : {
+                addTypenameToSelectionSets: true,
+                unstable_omitDefinitions: true,
+                unstable_onExecutableDocumentNode: onExecutableDocumentNode,
+              },
         },
       ],
     })),
@@ -229,10 +238,15 @@ export async function athenaCodegen({
     })
   );
 
-  outputFiles.push(...documentTypes, {
-    location: path.resolve(baseDir, 'query-identifiers.json'),
-    contents: JSON.stringify(persistedQueries, null, 2),
-  });
+  outputFiles.push(...documentTypes);
+
+  if (production) {
+    // we only want to generate query-identifiers for production mode
+    outputFiles.push({
+      location: path.resolve(baseDir, 'query-identifiers.json'),
+      contents: JSON.stringify(persistedQueries, null, 2),
+    });
+  }
 
   await Promise.all(
     outputFiles.map(async (file) => {

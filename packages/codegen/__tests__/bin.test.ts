@@ -41,6 +41,8 @@ describe('bin', () => {
           project.baseDir,
           '--base-dir',
           project.baseDir,
+          '--production',
+          true,
         ]),
       },
     });
@@ -62,7 +64,7 @@ describe('bin', () => {
           )> };
 
 
-        export const ChatsDocument = {\\"__meta__\\":{\\"queryId\\":\\"a0cd151991e13b081cc250bf42218547f2c8e340282b90c1f7fe36c332de3416\\",\\"$DEBUG\\":{\\"contents\\":\\"fragment ChatFields on Chat { id messages { content id user { id username } } users { ...UserFields } } fragment UserFields on User { id role username } query chats($userId: ID!) { myChats { __typename ...ChatFields } }\\"}}} as unknown as DocumentNode<ChatsQuery, ChatsQueryVariables>;"
+        export const ChatsDocument = {\\"__meta__\\":{\\"queryId\\":\\"a0cd151991e13b081cc250bf42218547f2c8e340282b90c1f7fe36c332de3416\\"}} as unknown as DocumentNode<ChatsQuery, ChatsQueryVariables>;"
       `);
 
     expect(await read('query-identifiers.json')).toMatchInlineSnapshot(`

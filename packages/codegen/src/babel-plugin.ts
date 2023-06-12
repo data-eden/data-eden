@@ -2,9 +2,11 @@ import { template } from '@babel/core';
 import { declare } from '@babel/helper-plugin-utils';
 import type { NodePath } from '@babel/traverse';
 import type { Program } from '@babel/types';
-import * as nodePath from 'node:path';
 import * as t from '@babel/types';
+import * as nodePath from 'node:path';
+
 import { changeExtension } from './utils.js';
+import type { CodegenConfig } from './types.js';
 
 /**
  *
@@ -37,7 +39,7 @@ function createImportName(name: string) {
   importName = importName.charAt(0).toUpperCase() + importName.slice(1);
 
   if (importName.endsWith('Fragment')) {
-    return `${importName}Fragment`;
+    return `${importName}Doc`;
   } else if (importName.endsWith('Query')) {
     return importName.replace('Query', 'Document');
   } else {
@@ -45,7 +47,7 @@ function createImportName(name: string) {
   }
 }
 
-const babelPlugin = declare((api) => {
+const babelPlugin = declare((api, options: CodegenConfig) => {
   let program: NodePath<Program>;
   let gqlImportIdentifier: t.Identifier | null = null;
   let currentFileName: string | null | undefined = null;
@@ -104,7 +106,11 @@ const babelPlugin = declare((api) => {
 
           const operationOrFragmentName = createImportName(parentNode.id.name);
 
-          if (operationOrFragmentName.indexOf('Fragment') > -1) {
+          // for production we don't want to ship the fragment, we do want to ship the fragment to enable fragment mocking
+          if (
+            operationOrFragmentName.indexOf('Fragment') > -1 &&
+            options.production
+          ) {
             // Replace the fragment with a Symbol
             const replacementSymbol = t.callExpression(
               t.identifier('Symbol.for'),

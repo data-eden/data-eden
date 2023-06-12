@@ -5,4 +5,5 @@
 /internal-packages/*/node_modules
 /internal-packages/website/build
 /internal-packages/website/.docusaurus
+/internal-packages/react-graphql-test-app/src/graphql/schema.graphql.ts
 .rollup.cache
