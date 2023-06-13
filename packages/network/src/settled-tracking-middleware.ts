@@ -30,7 +30,8 @@ const TrackingInfoPerFetchSymbol = Symbol.for(
   '_DATA_EDEN_TRACKING_INFO_PER_FETCH'
 );
 
-const TrackingInfoPerFetch: WeakMap<Fetch, FetchDebugInfo[]> = (() => {
+type TrackingInfoPerFetchMap = WeakMap<Fetch, FetchDebugInfo[]>;
+const TrackingInfoPerFetch: TrackingInfoPerFetchMap = (() => {
   // in some bundling contexts (e.g. webpack as used by ember-auto-import) you might
   // end up with multiple copies of this module in the final bundle. In that case
   // we need to ensure that we have a single global tracking map. We do this by
@@ -40,15 +41,17 @@ const TrackingInfoPerFetch: WeakMap<Fetch, FetchDebugInfo[]> = (() => {
   // this ensures that at any given time (regardless of how many copies of this module exist)
   // we can always get the same map (and therefore our API's work properly).
 
-  // TODO: figure out how to make this work without the casting `globalThis`
-  let _global = globalThis as Record<string | symbol, unknown>;
+  let _global = globalThis as typeof globalThis & {
+    [TrackingInfoPerFetchSymbol]: TrackingInfoPerFetchMap;
+  };
+
   let trackingInfoPerFetch = _global[TrackingInfoPerFetchSymbol];
 
   if (!trackingInfoPerFetch) {
     trackingInfoPerFetch = _global[TrackingInfoPerFetchSymbol] = new WeakMap();
   }
 
-  return trackingInfoPerFetch as WeakMap<Fetch, FetchDebugInfo[]>;
+  return trackingInfoPerFetch;
 })();
 
 const RequestsCompletedPromisesByToken: WeakMap<Fetch, InternalDeferred> =
