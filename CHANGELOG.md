@@ -11,6 +11,21 @@
 
 
 
+
+## v0.10.0 (2023-06-13)
+
+#### :rocket: Enhancement
+* `network`
+  * [#152](https://github.com/data-eden/data-eden/pull/152) fix: clean up globaThis typing ([@hjdivad](https://github.com/hjdivad))
+* `codegen`, `mocker`
+  * [#149](https://github.com/data-eden/data-eden/pull/149) feat: utilize rollup plugin to build and test mocker ([@gabrielcsapo](https://github.com/gabrielcsapo))
+* `mocker`
+  * [#147](https://github.com/data-eden/data-eden/pull/147) feat: create mocker with basic support for fragments, queries and mutations ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 2
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
 ## v0.9.0 (2023-06-07)
 
 
