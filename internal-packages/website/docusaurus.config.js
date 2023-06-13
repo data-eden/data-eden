@@ -29,7 +29,13 @@ const config = {
       'docusaurus-plugin-typedoc-api',
       {
         projectRoot: path.join(__dirname, '..', '..'),
-        packages: ['packages/network', 'packages/cache', 'packages/athena'],
+        packages: [
+          'packages/network',
+          'packages/cache',
+          'packages/athena',
+          'packages/mocker',
+          'packages/codegen',
+        ],
       },
     ],
   ],
