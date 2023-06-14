@@ -26,7 +26,7 @@
   "scripts": {
     "build": "vite build && tsc -p tsconfig.build.json",
     "dev": "tsc --watch",
-    "test": "vitest run --reporter=verbose"
+    "test": "vitest run"
   },
   "dependencies": {
     "@faker-js/faker": "8.0.2",
@@ -35,7 +35,6 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.22.5",
     "@data-eden/codegen": "^0.10.0",
-    "@rollup/plugin-babel": "^6.0.3",
     "vitest": "^0.30.1"
   },
   "volta": {
