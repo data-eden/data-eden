@@ -16,7 +16,9 @@ const CarQuery = gql<CarQuery, CarQueryVariables>`
       make
       model
       owner {
-        id
+        ... on Person {
+          id
+        }
       }
     }
   }
