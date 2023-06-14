@@ -17,6 +17,84 @@ export const UpdatePersonDocument = {
     $DEBUG: {
       contents:
         'mutation UpdatePerson($input: PersonInput!, $personId: ID!) { updatePerson(personId: $personId, input: $input) { __typename id name } }',
+      ast: {
+        kind: 'Document',
+        definitions: [
+          {
+            kind: 'OperationDefinition',
+            operation: 'mutation',
+            name: { kind: 'Name', value: 'UpdatePerson' },
+            variableDefinitions: [
+              {
+                kind: 'VariableDefinition',
+                variable: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'personId' },
+                },
+                type: {
+                  kind: 'NonNullType',
+                  type: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'ID' },
+                  },
+                },
+              },
+              {
+                kind: 'VariableDefinition',
+                variable: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'input' },
+                },
+                type: {
+                  kind: 'NonNullType',
+                  type: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'PersonInput' },
+                  },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'updatePerson' },
+                  arguments: [
+                    {
+                      kind: 'Argument',
+                      name: { kind: 'Name', value: 'personId' },
+                      value: {
+                        kind: 'Variable',
+                        name: { kind: 'Name', value: 'personId' },
+                      },
+                    },
+                    {
+                      kind: 'Argument',
+                      name: { kind: 'Name', value: 'input' },
+                      value: {
+                        kind: 'Variable',
+                        name: { kind: 'Name', value: 'input' },
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: '__typename' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
     },
   },
 } as unknown as DocumentNode<

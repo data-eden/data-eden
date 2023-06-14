@@ -7,7 +7,7 @@ import type {
   CarQueryVariables,
 } from './__generated/QueryEffect.graphql';
 
-const CarQuery = gql<CarQuery, CarQueryVariables>`
+export const CarQuery = gql<CarQuery, CarQueryVariables>`
   query Car($id: ID!) {
     car(id: $id) {
       id
@@ -15,7 +15,10 @@ const CarQuery = gql<CarQuery, CarQueryVariables>`
       make
       model
       owner {
-        id
+        ... on Person {
+          id
+          __typename
+        }
       }
     }
   }

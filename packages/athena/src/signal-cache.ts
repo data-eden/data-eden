@@ -1,25 +1,17 @@
 import type { Entries } from 'type-fest';
+import type { CacheKey, PropertyPath } from './client.js';
 import { createSignalProxy } from './signal-proxy.js';
 import { traverse } from './traverse.js';
+import { addMilliseconds, getTime } from 'date-fns';
 import type {
-  DefaultRecord,
   DefaultVariables,
   Entity,
+  GraphQLOperation,
   IdFetcher,
   ReactiveAdapter,
   Scalar,
   WithSignal,
 } from './types.js';
-import type {
-  DocumentNode,
-  FieldNode,
-  SelectionNode,
-  ValueNode,
-  VariableNode,
-} from 'graphql';
-import { visit } from 'graphql';
-import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
-import type { Primitive } from 'type-fest';
 
 export type Link = Record<string, string | Array<string>>;
 
@@ -36,88 +28,6 @@ function isLinkNode(v: unknown): v is LinkNode {
   return typeof v === 'object' && v !== null && '__link' in v;
 }
 
-interface Payload<
-  Data extends DefaultRecord = DefaultRecord,
-  Variables extends DefaultVariables = DefaultVariables
-> {
-  query: DocumentNode | TypedDocumentNode<Data, Variables>;
-  variables: Variables;
-  result: Array<{ key: string; entity: Entity }>;
-}
-
-interface Operation {
-  name: string;
-  arguments: Record<string, object | Primitive>;
-}
-
-function isField(selection: SelectionNode): selection is FieldNode {
-  return selection.kind === 'Field';
-}
-
-function isVariable(selection: ValueNode): selection is VariableNode {
-  return selection.kind === 'Variable';
-}
-
-function parseQuery(query: DocumentNode): Array<Operation> {
-  const operations: Array<Operation> = [];
-
-  visit(query, {
-    OperationDefinition: {
-      enter(node, _key, _parent) {
-        const selections = node.selectionSet.selections;
-        selections.forEach((selection) => {
-          if (isField(selection)) {
-            const name = selection.name.value;
-
-            const op: Operation = {
-              name,
-              arguments: {},
-            };
-            const args = selection.arguments;
-
-            if (args) {
-              args.forEach((arg) => {
-                const variable = isVariable(arg.value)
-                  ? arg.value.name.value
-                  : undefined;
-                if (variable) {
-                  op.arguments[arg.name.value] = variable;
-                }
-              });
-            }
-
-            operations.push(op);
-          }
-        });
-      },
-    },
-  });
-
-  return operations;
-}
-
-function convertOperationToKey(op: Operation) {
-  const stringParts: Array<string> = [];
-  stringParts.push(op.name);
-  stringParts.push('(');
-
-  const entries = Object.entries(op.arguments);
-  const len = entries.length;
-
-  Object.entries(op.arguments).forEach(([key, value], idx) => {
-    stringParts.push(key);
-    stringParts.push(': ');
-    stringParts.push(JSON.stringify(value));
-    if (idx < len - 1) {
-      stringParts.push(', ');
-    }
-  });
-
-  stringParts.push(')');
-
-  return stringParts.join('');
-}
-
 function defaultIdGetter(v: Entity) {
   return `${v.__typename}:${v.id}`;
 }
@@ -125,6 +35,9 @@ function defaultIdGetter(v: Entity) {
 export class SignalCache {
   getCacheKey: IdFetcher;
   signalAdapter: ReactiveAdapter;
+  queryLifetimes = new Map<string, number>();
+  // TTL measured in milliseconds
+  queryTTL: number;
   queryLinks = new Map<string, Link>();
   links = new Map<string, Link>();
   records = new Map<string, Record<string, Scalar>>();
@@ -133,39 +46,58 @@ export class SignalCache {
 
   constructor(
     signalAdapter: ReactiveAdapter,
-    getCacheKey: IdFetcher = defaultIdGetter
+    getCacheKey: IdFetcher = defaultIdGetter,
+    queryTTL = 60_000
   ) {
     this.getCacheKey = getCacheKey;
     this.signalAdapter = signalAdapter;
+    this.queryTTL = queryTTL;
     this.registry = new FinalizationRegistry((key) => {
       this.evict(key);
     });
   }
 
-  // Store the results of an entire query. This method will actually the cache the query instance
-  // along with all of the entities it resolves
-  store({ query, variables, result }: Payload) {
-    const operations = parseQuery(query);
+  // Associate an operation with its root entities. This method does *not* also store the actual
+  // entities, it is intended solely tracking the top-level links for a given operation
+  storeOperation(
+    operation: GraphQLOperation,
+    links?: Map<PropertyPath, CacheKey>
+  ) {
+    const linksObj: Link = links
+      ? (Object.fromEntries(links.entries()) as Link)
+      : {};
 
-    if (variables) {
-      operations.forEach((op) => {
-        Object.keys(op.arguments).forEach((arg) => {
-          op.arguments[arg] = variables[arg];
-        });
-      });
+    const key = JSON.stringify(operation);
+
+    this.queryLifetimes.set(
+      key,
+      getTime(addMilliseconds(new Date(), this.queryTTL))
+    );
+    this.queryLinks.set(key, linksObj);
+  }
+
+  readOperation<
+    Data extends object = object,
+    Variables extends DefaultVariables = DefaultVariables
+  >(
+    operation: GraphQLOperation<Data, Variables>
+  ): WithSignal<Entity> | undefined {
+    const key = JSON.stringify(operation);
+
+    if (this.queryLinks.has(key)) {
+      const expirationTimestamp = this.queryLifetimes.get(key);
+
+      // If a query link exists, but has exceeded its TTL, we evict it from the cache and return
+      // undefined, indicating that there was no cached value to be found. Otherwise, we resolve
+      // the cached query response and return it
+      if (expirationTimestamp && getTime(new Date()) >= expirationTimestamp) {
+        this.queryLinks.delete(key);
+        this.queryLifetimes.delete(key);
+        return undefined;
+      } else {
+        return this.resolve(key);
+      }
     }
-
-    const opKeys = operations.map((op) => convertOperationToKey(op));
-
-    opKeys.forEach((opKey, idx) => {
-      this.queryLinks.set(opKey, {
-        [operations[idx].name]: result[idx].key,
-      });
-    });
-
-    result.forEach(({ key, entity }) => {
-      this.storeEntity(key, entity);
-    });
   }
 
   // Store a single entity by key.
@@ -204,7 +136,7 @@ export class SignalCache {
     entityKey: string,
     visited: Set<string> = new Set<string>(),
     exploring: Set<string> = new Set<string>()
-  ) {
+  ): WithSignal<Entity> {
     let root: WithSignal<Entity>;
 
     const links = this.links.get(entityKey) || this.queryLinks.get(entityKey);
@@ -221,7 +153,7 @@ export class SignalCache {
 
     // If we've already visited this node in a given `resolve` computation, it means we've already
     // fully materialized its data and can just return it from the signal cache
-    if (visited.has(entityKey)) {
+    if (visited.has(entityKey) && signal) {
       return signal;
     }
 
@@ -322,6 +254,12 @@ export class SignalCache {
 
     exploring.delete(entityKey);
     visited.add(entityKey);
+
+    if (typeof root === 'undefined') {
+      throw new Error(
+        `@data-eden/athena - No entity found when attempting to resolve ${entityKey}`
+      );
+    }
 
     return root;
   }

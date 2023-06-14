@@ -17,6 +17,84 @@ export const UpdatePetDocument = {
     $DEBUG: {
       contents:
         'mutation UpdatePet($input: UpdatePetInput!, $petId: ID!) { updatePet(petId: $petId, input: $input) { __typename id name } }',
+      ast: {
+        kind: 'Document',
+        definitions: [
+          {
+            kind: 'OperationDefinition',
+            operation: 'mutation',
+            name: { kind: 'Name', value: 'UpdatePet' },
+            variableDefinitions: [
+              {
+                kind: 'VariableDefinition',
+                variable: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'petId' },
+                },
+                type: {
+                  kind: 'NonNullType',
+                  type: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'ID' },
+                  },
+                },
+              },
+              {
+                kind: 'VariableDefinition',
+                variable: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'input' },
+                },
+                type: {
+                  kind: 'NonNullType',
+                  type: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'UpdatePetInput' },
+                  },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'updatePet' },
+                  arguments: [
+                    {
+                      kind: 'Argument',
+                      name: { kind: 'Name', value: 'petId' },
+                      value: {
+                        kind: 'Variable',
+                        name: { kind: 'Name', value: 'petId' },
+                      },
+                    },
+                    {
+                      kind: 'Argument',
+                      name: { kind: 'Name', value: 'input' },
+                      value: {
+                        kind: 'Variable',
+                        name: { kind: 'Name', value: 'input' },
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: '__typename' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
     },
   },
 } as unknown as DocumentNode<UpdatePetMutation, UpdatePetMutationVariables>;

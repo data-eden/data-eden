@@ -72,15 +72,17 @@ const DisplayPets = ({ pets }: { pets: Array<Pet> }) => {
 };
 
 export default function DisplayPerson() {
-  const { loading, data } = useQuery(
-    personQuery,
-    {
-      id: '1',
-    },
-    { lazy: true, initialData: DisplayPersonData }
-  );
+  const { loading, data, refetch } = useQuery(personQuery, {
+    id: '1',
+  });
 
   const person = data?.person;
+
+  const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    refetch();
+  };
 
   return (
     <div className="border-2 rounded border-blue-500 border-solid my-2 mx-2">
@@ -95,6 +97,7 @@ export default function DisplayPerson() {
           <DisplayPets pets={person.pets} />
         </div>
       )}
+      <button onClick={onClick}>Refetch</button>
     </div>
   );
 }

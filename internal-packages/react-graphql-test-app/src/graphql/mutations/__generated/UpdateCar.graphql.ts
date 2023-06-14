@@ -17,6 +17,85 @@ export const UpdateCarDocument = {
     $DEBUG: {
       contents:
         'mutation UpdateCar($carId: ID!, $input: CarInput!) { updateCar(carId: $carId, input: $input) { __typename id make model } }',
+      ast: {
+        kind: 'Document',
+        definitions: [
+          {
+            kind: 'OperationDefinition',
+            operation: 'mutation',
+            name: { kind: 'Name', value: 'UpdateCar' },
+            variableDefinitions: [
+              {
+                kind: 'VariableDefinition',
+                variable: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'carId' },
+                },
+                type: {
+                  kind: 'NonNullType',
+                  type: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'ID' },
+                  },
+                },
+              },
+              {
+                kind: 'VariableDefinition',
+                variable: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'input' },
+                },
+                type: {
+                  kind: 'NonNullType',
+                  type: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'CarInput' },
+                  },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'updateCar' },
+                  arguments: [
+                    {
+                      kind: 'Argument',
+                      name: { kind: 'Name', value: 'carId' },
+                      value: {
+                        kind: 'Variable',
+                        name: { kind: 'Name', value: 'carId' },
+                      },
+                    },
+                    {
+                      kind: 'Argument',
+                      name: { kind: 'Name', value: 'input' },
+                      value: {
+                        kind: 'Variable',
+                        name: { kind: 'Name', value: 'input' },
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: '__typename' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'make' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'model' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
     },
   },
 } as unknown as DocumentNode<UpdateCarMutation, UpdateCarMutationVariables>;

@@ -11,6 +11,7 @@ import Nested from './routes/Nested';
 import Unrelated from './routes/Unrelated';
 import QueryEffect from './routes/QueryEffect';
 import MutationResult from './routes/MutationResult';
+import Refetch from './routes/Refetch';
 
 interface Entity {
   __typename: string;
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
       {
         path: '/mutation-result',
         element: <MutationResult />,
+      },
+      {
+        path: '/refetch',
+        element: <Refetch />,
       },
     ],
   },

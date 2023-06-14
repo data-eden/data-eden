@@ -6,7 +6,7 @@ import type {
   DataEdenCache,
   DefaultVariables,
   DocumentInput,
-  GraphQLRequest,
+  GraphQLOperation,
   GraphQLResponse,
   IdFetcher,
   OperationResult,
@@ -20,14 +20,19 @@ export interface ClientArgs {
   fetch?: typeof fetch;
   buildRequest?: BuildRequest;
   adapter: ReactiveAdapter;
+  queryTTL?: number;
 }
 
-export type BuildRequest = (request: GraphQLRequest) => RequestInit;
+export interface QueryOptions {
+  reload?: boolean;
+}
+
+export type BuildRequest = (request: GraphQLOperation) => RequestInit;
 export type CacheKey = string;
 export type PropertyPath = string | number | Array<string | number>;
 export type AthenaClientOptions = Omit<ClientArgs, 'adapter'>;
 
-function defaultBuildRequest(request: GraphQLRequest): RequestInit {
+function defaultBuildRequest(request: GraphQLOperation): RequestInit {
   return {
     method: 'POST',
     headers: {
@@ -50,7 +55,11 @@ export class AthenaClient {
     this.getCacheKey = options.getCacheKey;
     this.fetch = options.fetch || globalThis.fetch.bind(globalThis);
     this.buildRequest = options.buildRequest || defaultBuildRequest;
-    this.signalCache = new SignalCache(options.adapter, options.getCacheKey);
+    this.signalCache = new SignalCache(
+      options.adapter,
+      options.getCacheKey,
+      options.queryTTL
+    );
 
     const signalCache = this.signalCache;
     this.cache = buildCache({
@@ -73,9 +82,19 @@ export class AthenaClient {
     Variables extends DefaultVariables = DefaultVariables
   >(
     operation: DocumentInput<Data, Variables>,
-    variables?: Variables
+    variables?: Variables,
+    options?: QueryOptions
   ): Promise<OperationResult<Data>> {
     const prepared = prepareOperation<Data, Variables>(operation, variables);
+    const result: OperationResult<Data> = {};
+    if (!options?.reload) {
+      const cachedEntities = this.signalCache.readOperation(prepared);
+
+      if (cachedEntities) {
+        result.data = cachedEntities as Data;
+        return result;
+      }
+    }
 
     return this.makeRequest<Data, Variables>(prepared);
   }
@@ -95,12 +114,14 @@ export class AthenaClient {
   private async makeRequest<
     Data extends object = object,
     Variables extends DefaultVariables = DefaultVariables
-  >(request: GraphQLRequest<Data, Variables>): Promise<OperationResult<Data>> {
+  >(
+    operation: GraphQLOperation<Data, Variables>
+  ): Promise<OperationResult<Data>> {
     let response: Response;
     const result: OperationResult<Data> = {};
 
     try {
-      response = await this.fetch(this.url, this.buildRequest(request));
+      response = await this.fetch(this.url, this.buildRequest(operation));
     } catch (err) {
       result.error = {
         network: err,
@@ -118,14 +139,15 @@ export class AthenaClient {
     }
 
     if (data) {
-      result.data = await this.processEntities(data);
+      result.data = await this.processEntities(data, operation);
     }
 
     return result;
   }
 
   async processEntities<Data extends { [key: string]: any }>(
-    response: Data
+    response: Data,
+    operation?: GraphQLOperation<Data>
   ): Promise<Data> {
     const parsedEntitiesList = parseEntities(response);
 
@@ -149,8 +171,8 @@ export class AthenaClient {
      *   [ car ]
      * ]
      */
+    const tx = await this.cache.beginTransaction();
     for (const parsedEntities of parsedEntitiesList) {
-      const tx = await this.cache.beginTransaction();
       for (const { parent, prop, entity } of parsedEntities) {
         const key = this.getCacheKey(entity, parent);
 
@@ -167,13 +189,17 @@ export class AthenaClient {
 
         await tx.merge(key, entity);
       }
-      await tx.commit();
     }
+    await tx.commit();
 
     const result = {} as Data;
 
     for (const [propertyPath, cacheKey] of roots.entries()) {
       set(result, propertyPath, this.signalCache.resolve(cacheKey));
+    }
+
+    if (operation) {
+      this.signalCache.storeOperation(operation, roots);
     }
 
     return result;

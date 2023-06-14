@@ -29,6 +29,160 @@ export const PersonDocument = {
     $DEBUG: {
       contents:
         'fragment CarFields on Car { __typename id make model } fragment PersonFieldsShared on Person { __typename id name } fragment PetFields on Pet { __typename id name owner { ...PersonFieldsShared } } query Person($id: ID!) { person(id: $id) { __typename car { __typename ...CarFields } pets { __typename ...PetFields } ...PersonFieldsShared } }',
+      ast: {
+        kind: 'Document',
+        definitions: [
+          {
+            kind: 'OperationDefinition',
+            operation: 'query',
+            name: { kind: 'Name', value: 'Person' },
+            variableDefinitions: [
+              {
+                kind: 'VariableDefinition',
+                variable: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'id' },
+                },
+                type: {
+                  kind: 'NonNullType',
+                  type: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'ID' },
+                  },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'person' },
+                  arguments: [
+                    {
+                      kind: 'Argument',
+                      name: { kind: 'Name', value: 'id' },
+                      value: {
+                        kind: 'Variable',
+                        name: { kind: 'Name', value: 'id' },
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'FragmentSpread',
+                        name: { kind: 'Name', value: 'PersonFieldsShared' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'car' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'FragmentSpread',
+                              name: { kind: 'Name', value: 'CarFields' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: '__typename' },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'pets' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'FragmentSpread',
+                              name: { kind: 'Name', value: 'PetFields' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: '__typename' },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: '__typename' },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'FragmentDefinition',
+            name: { kind: 'Name', value: 'PersonFieldsShared' },
+            typeCondition: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'Person' },
+            },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: '__typename' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+              ],
+            },
+          },
+          {
+            kind: 'FragmentDefinition',
+            name: { kind: 'Name', value: 'CarFields' },
+            typeCondition: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'Car' },
+            },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: '__typename' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'make' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'model' } },
+              ],
+            },
+          },
+          {
+            kind: 'FragmentDefinition',
+            name: { kind: 'Name', value: 'PetFields' },
+            typeCondition: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'Pet' },
+            },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: '__typename' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'owner' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'FragmentSpread',
+                        name: { kind: 'Name', value: 'PersonFieldsShared' },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
     },
   },
 } as unknown as DocumentNode<PersonQuery, PersonQueryVariables>;
