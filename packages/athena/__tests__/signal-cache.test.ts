@@ -99,6 +99,51 @@ describe('signal cache', () => {
     });
   });
 
+  describe('cache#readOperation', () => {
+    const operation = {
+      query: 'blah',
+      variables: {
+        id: '1',
+      },
+    };
+
+    test('can resolve a stored operation', () => {
+      const cache = new SignalCache((v) => createSignal(v, false));
+      cache.storeOperation(
+        operation,
+        new Map(Object.entries({ person: 'Person:1' }))
+      );
+      cache.storeEntity('Person:1', { ...Person1 });
+
+      const result = cache.readOperation(operation);
+      expect(result).not.toBeUndefined();
+      expect(result).toHaveProperty('person');
+      expect(result!.person).toEqual(Person1);
+    });
+
+    test('returns undefined if TTL has expired', async () => {
+      const cache = new SignalCache(
+        (v) => createSignal(v, false),
+        undefined,
+        250
+      );
+      cache.storeOperation(
+        operation,
+        new Map(Object.entries({ person: 'Person:1' }))
+      );
+      cache.storeEntity('Person:1', { ...Person1 });
+
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 500);
+      });
+
+      const result = cache.readOperation(operation);
+      expect(result).toBeUndefined();
+    });
+  });
+
   describe('cache#resolve', () => {
     let cache: SignalCache;
 

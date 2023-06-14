@@ -2,6 +2,7 @@ import type { Entries } from 'type-fest';
 import type { CacheKey, PropertyPath } from './client.js';
 import { createSignalProxy } from './signal-proxy.js';
 import { traverse } from './traverse.js';
+import { addMilliseconds, getTime } from 'date-fns';
 import type {
   DefaultVariables,
   Entity,
@@ -34,6 +35,9 @@ function defaultIdGetter(v: Entity) {
 export class SignalCache {
   getCacheKey: IdFetcher;
   signalAdapter: ReactiveAdapter;
+  queryLifetimes = new Map<string, number>();
+  // TTL measured in milliseconds
+  queryTTL: number;
   queryLinks = new Map<string, Link>();
   links = new Map<string, Link>();
   records = new Map<string, Record<string, Scalar>>();
@@ -42,10 +46,12 @@ export class SignalCache {
 
   constructor(
     signalAdapter: ReactiveAdapter,
-    getCacheKey: IdFetcher = defaultIdGetter
+    getCacheKey: IdFetcher = defaultIdGetter,
+    queryTTL = 60_000
   ) {
     this.getCacheKey = getCacheKey;
     this.signalAdapter = signalAdapter;
+    this.queryTTL = queryTTL;
     this.registry = new FinalizationRegistry((key) => {
       this.evict(key);
     });
@@ -61,7 +67,13 @@ export class SignalCache {
       ? (Object.fromEntries(links.entries()) as Link)
       : {};
 
-    this.queryLinks.set(JSON.stringify(operation), linksObj);
+    const key = JSON.stringify(operation);
+
+    this.queryLifetimes.set(
+      key,
+      getTime(addMilliseconds(new Date(), this.queryTTL))
+    );
+    this.queryLinks.set(key, linksObj);
   }
 
   readOperation<
@@ -73,7 +85,18 @@ export class SignalCache {
     const key = JSON.stringify(operation);
 
     if (this.queryLinks.has(key)) {
-      return this.resolve(key);
+      const expirationTimestamp = this.queryLifetimes.get(key);
+
+      // If a query link exists, but has exceeded its TTL, we evict it from the cache and return
+      // undefined, indicating that there was no cached value to be found. Otherwise, we resolve
+      // the cached query response and return it
+      if (expirationTimestamp && getTime(new Date()) >= expirationTimestamp) {
+        this.queryLinks.delete(key);
+        this.queryLifetimes.delete(key);
+        return undefined;
+      } else {
+        return this.resolve(key);
+      }
     }
   }
 

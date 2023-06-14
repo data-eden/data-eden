@@ -20,6 +20,7 @@ export interface ClientArgs {
   fetch?: typeof fetch;
   buildRequest?: BuildRequest;
   adapter: ReactiveAdapter;
+  queryTTL?: number;
 }
 
 export interface QueryOptions {
@@ -54,7 +55,11 @@ export class AthenaClient {
     this.getCacheKey = options.getCacheKey;
     this.fetch = options.fetch || globalThis.fetch.bind(globalThis);
     this.buildRequest = options.buildRequest || defaultBuildRequest;
-    this.signalCache = new SignalCache(options.adapter, options.getCacheKey);
+    this.signalCache = new SignalCache(
+      options.adapter,
+      options.getCacheKey,
+      options.queryTTL
+    );
 
     const signalCache = this.signalCache;
     this.cache = buildCache({
