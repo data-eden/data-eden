@@ -9,7 +9,7 @@ import { parse, visit, print } from 'graphql';
 import type {
   DefaultVariables,
   DocumentInput,
-  GraphQLRequest,
+  GraphQLOperation,
 } from './types.js';
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 
@@ -99,12 +99,12 @@ export function prepareOperation<
 >(
   operation: DocumentInput<Data, Variables>,
   variables?: Variables
-): GraphQLRequest<Data, Variables> {
+): GraphQLOperation<Data, Variables> {
   const parsed = (
     typeof operation === 'string' ? parse(operation) : operation
   ) as AthenaDocumentNode;
 
-  const request: GraphQLRequest<Data, Variables> = {};
+  const request: GraphQLOperation<Data, Variables> = {};
 
   if (parsed.__meta__) {
     request.extensions = {

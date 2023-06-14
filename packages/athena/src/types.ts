@@ -26,7 +26,7 @@ export type WithSignal<T> = T & {
 
 export type Scalar = string | number | boolean;
 
-export interface GraphQLRequest<
+export interface GraphQLOperation<
   Data extends object = object,
   Variables = DefaultVariables
 > {

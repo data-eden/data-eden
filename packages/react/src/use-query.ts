@@ -2,6 +2,7 @@ import type {
   ClientError,
   DefaultVariables,
   DocumentInput,
+  QueryOptions,
 } from '@data-eden/athena';
 import type { Reaction } from '@signalis/core';
 import {
@@ -48,12 +49,13 @@ interface QueryResponse<
   data: Data | undefined;
   loading: boolean;
   error: ClientError | undefined;
-  refetch: (variables?: Variables) => Promise<void>;
+  refetch: (variables?: Variables, options?: QueryOptions) => Promise<void>;
 }
 
 interface UseQueryOptions<Data extends object = object> {
   initialData?: Data;
   lazy?: boolean;
+  reload?: boolean;
 }
 
 export function useQuery<
@@ -107,7 +109,7 @@ export function useQuery<
 
   const refetch = useCallback(async function <
     Variables extends DefaultVariables = DefaultVariables
-  >(variables?: Variables) {
+  >(variables?: Variables, options?: QueryOptions) {
     setLoading(true);
 
     try {
@@ -115,7 +117,8 @@ export function useQuery<
         query,
         // if new variables were passed in, we use those, otherwise we execute with the original
         // set
-        variables || vars
+        variables || vars,
+        options
       );
 
       trackDeps(data, error);
@@ -127,7 +130,7 @@ export function useQuery<
 
   if (!options.lazy) {
     useEffect(() => {
-      void refetch(vars);
+      void refetch(vars, options);
 
       return () => {
         reactionRef.current?.dispose();

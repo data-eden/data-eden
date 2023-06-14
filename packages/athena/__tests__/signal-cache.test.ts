@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { createSignal } from '@signalis/core';
 import { beforeEach, describe, expect, test } from 'vitest';
 import type { Link } from '../src/signal-cache.js';
 import { SignalCache } from '../src/signal-cache.js';
-import { parse } from 'graphql';
-import { createSignal } from '@signalis/core';
 
 const Person1 = {
   id: '1',
@@ -23,19 +22,12 @@ const Pet2 = {
   __typename: 'Pet',
 };
 
-const Car1 = {
-  id: '1',
-  make: 'Ford',
-  model: 'Mustang',
-  __typename: 'Car',
-};
-
 function expectMap(v: Map<any, any>) {
   return expect(Object.fromEntries(v));
 }
 
 describe('signal cache', () => {
-  describe('cache#store', () => {
+  describe('cache#storeOperation', () => {
     let cache: SignalCache;
 
     beforeEach(() => {
@@ -51,40 +43,22 @@ describe('signal cache', () => {
         }
       }`;
 
-      const payload = {
-        query: parse(query),
-        variables: { id: 1 },
-        result: [
-          {
-            key: 'Person:1',
-            entity: {
-              ...Person1,
-            },
-          },
-        ],
-      };
+      const variables = { id: 1 };
 
-      cache.store(payload);
+      cache.storeOperation(
+        { query, variables },
+        new Map(Object.entries({ person: 'Person:1' }))
+      );
 
       expectMap(cache.queryLinks).toEqual({
-        'person(id: 1)': {
+        [JSON.stringify({ query, variables })]: {
           person: 'Person:1',
-        },
-      });
-
-      expectMap(cache.links).toEqual({
-        'Person:1': {},
-      });
-
-      expectMap(cache.records).toEqual({
-        'Person:1': {
-          ...Person1,
         },
       });
     });
 
-    test('query with link', () => {
-      const query = `query Person($id: ID) {
+    test('query with multiple roots', () => {
+      const query = `query Person($id: ID, $carID: ID) {
         person(id: $id) {
           id
           name
@@ -96,197 +70,30 @@ describe('signal cache', () => {
             __typename
           }
         }
-      }`;
 
-      const payload = {
-        query: parse(query),
-        variables: { id: 1 },
-        result: [
-          {
-            key: 'Person:1',
-            entity: {
-              ...Person1,
-              car: { __link: 'Car:1' },
-            },
-          },
-          {
-            key: 'Car:1',
-            entity: {
-              ...Car1,
-            },
-          },
-        ],
-      };
-
-      cache.store(payload);
-
-      expectMap(cache.queryLinks).toEqual({
-        'person(id: 1)': {
-          person: 'Person:1',
-        },
-      });
-
-      expectMap(cache.links).toEqual({
-        'Person:1': {
-          car: 'Car:1',
-        },
-        'Car:1': {},
-      });
-
-      expectMap(cache.records).toEqual({
-        'Person:1': {
-          ...Person1,
-        },
-        'Car:1': {
-          ...Car1,
-        },
-      });
-    });
-
-    test('query with array link', () => {
-      const query = `query Person($id: ID) {
-        person(id: $id) {
+        car(carId: $carId) {
           id
-          name
+          make
           __typename
-          pets {
-            id
-            name
-            __typename
-          }
         }
       }`;
 
-      const payload = {
-        query: parse(query),
-        variables: { id: 1 },
-        result: [
-          {
-            key: 'Person:1',
-            entity: {
-              ...Person1,
-              pets: [
-                {
-                  __link: 'Pet:1',
-                },
-                {
-                  __link: 'Pet:2',
-                },
-              ],
-            },
-          },
-          {
-            key: 'Pet:1',
-            entity: {
-              ...Pet1,
-            },
-          },
-          {
-            key: 'Pet:2',
-            entity: {
-              ...Pet2,
-            },
-          },
-        ],
-      };
+      const variables = { id: 1, carId: 1 };
 
-      cache.store(payload);
-
-      expectMap(cache.queryLinks).toEqual({
-        'person(id: 1)': {
-          person: 'Person:1',
-        },
-      });
-
-      expectMap(cache.links).toEqual({
-        'Person:1': {
-          pets: ['Pet:1', 'Pet:2'],
-        },
-        'Pet:1': {},
-        'Pet:2': {},
-      });
-
-      expectMap(cache.records).toEqual({
-        'Person:1': {
-          ...Person1,
-        },
-        'Pet:1': {
-          ...Pet1,
-        },
-        'Pet:2': {
-          ...Pet2,
-        },
-      });
-    });
-
-    test('mutation', () => {
-      const mutation = `mutation UpdatePerson($personId: ID!, $input: PersonInput!) {
-        updatePerson(personId: $personId, input: $input) {
-          id
-          name
-        }
-      }`;
-
-      cache.queryLinks = new Map(
-        Object.entries({
-          'person(id: 1)': {
+      cache.storeOperation(
+        { query, variables },
+        new Map(
+          Object.entries({
             person: 'Person:1',
-          },
-        })
+            car: 'Car:1',
+          })
+        )
       );
-
-      cache.links = new Map(
-        Object.entries({
-          'Person:1': {},
-        })
-      );
-
-      cache.records = new Map(
-        Object.entries({
-          'Person:1': {
-            ...Person1,
-          },
-        })
-      );
-
-      const payload = {
-        query: parse(mutation),
-        variables: {
-          personId: 1,
-          input: {
-            name: 'Bar',
-          },
-        },
-        result: [
-          {
-            key: 'Person:1',
-            entity: {
-              ...Person1,
-              name: 'Bar',
-            },
-          },
-        ],
-      };
-
-      cache.store(payload);
 
       expectMap(cache.queryLinks).toEqual({
-        'person(id: 1)': {
+        [JSON.stringify({ query, variables })]: {
           person: 'Person:1',
-        },
-        'updatePerson(personId: 1, input: {"name":"Bar"})': {
-          updatePerson: 'Person:1',
-        },
-      });
-
-      expectMap(cache.links).toEqual({
-        'Person:1': {},
-      });
-
-      expectMap(cache.records).toEqual({
-        'Person:1': {
-          ...Person1,
-          name: 'Bar',
+          car: 'Car:1',
         },
       });
     });
@@ -300,11 +107,8 @@ describe('signal cache', () => {
 
       cache.queryLinks = new Map(
         Object.entries({
-          'person(id: 1)': {
+          '{"query": "blah", "variables": {"id": "1"}}': {
             person: 'Person:1',
-          },
-          'updatePerson(personId: 1, input: {"name":"Bar"})': {
-            updatePerson: 'Person:1',
           },
         } as Record<string, Link>)
       );
@@ -350,7 +154,9 @@ describe('signal cache', () => {
     });
 
     test('can resolve query key', () => {
-      const result = cache.resolve('person(id: 1)');
+      const result = cache.resolve(
+        '{"query": "blah", "variables": {"id": "1"}}'
+      );
 
       expect(result.person).toMatchObject({
         ...Person1,
@@ -364,19 +170,6 @@ describe('signal cache', () => {
 
       expect(result.person.pets[1]).toMatchObject({
         ...Pet2,
-      });
-    });
-
-    test('can resolve mutation key', () => {
-      const result = cache.resolve(
-        'updatePerson(personId: 1, input: {"name":"Bar"})'
-      );
-
-      expect(result).toMatchObject({
-        updatePerson: {
-          ...Person1,
-          pets: [{ ...Pet1 }, { ...Pet2 }],
-        },
       });
     });
 

@@ -8,10 +8,7 @@ export default function Refetch() {
 
   const [shouldReload, setShouldReload] = useState(false);
 
-  console.log('data', data);
-
   const handleReloadToggle = () => {
-    console.log('toggling', shouldReload);
     setShouldReload(!shouldReload);
   };
 
@@ -22,9 +19,12 @@ export default function Refetch() {
           type="button"
           className="px-2 py-1 font-semibold text-sm bg-slate-500 text-white rounded-md shadow-sm opacity-100"
           onClick={() => {
-            refetch({
-              reload: shouldReload,
-            });
+            refetch(
+              { id: '1' },
+              {
+                reload: shouldReload,
+              }
+            );
           }}
         >
           Refetch
