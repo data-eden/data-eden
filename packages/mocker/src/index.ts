@@ -1,10 +1,10 @@
+import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import type {
   GraphQLSchema,
   GraphQLNamedType,
   SelectionNode,
   GraphQLType,
   GraphQLEnumValue,
-  DocumentNode,
 } from 'graphql';
 import {
   buildSchema,
@@ -68,10 +68,10 @@ function assertHasSelectionSet(
   }
 }
 
-type QueryOrMutationWrapped = {
+type QueryOrMutationWrapped<T> = {
   __meta__: {
     $DEBUG: {
-      ast: DocumentNode;
+      ast: TypedDocumentNode<T>;
     };
   };
 };
@@ -104,10 +104,12 @@ export class Mocker {
     this.faker.seed(2345678);
   }
 
-  async mock(
-    documentNode: DocumentNode | QueryOrMutationWrapped,
+  async mock<Document extends JSONObject = JSONObject>(
+    documentNode:
+      | TypedDocumentNode<Document>
+      | QueryOrMutationWrapped<Document>,
     mockData: JSONObject
-  ) {
+  ): Promise<Document> {
     const definition =
       '__meta__' in documentNode
         ? documentNode.__meta__.$DEBUG.ast.definitions[0]
@@ -141,14 +143,16 @@ export class Mocker {
       throw new Error(`Type ${typeName} not found in the schema`);
     }
 
-    return this.generateMockDataForFields(selections, type, mockData);
+    return this.generateMockDataForFields<Document>(selections, type, mockData);
   }
 
-  private generateMockDataForFields(
+  private generateMockDataForFields<
+    Data extends JSONValue | undefined = JSONValue | undefined
+  >(
     fields: readonly SelectionNode[],
     type: GraphQLNamedType,
     mockData: JSONObject | undefined
-  ): JSONObject {
+  ): Data {
     let result: JSONObject = {};
 
     fields.forEach((field) => {
@@ -222,7 +226,7 @@ export class Mocker {
                       item as JSONObject
                     );
                   }
-                );
+                ) as JSONValue;
               } else {
                 // Handle scalar type arrays (e.g., [Int], [String])
                 result[fieldName] = (mockData[fieldName] as JSONArray).map(
@@ -298,7 +302,7 @@ export class Mocker {
       }
     });
 
-    return result;
+    return result as Data;
   }
 
   private generateMockDataForEnum(

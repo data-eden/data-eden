@@ -2,9 +2,19 @@ import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
-import { Mocker } from '@data-eden/mocker';
-
 import { gql } from '@data-eden/codegen/gql';
+
+import { Mocker } from '@data-eden/mocker';
+import {
+  CarOneFragment,
+  CarThreeFragment,
+  CarTwoFragment,
+  CreateOnePetMutation,
+  PersonOneFragment,
+  PetOneFragment,
+  PetThreeFragment,
+  PetTwoFragment,
+} from './__generated/mocker.test.graphql';
 
 const schema = readFileSync(
   resolve(
@@ -20,7 +30,7 @@ const schema = readFileSync(
 describe('mocker', () => {
   describe('fragments', () => {
     test('fragment with default data', async () => {
-      const carOneFragment = gql`
+      const carOneFragment = gql<CarOneFragment>`
         fragment carOne on Car {
           id
           make
@@ -34,7 +44,7 @@ describe('mocker', () => {
     });
 
     test('fragment with default data and fieldGenerator', async () => {
-      const carTwoFragment = gql`
+      const carTwoFragment = gql<CarTwoFragment>`
         fragment carTwo on Car {
           id
           make
@@ -51,13 +61,15 @@ describe('mocker', () => {
           },
         },
       });
-      const result = await mocker.mock(carTwoFragment, { id: 1234 });
+      const result = await mocker.mock(carTwoFragment, {
+        id: 1234,
+      });
 
       expect(result).toMatchSnapshot();
     });
 
     test('fragment with enum values', async () => {
-      const petOneFragment = gql`
+      const petOneFragment = gql<PetOneFragment>`
         fragment petOne on Pet {
           id
           breed
@@ -90,7 +102,7 @@ describe('mocker', () => {
     });
 
     test('fragment with union values', async () => {
-      const carThreeFragment = gql`
+      const carThreeFragment = gql<CarThreeFragment>`
         fragment carThree on Car {
           id
           make
@@ -116,7 +128,7 @@ describe('mocker', () => {
     });
 
     test('fragment with enum values (with provided enum value)', async () => {
-      const petTwoFragment = gql`
+      const petTwoFragment = gql<PetTwoFragment>`
         fragment petTwo on Pet {
           id
           breed
@@ -135,7 +147,7 @@ describe('mocker', () => {
     });
 
     test("fragment with enum values (with provided enum value that doesn't match, this should throw)", async () => {
-      const petThreeFragment = gql`
+      const petThreeFragment = gql<PetThreeFragment>`
         fragment petThree on Pet {
           id
           breed
@@ -152,7 +164,7 @@ describe('mocker', () => {
     });
 
     test('fragment with default data and fieldGenerator with array of values', async () => {
-      const personOneFragment = gql`
+      const personOneFragment = gql<PersonOneFragment>`
         fragment personOne on Person {
           id
           name
@@ -185,7 +197,7 @@ describe('mocker', () => {
 
   describe('queries', () => {
     test('should work with basic query (no overrides)', async () => {
-      const carOneQuery = gql`
+      const carOneQuery = gql<CarOneFragment>`
         query carOne {
           car(id: 124) {
             id
@@ -218,7 +230,7 @@ describe('mocker', () => {
 
   describe('mutations', () => {
     test('should work with basic mutation (no overrides)', async () => {
-      const createOnePetMutation = gql`
+      const createOnePetMutation = gql<CreateOnePetMutation>`
         mutation createOnePet {
           createPet(input: { name: "Bob", personId: 1234 }) {
             id

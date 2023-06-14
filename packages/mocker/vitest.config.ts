@@ -1,7 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import { resolve } from 'node:path';
 
-import { babel } from '@rollup/plugin-babel';
 import { rollupPlugin } from '@data-eden/codegen';
 
 export default defineConfig({
@@ -15,9 +14,6 @@ export default defineConfig({
       extension: '.graphql.ts',
       disableSchemaTypesGeneration: false,
       production: false,
-    }),
-    babel({
-      presets: ['@babel/preset-typescript'],
     }),
   ],
   test: {
