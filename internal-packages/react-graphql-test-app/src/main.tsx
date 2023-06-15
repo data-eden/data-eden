@@ -12,6 +12,7 @@ import Unrelated from './routes/Unrelated';
 import QueryEffect from './routes/QueryEffect';
 import MutationResult from './routes/MutationResult';
 import Refetch from './routes/Refetch';
+import FetchMore from './routes/FetchMore';
 
 interface Entity {
   __typename: string;
@@ -48,6 +49,10 @@ const router = createBrowserRouter([
       {
         path: '/refetch',
         element: <Refetch />,
+      },
+      {
+        path: '/fetchMore',
+        element: <FetchMore />,
       },
     ],
   },

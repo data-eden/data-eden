@@ -149,7 +149,7 @@ export function resolveForeignReferences(
       }
 
       definition.foreignReferences.set(placeholder, foreignDefinition);
-      // we want to make sure we have the placeholder and also the reoslved value
+      // we want to make sure we have the placeholder and also the resolved value
       definition.foreignReferences.set(
         foreignDefinition.outputName,
         foreignDefinition

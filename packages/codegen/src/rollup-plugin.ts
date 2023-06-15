@@ -16,7 +16,7 @@ export function rollupPlugin(options: CodegenConfig): Plugin {
     transform(code, id) {
       if (code.indexOf('@data-eden/codegen/gql') > -1) {
         const result = transformSync(code, {
-          plugins: [babelPlugin],
+          plugins: [[babelPlugin, options]],
           filename: id,
         });
 

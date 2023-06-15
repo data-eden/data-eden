@@ -4,12 +4,12 @@ import {
   type PersonQuery,
   type PersonQueryVariables,
   type CarFieldsFragment,
+  type CarFieldsSharedFragment,
 } from './__generated/DisplayPerson.graphql.js';
-import { PersonFieldsFragment } from './DisplayOwner.js';
+import { PersonFieldsSharedFragment } from './DisplayOwner.js';
 import DisplayCar from './DisplayCar';
 import DisplayPet from './DisplayPet';
 import { PetFieldsFragment } from '@aliased/DisplayPets';
-import DisplayPersonData from '../default-data/display-person-data.js';
 
 export interface Person {
   id: string;
@@ -31,7 +31,6 @@ export interface Car {
 
 export const carFieldsFragment = gql<CarFieldsFragment>`
   fragment CarFields on Car {
-    __typename
     id
     make
     model
@@ -41,7 +40,7 @@ export const carFieldsFragment = gql<CarFieldsFragment>`
 const personQuery = gql<PersonQuery, PersonQueryVariables>`
   query Person($id: ID!) {
     person(id: $id) {
-      ${PersonFieldsFragment}
+      ${PersonFieldsSharedFragment}
       car {
         ${carFieldsFragment}
       }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import type {
   ClientError,
   DefaultVariables,
@@ -50,12 +51,47 @@ interface QueryResponse<
   loading: boolean;
   error: ClientError | undefined;
   refetch: (variables?: Variables, options?: QueryOptions) => Promise<void>;
+  fetchMore: (variables?: Variables, options?: QueryOptions) => Promise<void>;
 }
 
 interface UseQueryOptions<Data extends object = object> {
   initialData?: Data;
   lazy?: boolean;
   reload?: boolean;
+}
+
+function isObject(item: unknown): item is Record<string, unknown> {
+  return !!(item && typeof item === 'object' && !Array.isArray(item));
+}
+
+function isArray(item: unknown): item is Array<unknown> {
+  return Array.isArray(item);
+}
+
+function mergeDeep<Data extends object = object>(
+  target: unknown,
+  source: Data | undefined
+) {
+  if (isObject(target) && isObject(source)) {
+    Object.keys(source).forEach((key) => {
+      const targetValue = target[key];
+      const sourceValue = source[key];
+
+      if (isObject(sourceValue)) {
+        if (!(key in target)) {
+          Object.assign(target, { [key]: source[key] });
+        } else {
+          target[key] = mergeDeep(target[key], sourceValue);
+        }
+      } else {
+        if (isArray(sourceValue) && isArray(targetValue)) {
+          Object.assign(target, { [key]: [...targetValue, ...sourceValue] });
+        } else {
+          Object.assign(target, { [key]: source[key] });
+        }
+      }
+    });
+  }
 }
 
 export function useQuery<
@@ -128,6 +164,35 @@ export function useQuery<
   },
   EMPTY);
 
+  const fetchMore = useCallback(
+    async function <Variables extends DefaultVariables = DefaultVariables>(
+      variables?: Variables
+    ) {
+      setLoading(true);
+
+      try {
+        const { data, error } = await client.query<Data>(
+          query,
+          // if new variables were passed in, we use those, otherwise we execute with the original
+          // set
+          variables || vars,
+          {
+            reload: true,
+          }
+        );
+
+        // We are going to walk the data and merge over the result so that we can keep the proxies
+        // Any fields that are updated will be on the newest signal
+        mergeDeep<Data>(result, data);
+
+        trackDeps(data, error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [result]
+  );
+
   if (!options.lazy) {
     useEffect(() => {
       void refetch(vars, options);
@@ -139,5 +204,5 @@ export function useQuery<
     }, [query, vars]);
   }
 
-  return { data: result, loading, error, refetch };
+  return { data: result, loading, error, refetch, fetchMore };
 }
