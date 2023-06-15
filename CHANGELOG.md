@@ -12,6 +12,23 @@
 
 
 
+
+## v0.11.0 (2023-06-15)
+
+#### :rocket: Enhancement
+* `codegen`, `mocker`
+  * [#154](https://github.com/data-eden/data-eden/pull/154) feat: enable mocker to properly return typed data ([@gabrielcsapo](https://github.com/gabrielcsapo))
+* `athena`, `react`
+  * [#153](https://github.com/data-eden/data-eden/pull/153) Add query response caching to Athena ([@cafreeman](https://github.com/cafreeman))
+
+#### :house: Internal
+* `codegen`
+  * [#156](https://github.com/data-eden/data-eden/pull/156) chore: adds clean before build ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 2
+- Chris Freeman ([@cafreeman](https://github.com/cafreeman))
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
 ## v0.10.0 (2023-06-13)
 
 #### :rocket: Enhancement
