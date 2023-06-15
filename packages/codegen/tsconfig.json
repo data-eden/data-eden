@@ -3,7 +3,8 @@
   "compilerOptions": {
     "noEmitOnError": false,
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "allowSyntheticDefaultImports": true
   },
   "include": ["./src/**/*.ts"]
 }
