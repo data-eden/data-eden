@@ -24,7 +24,8 @@
   "module": "./dist/data-eden-react.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "vite build && tsc -p tsconfig.build.json"
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "test": "vitest run"
   },
   "dependencies": {
     "@data-eden/athena": "^0.12.0",
@@ -33,7 +34,8 @@
   },
   "devDependencies": {
     "@types/react": "^18.0.28",
-    "react": "*"
+    "react": "*",
+    "vitest": "^0.32.0"
   },
   "peerDependencies": {
     "react": "^18.2.0"

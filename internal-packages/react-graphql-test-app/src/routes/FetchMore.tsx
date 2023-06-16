@@ -70,7 +70,16 @@ const BoxedItems = ({ items, rangesMap }) => {
 };
 
 export default function FetchMore() {
-  const { data, loading, fetchMore } = useQuery(petsForAdoptionQuery);
+  const { data, loading, fetchMore } = useQuery(
+    petsForAdoptionQuery,
+    {},
+    {
+      lazy: true,
+      initialData: {
+        petsForAdoption: undefined,
+      },
+    }
+  );
   const [amountToRequest, setAmountToRequest] = useState<{
     [key: number]: number;
   }>({});
