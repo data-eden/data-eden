@@ -17,7 +17,7 @@
     "internal-packages/*"
   ],
   "scripts": {
-    "clean": "find ./packages -name 'tsconfig.build.tsbuildinfo' -delete && find ./packages -name 'dist' -type d -prune -exec rm -rf '{}' +",
+    "clean": "find ./packages -name 'tsconfig.build.tsbuildinfo' -delete && find ./packages \\( -name 'node_modules' -prune \\) -o \\( -name 'dist' -type d -prune -exec rm -rf '{}' + \\)",
     "build": "npm run clean && npm run build -w @data-eden/shared-test-utilities -w @data-eden/cache -w @data-eden/network -w @data-eden/athena -w @data-eden/react -w @data-eden/codegen",
     "build:watch": "npm run build --- --watch",
     "prepublish": "npm run build",
@@ -60,7 +60,7 @@
     "sort-package-json": "^2.1.0",
     "typescript": "^4.9.4",
     "vite": "^4.2.2",
-    "vitest": "^0.30.1"
+    "vitest": "^0.32.0"
   },
   "volta": {
     "node": "18.13.0",
