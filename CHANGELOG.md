@@ -13,6 +13,19 @@
 
 
 
+
+## v0.12.0 (2023-06-16)
+
+#### :rocket: Enhancement
+* `codegen`, `react`
+  * [#155](https://github.com/data-eden/data-eden/pull/155) feat: adds fetchMore to deep merge results ontop of existing results ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :house: Internal
+* [#157](https://github.com/data-eden/data-eden/pull/157) chore: fix demo app to make sure it loads ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
 ## v0.11.0 (2023-06-15)
 
 #### :rocket: Enhancement
