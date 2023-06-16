@@ -77,23 +77,26 @@ export function useQuery<
   const vars = useVariables(variables);
   const { initialData } = options;
 
-  const trackDeps = useCallback((data?: Data, error?: ClientError) => {
-    setupDependencyTracking(
-      () => {
-        if (data) {
-          setResult(data);
-        }
+  const trackDeps = useCallback(
+    (data?: Data, error?: ClientError) => {
+      setupDependencyTracking(
+        () => {
+          if (data) {
+            setResult(data);
+          }
 
-        if (error) {
-          setError(error);
-        }
+          if (error) {
+            setError(error);
+          }
 
-        forceUpdate();
-      },
-      reactionRef,
-      data
-    );
-  }, EMPTY);
+          forceUpdate();
+        },
+        reactionRef,
+        data
+      );
+    },
+    [EMPTY]
+  );
 
   if (initialData) {
     useEffect(() => {
@@ -123,6 +126,8 @@ export function useQuery<
         variables || vars,
         options
       );
+
+      setResult(data);
 
       trackDeps(data, error);
     } finally {

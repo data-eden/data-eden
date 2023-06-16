@@ -70,7 +70,7 @@ const BoxedItems = ({ items, rangesMap }) => {
 };
 
 export default function FetchMore() {
-  const { data, loading, fetchMore } = useQuery(
+  const { data, loading, refetch, fetchMore } = useQuery(
     petsForAdoptionQuery,
     {},
     {
@@ -87,7 +87,6 @@ export default function FetchMore() {
 
   useEffect(() => {
     if (data?.petsForAdoption?.length > 0 && !amountToRequest[requestCount]) {
-      console.log(data?.petsForAdoption.length);
       setAmountToRequest({
         ...amountToRequest,
         [data?.petsForAdoption.length]: requestCount,
@@ -97,7 +96,7 @@ export default function FetchMore() {
 
   return (
     <>
-      <div className="ml-2">
+      <div>
         <button
           type="button"
           className="px-2 py-1 font-semibold text-sm bg-slate-500 text-white rounded-md shadow-sm opacity-100"
@@ -109,6 +108,24 @@ export default function FetchMore() {
           }}
         >
           Fetch More
+        </button>
+
+        <button
+          type="button"
+          className="ml-2 px-2 py-1 font-semibold text-sm bg-slate-500 text-white rounded-md shadow-sm opacity-100"
+          onClick={() => {
+            setRequestCount(0);
+            setAmountToRequest({});
+
+            refetch(
+              {},
+              {
+                reload: true,
+              }
+            );
+          }}
+        >
+          Fresh Fetch
         </button>
       </div>
 
