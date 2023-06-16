@@ -14,6 +14,17 @@
 
 
 
+
+## v0.12.1 (2023-06-16)
+
+#### :bug: Bug Fix
+* `react`
+  * [#160](https://github.com/data-eden/data-eden/pull/160) bug: ensure that we retrigger dependency setup when calling refetch ([@gabrielcsapo](https://github.com/gabrielcsapo))
+  * [#159](https://github.com/data-eden/data-eden/pull/159) bug: fix findMore when data at certain levels is undefined when merging ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
 ## v0.12.0 (2023-06-16)
 
 #### :rocket: Enhancement
