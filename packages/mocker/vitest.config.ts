@@ -18,6 +18,7 @@ export default defineConfig({
   ],
   test: {
     testTimeout: 10_000,
+    include: ['__tests__/**/*.test.ts'],
   },
   resolve: {
     alias: {
