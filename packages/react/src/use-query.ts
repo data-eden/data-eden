@@ -16,7 +16,7 @@ import {
 } from 'react';
 import { useAthenaClient } from './provider.js';
 import { setupDependencyTracking } from './setup-dependency-tracking.js';
-import { EMPTY, safeIncrement } from './utils.js';
+import { EMPTY, safeIncrement, mergeDeep } from './utils.js';
 
 // Key and memoize the variables object so we determine when the variables themselves have
 // actually changed
@@ -60,40 +60,6 @@ interface UseQueryOptions<Data extends object = object> {
   reload?: boolean;
 }
 
-function isObject(item: unknown): item is Record<string, unknown> {
-  return !!(item && typeof item === 'object' && !Array.isArray(item));
-}
-
-function isArray(item: unknown): item is Array<unknown> {
-  return Array.isArray(item);
-}
-
-function mergeDeep<Data extends object = object>(
-  target: unknown,
-  source: Data | undefined
-) {
-  if (isObject(target) && isObject(source)) {
-    Object.keys(source).forEach((key) => {
-      const targetValue = target[key];
-      const sourceValue = source[key];
-
-      if (isObject(sourceValue)) {
-        if (!(key in target)) {
-          Object.assign(target, { [key]: source[key] });
-        } else {
-          target[key] = mergeDeep(target[key], sourceValue);
-        }
-      } else {
-        if (isArray(sourceValue) && isArray(targetValue)) {
-          Object.assign(target, { [key]: [...targetValue, ...sourceValue] });
-        } else {
-          Object.assign(target, { [key]: source[key] });
-        }
-      }
-    });
-  }
-}
-
 export function useQuery<
   Data extends object = object,
   Variables extends DefaultVariables = DefaultVariables
@@ -133,6 +99,7 @@ export function useQuery<
     useEffect(() => {
       void (async function () {
         const data = await client.processEntities(initialData);
+
         trackDeps(data);
       })();
 
