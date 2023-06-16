@@ -62,6 +62,7 @@ type Query {
   person(id: ID!): Person!
   car(id: ID!): Car!
   people: [Person!]!
+  petsForAdoption: [Pet!]!
 }
 
 type Mutation {

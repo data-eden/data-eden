@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker';
 import { createSchema } from 'graphql-yoga';
 import { v4 } from 'uuid';
 
@@ -84,6 +85,7 @@ const gqlSchema = `
     person(id: ID!): Person!
     car(id: ID!): Car!
     people: [Person!]!
+    petsForAdoption: [Pet!]!
   }
 
   type Mutation {
@@ -94,6 +96,14 @@ const gqlSchema = `
     removePet(id: ID!): [Pet!]!
   }
 `;
+
+function generatePet() {
+  return {
+    id: `${faker.number.int()}`,
+    name: faker.word.noun(),
+    personId: '1',
+  };
+}
 
 export const schema = createSchema({
   typeDefs: gqlSchema,
@@ -107,6 +117,13 @@ export const schema = createSchema({
       people: () => people,
       car: (_, { id }) => {
         return cars.find((car) => car.id === id);
+      },
+      petsForAdoption: () => {
+        return Array.from({ length: Math.floor(Math.random() * 15) + 1 }).map(
+          () => {
+            return generatePet();
+          }
+        );
       },
     },
 

@@ -20,6 +20,9 @@ export default function App() {
           <li className="pb-4">
             <NavLink to={'/refetch'}>Refetch</NavLink>
           </li>
+          <li className="pb-4">
+            <NavLink to={'/fetchMore'}>Fetch More</NavLink>
+          </li>
         </ul>
       </div>
       <div className="flex-1 mt-10">
