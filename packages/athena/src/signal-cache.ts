@@ -1,4 +1,4 @@
-import type { Entries } from 'type-fest';
+import type { Entries, Merge } from 'type-fest';
 import type { CacheKey, PropertyPath } from './client.js';
 import { createSignalProxy } from './signal-proxy.js';
 import { traverse } from './traverse.js';
@@ -32,9 +32,35 @@ function defaultIdGetter(v: Entity) {
   return `${v.__typename}:${v.id}`;
 }
 
+const mergeResolvers = {
+  PetsForAdoption: {
+    pets: (previousPets = [], nextPets = []) => {
+      return [
+        ...previousPets,
+        ...nextPets.map((p) => {
+          console.log(p);
+          return {
+            __link: p,
+          };
+        }),
+      ];
+    },
+  },
+};
+
+export type MergeResolvers = {
+  [typename: string]: {
+    [attributeName: string]: (
+      currentValue?: string | string[] | undefined,
+      newValue?: Entity[] | any | undefined
+    ) => LinkNode[];
+  };
+};
+
 export class SignalCache {
-  getCacheKey: IdFetcher;
   signalAdapter: ReactiveAdapter;
+  getCacheKey: IdFetcher;
+  mergeResolvers: MergeResolvers;
   queryLifetimes = new Map<string, number>();
   // TTL measured in milliseconds
   queryTTL: number;
@@ -47,10 +73,12 @@ export class SignalCache {
   constructor(
     signalAdapter: ReactiveAdapter,
     getCacheKey: IdFetcher = defaultIdGetter,
+    mergeResolvers: MergeResolvers,
     queryTTL = 60_000
   ) {
-    this.getCacheKey = getCacheKey;
     this.signalAdapter = signalAdapter;
+    this.getCacheKey = getCacheKey;
+    this.mergeResolvers = mergeResolvers;
     this.queryTTL = queryTTL;
     this.registry = new FinalizationRegistry((key) => {
       this.evict(key);
@@ -107,6 +135,23 @@ export class SignalCache {
 
     (Object.entries(entity) as Entries<typeof entity>).forEach(
       ([entityKey, value]) => {
+        if (
+          this.mergeResolvers &&
+          this.mergeResolvers[entity.__typename] &&
+          this.mergeResolvers[entity.__typename][entityKey]
+        ) {
+          try {
+            value = this.mergeResolvers[entity.__typename][entityKey](
+              links[entityKey],
+              value
+            );
+          } catch (e: unknown) {
+            console.error(
+              `failure to enact custom resolver strategy for ${entity.__typename}:${entityKey} with failure ${e}`
+            );
+          }
+        }
+
         if (Array.isArray(value)) {
           const arrayLink: Array<string> = [];
           value.forEach((link) => {

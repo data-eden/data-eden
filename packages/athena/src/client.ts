@@ -1,7 +1,11 @@
 import { buildCache } from '@data-eden/cache';
 import { set } from 'lodash-es';
 import { isEntity, parseEntities } from './parse-entities.js';
-import { SignalCache, createLinkNode } from './signal-cache.js';
+import {
+  type MergeResolvers,
+  SignalCache,
+  createLinkNode,
+} from './signal-cache.js';
 import type {
   DataEdenCache,
   DefaultVariables,
@@ -21,6 +25,7 @@ export interface ClientArgs {
   buildRequest?: BuildRequest;
   adapter: ReactiveAdapter;
   queryTTL?: number;
+  mergeResolvers: MergeResolvers;
 }
 
 export interface QueryOptions {
@@ -58,6 +63,7 @@ export class AthenaClient {
     this.signalCache = new SignalCache(
       options.adapter,
       options.getCacheKey,
+      options.mergeResolvers,
       options.queryTTL
     );
 

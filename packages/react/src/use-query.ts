@@ -16,7 +16,7 @@ import {
 } from 'react';
 import { useAthenaClient } from './provider.js';
 import { setupDependencyTracking } from './setup-dependency-tracking.js';
-import { EMPTY, safeIncrement, mergeDeep } from './utils.js';
+import { EMPTY, safeIncrement } from './utils.js';
 
 // Key and memoize the variables object so we determine when the variables themselves have
 // actually changed
@@ -152,10 +152,6 @@ export function useQuery<
             reload: true,
           }
         );
-
-        // We are going to walk the data and merge over the result so that we can keep the proxies
-        // Any fields that are updated will be on the newest signal
-        mergeDeep<Data>(result, data);
 
         trackDeps(data, error);
       } finally {

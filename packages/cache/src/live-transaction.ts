@@ -178,6 +178,7 @@ export class LiveCacheTransactionImpl<
         transactionUpdates
       );
     } catch (e) {
+      console.log(e);
       throw new Error('Failed to prepare transaction updates');
     } finally {
       this.#transactionOperations.releaseTxCommitLock(this);

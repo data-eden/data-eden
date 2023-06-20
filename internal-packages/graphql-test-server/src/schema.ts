@@ -67,6 +67,11 @@ const gqlSchema = `
     owner: Person!
   }
 
+  type PetsForAdoption {
+    id: ID!
+    pets: [Pet!]!
+  }
+
   input UpdatePetInput {
     name: String!
   }
@@ -85,7 +90,7 @@ const gqlSchema = `
     person(id: ID!): Person!
     car(id: ID!): Car!
     people: [Person!]!
-    petsForAdoption: [Pet!]!
+    petsForAdoption: PetsForAdoption!
   }
 
   type Mutation {
@@ -119,11 +124,14 @@ export const schema = createSchema({
         return cars.find((car) => car.id === id);
       },
       petsForAdoption: () => {
-        return Array.from({ length: Math.floor(Math.random() * 15) + 1 }).map(
-          () => {
-            return generatePet();
-          }
-        );
+        return {
+          id: 1234,
+          pets: Array.from({ length: Math.floor(Math.random() * 15) + 1 }).map(
+            () => {
+              return generatePet();
+            }
+          ),
+        };
       },
     },
 
