@@ -54,6 +54,25 @@ interface QueryResponse<
   fetchMore: (variables?: Variables, options?: QueryOptions) => Promise<void>;
 }
 
+function unwrapObject(obj) {
+  if (typeof obj !== 'object' || obj === null) {
+    return obj; // Base case: if obj is not an object, return it as is
+  }
+
+  if ('_value' in obj) {
+    return obj._value; // If obj has _value property, return its value
+  }
+
+  // Recursively unwrap nested properties
+  const unwrappedObj = Array.isArray(obj) ? [] : {}; // Create an empty array or object
+
+  for (const key in obj) {
+    unwrappedObj[key] = unwrapObject(obj[key]); // Recursively unwrap nested properties
+  }
+
+  return unwrappedObj;
+}
+
 interface UseQueryOptions<Data extends object = object> {
   initialData?: Data;
   lazy?: boolean;
@@ -70,39 +89,50 @@ export function useQuery<
 ): QueryResponse<Data> {
   const client = useAthenaClient();
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<Data | undefined>(options.initialData);
+  const [result, setResult] = useState<Data | undefined>();
+  const [didMount, setDidMount] = useState(false);
   const [error, setError] = useState<ClientError>();
   const [, forceUpdate] = useReducer(safeIncrement, 0);
   const reactionRef = useRef<Reaction>();
   const vars = useVariables(variables);
   const { initialData } = options;
 
-  const trackDeps = useCallback(
-    (data?: Data, error?: ClientError) => {
-      setupDependencyTracking(
-        () => {
-          if (data) {
-            setResult(data);
-          }
+  console.log(unwrapObject(result));
 
-          if (error) {
-            setError(error);
-          }
+  useEffect(() => {
+    setDidMount(true);
+  }, []);
 
-          forceUpdate();
-        },
-        reactionRef,
-        data
-      );
-    },
-    [EMPTY]
-  );
+  // This will happen on the server as a way to initialize the data without useEffect
+  if (!didMount && initialData && !result) {
+    setResult(initialData);
+  }
 
-  if (initialData) {
-    useEffect(() => {
+  const trackDeps = useCallback((data?: Data, error?: ClientError) => {
+    setupDependencyTracking(
+      () => {
+        if (data) {
+          setResult(data);
+        }
+
+        if (error) {
+          setError(error);
+        }
+
+        forceUpdate();
+      },
+      reactionRef,
+      data
+    );
+  }, EMPTY);
+
+  // This will only happen on the client
+  useEffect(() => {
+    if (initialData) {
       void (async function () {
         const data = await client.processEntities(initialData);
 
+        console.log(data, initialData);
         trackDeps(data);
       })();
 
@@ -110,8 +140,8 @@ export function useQuery<
         reactionRef.current?.dispose();
         reactionRef.current = undefined;
       };
-    }, EMPTY);
-  }
+    }
+  }, EMPTY);
 
   const refetch = useCallback(async function <
     Variables extends DefaultVariables = DefaultVariables
@@ -127,7 +157,8 @@ export function useQuery<
         options
       );
 
-      setResult(data);
+      reactionRef.current?.dispose();
+      reactionRef.current = undefined;
 
       trackDeps(data, error);
     } finally {
@@ -153,9 +184,10 @@ export function useQuery<
           }
         );
 
-        // We are going to walk the data and merge over the result so that we can keep the proxies
-        // Any fields that are updated will be on the newest signal
-        mergeDeep<Data>(result, data);
+        reactionRef.current?.dispose();
+        reactionRef.current = undefined;
+
+        console.log(unwrapObject(data));
 
         trackDeps(data, error);
       } finally {

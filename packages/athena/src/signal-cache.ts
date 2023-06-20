@@ -32,6 +32,13 @@ function defaultIdGetter(v: Entity) {
   return `${v.__typename}:${v.id}`;
 }
 
+const mergeResolvers = {
+  PetsForAdoption: {
+    pets: (previousPets = [], nextPets = []) => {
+      return [...previousPets, nextPets];
+    },
+  },
+};
 export class SignalCache {
   getCacheKey: IdFetcher;
   signalAdapter: ReactiveAdapter;
@@ -107,6 +114,24 @@ export class SignalCache {
 
     (Object.entries(entity) as Entries<typeof entity>).forEach(
       ([entityKey, value]) => {
+        // if (
+        //   mergeResolvers[entity.__typename] &&
+        //   mergeResolvers[entity.__typename][entityKey]
+        // ) {
+        //   try {
+        //     value = mergeResolvers[entity.__typename][entityKey](
+        //       links[entityKey],
+        //       value
+        //     );
+        //     console.log('new value', value);
+        //   } catch (ex) {
+        //     console.error(
+        //       `failure to enact custom resolver strategy for ${entity.__typename}:${entityKey} with failure`,
+        //       ex.message
+        //     );
+        //   }
+        // }
+
         if (Array.isArray(value)) {
           const arrayLink: Array<string> = [];
           value.forEach((link) => {

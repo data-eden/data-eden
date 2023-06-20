@@ -7,6 +7,6 @@
   "8f6f79e36cbc21beda49d817494f6c85e302231458c543d030d1e8af901c7f36": "query Car($id: ID!) { car(id: $id) { __typename id make model owner { __typename id } } }",
   "2b0fc416adc23e2c7cc9761a868714cb5662650a21e9fe14bfa358d98c68b82c": "fragment PersonFields on Person { __typename id name } query Person($id: ID!) { person(id: $id) { __typename car { __typename id make model } pets { __typename id name owner { __typename ...PersonFields } } ...PersonFields } }",
   "4eb0d9d1a2901538f228ca5652d69bf63c60f0864fdc0450e3c1f5d30968bf10": "fragment CarFields on Car { id make model } fragment PersonFieldsShared on Person { __typename id name } fragment PetFields on Pet { __typename id name owner { ...PersonFieldsShared } } query Person($id: ID!) { person(id: $id) { __typename car { __typename ...CarFields } pets { __typename ...PetFields } ...PersonFieldsShared } }",
-  "4cb4a35af8031dd99d81abbfcd1356bcf80d15e873447e14f113544b1a88953e": "query PetsForAdoption { petsForAdoption { __typename id name owner { __typename id name } } }",
+  "c14630fad5e9dcdd6b37a7a7d1d836c1a7eea9950778e188d7705b1d119540ac": "query PetsForAdoption { petsForAdoption { __typename id pets { __typename id name owner { __typename id name } } } }",
   "fb1de7b0677530702610754ef9906528b8f6d42dfc76d34f9acfd51850c4c52e": "query Car($id: ID!) { car(id: $id) { __typename id make model owner { __typename ... on Person { __typename id } } } }"
 }

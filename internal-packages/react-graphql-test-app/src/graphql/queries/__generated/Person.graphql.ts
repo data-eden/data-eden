@@ -6,22 +6,14 @@ export type PersonQueryVariables = Types.Exact<{
   id: Types.Scalars['ID'];
 }>;
 
-export type PersonQuery = {
-  __typename: 'Query';
-  person: {
-    __typename: 'Person';
-    car: { __typename: 'Car'; id: string; make: string; model: string };
-    pets: Array<{
-      __typename: 'Pet';
-      id: string;
-      name: string;
-      owner: { __typename: 'Person' } & PersonFieldsFragment;
-    }>;
-  } & PersonFieldsFragment;
-};
 
-export const PersonDocument = {
-  __meta__: {
-    queryId: '2b0fc416adc23e2c7cc9761a868714cb5662650a21e9fe14bfa358d98c68b82c',
-  },
-} as unknown as DocumentNode<PersonQuery, PersonQueryVariables>;
+export type PersonQuery = { __typename: 'Query', person: (
+    { __typename: 'Person', car: { __typename: 'Car', id: string, make: string, model: string }, pets: Array<{ __typename: 'Pet', id: string, name: string, owner: (
+        { __typename: 'Person' }
+        & PersonFieldsFragment
+      ) }> }
+    & PersonFieldsFragment
+  ) };
+
+
+export const PersonDocument = {"__meta__":{"queryId":"2b0fc416adc23e2c7cc9761a868714cb5662650a21e9fe14bfa358d98c68b82c"}} as unknown as DocumentNode<PersonQuery, PersonQueryVariables>;

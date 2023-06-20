@@ -21,5 +21,36 @@ describe('utils', () => {
         }
       `);
     });
+
+    test('should be able to merge fields when original field is null', () => {
+      expect(
+        mergeDeep(
+          {
+            paginatedCommentsPage: {
+              comments: [
+                {
+                  message: 'earth is better!',
+                },
+              ],
+            },
+          },
+          {
+            paginatedCommentsPage: {
+              comments: [
+                {
+                  message: 'hello world!',
+                },
+              ],
+            },
+          }
+        )
+      ).toMatchInlineSnapshot(`
+        {
+          "paginatedCommentsPage": [
+            "hello world!",
+          ],
+        }
+      `);
+    });
   });
 });

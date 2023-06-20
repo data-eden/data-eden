@@ -7,10 +7,14 @@ const petsForAdoptionQuery = gql`
     petsForAdoption {
       __typename
       id
-      name
-      owner {
+      pets {
+        __typename
         id
         name
+        owner {
+          id
+          name
+        }
       }
     }
   }
@@ -76,23 +80,41 @@ export default function FetchMore() {
     {
       lazy: true,
       initialData: {
-        petsForAdoption: undefined,
+        petsForAdoption: {
+          id: 1234,
+          pets: [
+            {
+              __typename: 'Pet',
+              id: 'asldkfj',
+              name: 'bob bobberson',
+              owner: {
+                id: 1,
+              },
+            },
+          ],
+        },
       },
     }
   );
+
   const [amountToRequest, setAmountToRequest] = useState<{
     [key: number]: number;
-  }>({});
-  const [requestCount, setRequestCount] = useState(0);
+  }>({
+    1: 1,
+  });
+  const [requestCount, setRequestCount] = useState(1);
 
   useEffect(() => {
-    if (data?.petsForAdoption?.length > 0 && !amountToRequest[requestCount]) {
+    if (
+      data?.petsForAdoption?.pets?.length > 0 &&
+      !amountToRequest[requestCount]
+    ) {
       setAmountToRequest({
         ...amountToRequest,
-        [data?.petsForAdoption.length]: requestCount,
+        [data?.petsForAdoption?.pets.length]: requestCount,
       });
     }
-  }, [data?.petsForAdoption]);
+  }, [data?.petsForAdoption?.pets]);
 
   return (
     <>
@@ -131,11 +153,11 @@ export default function FetchMore() {
 
       {loading && <div>Loading...</div>}
 
-      {data && (
+      {data && data?.petsForAdoption?.pets?.length && (
         <>
-          <div>{data?.petsForAdoption?.length}</div>
+          <div>{data?.petsForAdoption?.pets?.length}</div>
           <BoxedItems
-            items={data?.petsForAdoption}
+            items={data?.petsForAdoption?.pets}
             rangesMap={amountToRequest}
           />
         </>
