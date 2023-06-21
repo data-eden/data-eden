@@ -6,8 +6,13 @@ export type UpdatePetMutationVariables = Types.Exact<{
   input: Types.UpdatePetInput;
 }>;
 
+export type UpdatePetMutation = {
+  __typename: 'Mutation';
+  updatePet: { __typename: 'Pet'; id: string; name: string };
+};
 
-export type UpdatePetMutation = { __typename: 'Mutation', updatePet: { __typename: 'Pet', id: string, name: string } };
-
-
-export const UpdatePetDocument = {"__meta__":{"queryId":"af5c6749a82a0b93e9bce39adf9627e4fb5fd249da1010f72650417b155a5f65"}} as unknown as DocumentNode<UpdatePetMutation, UpdatePetMutationVariables>;
+export const UpdatePetDocument = {
+  __meta__: {
+    queryId: 'af5c6749a82a0b93e9bce39adf9627e4fb5fd249da1010f72650417b155a5f65',
+  },
+} as unknown as DocumentNode<UpdatePetMutation, UpdatePetMutationVariables>;
