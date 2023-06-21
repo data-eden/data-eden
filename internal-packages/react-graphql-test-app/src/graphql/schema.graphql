@@ -44,6 +44,11 @@ type Pet {
   breed: Breed!
 }
 
+type PetsForAdoption {
+  id: ID!
+  pets: [Pet!]!
+}
+
 input UpdatePetInput {
   name: String!
 }
@@ -62,7 +67,7 @@ type Query {
   person(id: ID!): Person!
   car(id: ID!): Car!
   people: [Person!]!
-  petsForAdoption: [Pet!]!
+  petsForAdoption: PetsForAdoption!
 }
 
 type Mutation {

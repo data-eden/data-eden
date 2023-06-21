@@ -38,6 +38,7 @@ export interface GraphQLOperation<
       sha256Hash: string;
     };
   };
+  fetchMore?: boolean;
 }
 
 export interface GraphQLResponse<Data extends object = object> {

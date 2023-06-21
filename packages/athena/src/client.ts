@@ -1,9 +1,13 @@
-import { buildCache } from '@data-eden/cache';
+import type { Cache } from '@data-eden/cache';
+import { buildCache, type DefaultRegistry } from '@data-eden/cache';
 import { set } from 'lodash-es';
 import { isEntity, parseEntities } from './parse-entities.js';
-import { SignalCache, createLinkNode } from './signal-cache.js';
+import {
+  createLinkNode,
+  SignalCache,
+  type MergeResolvers,
+} from './signal-cache.js';
 import type {
-  DataEdenCache,
   DefaultVariables,
   DocumentInput,
   GraphQLOperation,
@@ -21,10 +25,12 @@ export interface ClientArgs {
   buildRequest?: BuildRequest;
   adapter: ReactiveAdapter;
   queryTTL?: number;
+  mergeResolvers?: MergeResolvers;
 }
 
 export interface QueryOptions {
   reload?: boolean;
+  fetchMore?: boolean;
 }
 
 export type BuildRequest = (request: GraphQLOperation) => RequestInit;
@@ -42,10 +48,14 @@ function defaultBuildRequest(request: GraphQLOperation): RequestInit {
   };
 }
 
+interface Context {
+  fetchMore: boolean;
+}
+
 export class AthenaClient {
   private url: string;
   private fetch: typeof fetch;
-  private cache: DataEdenCache;
+  private cache: Cache<DefaultRegistry, string, unknown, unknown, Context>;
   private getCacheKey: IdFetcher;
   private signalCache: SignalCache;
   private buildRequest: BuildRequest;
@@ -58,23 +68,26 @@ export class AthenaClient {
     this.signalCache = new SignalCache(
       options.adapter,
       options.getCacheKey,
+      options.mergeResolvers,
       options.queryTTL
     );
 
     const signalCache = this.signalCache;
-    this.cache = buildCache({
-      hooks: {
-        async commit(tx) {
-          for await (let entry of tx.localEntries()) {
-            const [key, entity] = entry;
-            // Entity can also be string | number so we need to make sure it's actually an object here
-            if (isEntity(entity)) {
-              signalCache.storeEntity(key, entity);
+    this.cache = buildCache<DefaultRegistry, string, unknown, unknown, Context>(
+      {
+        hooks: {
+          async commit(tx) {
+            for await (let entry of tx.localEntries()) {
+              const [key, entity] = entry;
+              // Entity can also be string | number so we need to make sure it's actually an object here
+              if (isEntity(entity)) {
+                signalCache.storeEntity(key, entity, !!tx.context.fetchMore);
+              }
             }
-          }
+          },
         },
-      },
-    });
+      }
+    );
   }
 
   async query<
@@ -85,7 +98,11 @@ export class AthenaClient {
     variables?: Variables,
     options?: QueryOptions
   ): Promise<OperationResult<Data>> {
-    const prepared = prepareOperation<Data, Variables>(operation, variables);
+    const prepared = prepareOperation<Data, Variables>(
+      operation,
+      variables,
+      options?.fetchMore
+    );
     const result: OperationResult<Data> = {};
     if (!options?.reload) {
       const cachedEntities = this.signalCache.readOperation(prepared);
@@ -121,7 +138,10 @@ export class AthenaClient {
     const result: OperationResult<Data> = {};
 
     try {
-      response = await this.fetch(this.url, this.buildRequest(operation));
+      response = await this.fetch(
+        this.url,
+        this.buildRequest({ ...operation, fetchMore: undefined })
+      );
     } catch (err) {
       result.error = {
         network: err,
@@ -171,7 +191,10 @@ export class AthenaClient {
      *   [ car ]
      * ]
      */
-    const tx = await this.cache.beginTransaction();
+    const tx = await this.cache.beginTransaction({
+      fetchMore: !!operation?.fetchMore,
+    });
+
     for (const parsedEntities of parsedEntitiesList) {
       for (const { parent, prop, entity } of parsedEntities) {
         const key = this.getCacheKey(entity, parent);

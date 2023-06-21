@@ -18,23 +18,38 @@ export class LiveCacheTransactionImpl<
     CacheKeyRegistry extends DefaultRegistry,
     Key extends keyof CacheKeyRegistry,
     $Debug = unknown,
-    UserExtensionData = unknown
+    UserExtensionData = unknown,
+    Context extends object = object
   >
-  extends CacheTransactionImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>
+  extends CacheTransactionImpl<
+    CacheKeyRegistry,
+    Key,
+    $Debug,
+    UserExtensionData,
+    Context
+  >
   implements
-    LiveCacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
+    LiveCacheTransaction<
+      CacheKeyRegistry,
+      Key,
+      $Debug,
+      UserExtensionData,
+      Context
+    >
 {
   #originalCacheReference: Cache<
     CacheKeyRegistry,
     Key,
     $Debug,
-    UserExtensionData
+    UserExtensionData,
+    Context
   >;
   #transactionalCache: Map<Key, CacheKeyRegistry[Key]>;
   #userOptionRetentionPolicy: ExpirationPolicy;
   #ttlPolicy: number;
   #lruPolicy: number;
   #revisionContext: unknown;
+  context: Context;
 
   #transactionOperations: TransactionOperations<
     CacheKeyRegistry,
@@ -44,7 +59,13 @@ export class LiveCacheTransactionImpl<
   >;
 
   constructor(
-    originalCache: Cache<CacheKeyRegistry, Key, $Debug, UserExtensionData>,
+    originalCache: Cache<
+      CacheKeyRegistry,
+      Key,
+      $Debug,
+      UserExtensionData,
+      Context
+    >,
     cacheEntriesBeforeTransaction: Map<Key, CacheKeyRegistry[Key]>,
     cacheRevisionsBeforeTransaction: Map<
       Key,
@@ -55,7 +76,8 @@ export class LiveCacheTransactionImpl<
       Key,
       $Debug,
       UserExtensionData
-    >
+    >,
+    context: Context = {} as Context
   ) {
     super(originalCache);
 
@@ -64,6 +86,7 @@ export class LiveCacheTransactionImpl<
 
     this.#transactionalCache = this.getTransactionalCache();
     // this.#cacheEntryState = this.cacheEntryState;
+    this.context = context;
 
     this.setCacheEntriesBeforeTransaction(cacheEntriesBeforeTransaction);
     this.setRevisionsBeforeTransactionStart(cacheRevisionsBeforeTransaction);
@@ -178,6 +201,7 @@ export class LiveCacheTransactionImpl<
         transactionUpdates
       );
     } catch (e) {
+      console.log(e);
       throw new Error('Failed to prepare transaction updates');
     } finally {
       this.#transactionOperations.releaseTxCommitLock(this);

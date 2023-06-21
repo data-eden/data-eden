@@ -7,17 +7,21 @@ export type PetsForAdoptionQueryVariables = Types.Exact<{
 
 export type PetsForAdoptionQuery = {
   __typename: 'Query';
-  petsForAdoption: Array<{
-    __typename: 'Pet';
+  petsForAdoption: {
+    __typename: 'PetsForAdoption';
     id: string;
-    name: string;
-    owner: { __typename: 'Person'; id: string; name: string };
-  }>;
+    pets: Array<{
+      __typename: 'Pet';
+      id: string;
+      name: string;
+      owner: { __typename: 'Person'; id: string; name: string };
+    }>;
+  };
 };
 
 export const PetsForAdoptionDocument = {
   __meta__: {
-    queryId: '4cb4a35af8031dd99d81abbfcd1356bcf80d15e873447e14f113544b1a88953e',
+    queryId: 'c14630fad5e9dcdd6b37a7a7d1d836c1a7eea9950778e188d7705b1d119540ac',
   },
 } as unknown as DocumentNode<
   PetsForAdoptionQuery,

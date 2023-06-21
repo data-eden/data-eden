@@ -23,6 +23,20 @@ export const client = createClient({
   url: 'http://localhost:4000/graphql',
   getCacheKey: (v: Entity) => `${v.__typename}:${v.id}`,
   fetch: buildFetch([]),
+  mergeResolvers: {
+    PetsForAdoption: {
+      pets: (currentValue = [], newValue = []) => {
+        return [
+          ...currentValue.map((p) => {
+            return {
+              __link: p,
+            };
+          }),
+          ...newValue,
+        ];
+      },
+    },
+  },
 });
 
 const router = createBrowserRouter([
@@ -59,9 +73,9 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <AthenaProvider value={client}>
-      <RouterProvider router={router} />
-    </AthenaProvider>
-  </React.StrictMode>
+  // <React.StrictMode>
+  <AthenaProvider value={client}>
+    <RouterProvider router={router} />
+  </AthenaProvider>
+  // </React.StrictMode>
 );
