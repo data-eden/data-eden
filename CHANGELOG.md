@@ -15,6 +15,16 @@
 
 
 
+
+## v0.12.2 (2023-06-21)
+
+#### :rocket: Enhancement
+* `athena`, `cache`, `react`
+  * [#161](https://github.com/data-eden/data-eden/pull/161) feat: adds mergeResolvers to handle fetchMore data ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
 ## v0.12.1 (2023-06-16)
 
 #### :bug: Bug Fix
