@@ -317,7 +317,7 @@ export interface CacheOptions<
   Key extends keyof CacheKeyRegistry,
   $Debug = unknown,
   UserExtensionData = unknown,
-  Context = unknown
+  Context extends object = object
 > {
   hooks?: {
     /**
