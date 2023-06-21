@@ -26,14 +26,6 @@ export const client = createClient({
   mergeResolvers: {
     PetsForAdoption: {
       pets: (currentValue = [], newValue = []) => {
-        console.log('hilllloooo', currentValue, newValue, [
-          ...currentValue.map((p) => {
-            return {
-              __link: p,
-            };
-          }),
-          ...newValue,
-        ]);
         return [
           ...currentValue.map((p) => {
             return {

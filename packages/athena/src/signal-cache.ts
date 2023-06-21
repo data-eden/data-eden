@@ -44,7 +44,7 @@ export type MergeResolvers = {
 export class SignalCache {
   signalAdapter: ReactiveAdapter;
   getCacheKey: IdFetcher;
-  mergeResolvers: MergeResolvers;
+  mergeResolvers?: MergeResolvers;
   queryLifetimes = new Map<string, number>();
   // TTL measured in milliseconds
   queryTTL: number;
@@ -57,7 +57,7 @@ export class SignalCache {
   constructor(
     signalAdapter: ReactiveAdapter,
     getCacheKey: IdFetcher = defaultIdGetter,
-    mergeResolvers: MergeResolvers,
+    mergeResolvers?: MergeResolvers,
     queryTTL = 60_000
   ) {
     this.signalAdapter = signalAdapter;

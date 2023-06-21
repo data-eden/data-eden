@@ -126,8 +126,6 @@ export default function FetchMore() {
   });
   const [requestCount, setRequestCount] = useState(1);
 
-  console.log(unwrapObject(data)?.petsForAdoption?.pets);
-
   return (
     <>
       <div>

@@ -25,7 +25,7 @@ export interface ClientArgs {
   buildRequest?: BuildRequest;
   adapter: ReactiveAdapter;
   queryTTL?: number;
-  mergeResolvers: MergeResolvers;
+  mergeResolvers?: MergeResolvers;
 }
 
 export interface QueryOptions {

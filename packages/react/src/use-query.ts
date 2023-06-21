@@ -130,7 +130,8 @@ export function useQuery<
         }
       );
 
-      setResult(data);
+      reactionRef.current?.dispose();
+      reactionRef.current = undefined;
 
       trackDeps(data, error);
     } finally {
@@ -156,6 +157,9 @@ export function useQuery<
             fetchMore: true,
           }
         );
+
+        reactionRef.current?.dispose();
+        reactionRef.current = undefined;
 
         trackDeps(data, error);
       } finally {
