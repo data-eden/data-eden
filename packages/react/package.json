@@ -24,8 +24,7 @@
   "module": "./dist/data-eden-react.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "vite build && tsc -p tsconfig.build.json",
-    "test": "vitest run"
+    "build": "vite build && tsc -p tsconfig.build.json"
   },
   "dependencies": {
     "@data-eden/athena": "^0.12.1",
