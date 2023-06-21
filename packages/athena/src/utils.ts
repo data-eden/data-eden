@@ -98,16 +98,17 @@ export function prepareOperation<
   Variables extends DefaultVariables = DefaultVariables
 >(
   operation: DocumentInput<Data, Variables>,
-  variables?: Variables
+  variables?: Variables,
+  fetchMore?: boolean
 ): GraphQLOperation<Data, Variables> {
   const parsed = (
     typeof operation === 'string' ? parse(operation) : operation
   ) as AthenaDocumentNode;
 
-  const request: GraphQLOperation<Data, Variables> = {};
+  const op: GraphQLOperation<Data, Variables> = {};
 
   if (parsed.__meta__) {
-    request.extensions = {
+    op.extensions = {
       persistedQuery: {
         version: 1,
         sha256Hash: parsed.__meta__.queryId,
@@ -115,10 +116,12 @@ export function prepareOperation<
     };
   } else {
     const withTypename = addTypenameToDocument<Data, Variables>(parsed);
-    request.query = print(withTypename);
+    op.query = print(withTypename);
   }
 
-  request.variables = variables;
+  op.variables = variables;
 
-  return request;
+  op.fetchMore = !!fetchMore;
+
+  return op;
 }

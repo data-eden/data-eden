@@ -1,8 +1,8 @@
-import type { Entries, Merge } from 'type-fest';
+import { addMilliseconds, getTime } from 'date-fns';
+import type { Entries } from 'type-fest';
 import type { CacheKey, PropertyPath } from './client.js';
 import { createSignalProxy } from './signal-proxy.js';
 import { traverse } from './traverse.js';
-import { addMilliseconds, getTime } from 'date-fns';
 import type {
   DefaultVariables,
   Entity,
@@ -31,22 +31,6 @@ function isLinkNode(v: unknown): v is LinkNode {
 function defaultIdGetter(v: Entity) {
   return `${v.__typename}:${v.id}`;
 }
-
-const mergeResolvers = {
-  PetsForAdoption: {
-    pets: (previousPets = [], nextPets = []) => {
-      return [
-        ...previousPets,
-        ...nextPets.map((p) => {
-          console.log(p);
-          return {
-            __link: p,
-          };
-        }),
-      ];
-    },
-  },
-};
 
 export type MergeResolvers = {
   [typename: string]: {
@@ -129,13 +113,14 @@ export class SignalCache {
   }
 
   // Store a single entity by key.
-  storeEntity(key: string, entity: Entity) {
+  storeEntity(key: string, entity: Entity, fetchMore = false) {
     const record = this.records.get(key) || {};
     const links = this.links.get(key) || {};
 
     (Object.entries(entity) as Entries<typeof entity>).forEach(
       ([entityKey, value]) => {
         if (
+          fetchMore &&
           this.mergeResolvers &&
           this.mergeResolvers[entity.__typename] &&
           this.mergeResolvers[entity.__typename][entityKey]
@@ -147,7 +132,9 @@ export class SignalCache {
             );
           } catch (e: unknown) {
             console.error(
-              `failure to enact custom resolver strategy for ${entity.__typename}:${entityKey} with failure ${e}`
+              `failure to enact custom resolver strategy for ${
+                entity.__typename
+              }:${entityKey} with failure ${JSON.stringify(e)}`
             );
           }
         }

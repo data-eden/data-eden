@@ -156,7 +156,6 @@ export default function FetchMore() {
           className="ml-2 px-2 py-1 font-semibold text-sm bg-slate-500 text-white rounded-md shadow-sm opacity-100"
           onClick={async () => {
             setRequestCount(0);
-            setAmountToRequest({});
 
             await refetch(
               {},
@@ -167,7 +166,6 @@ export default function FetchMore() {
 
             if (data?.petsForAdoption?.pets?.length > 0) {
               setAmountToRequest({
-                ...amountToRequest,
                 [data?.petsForAdoption?.pets.length]: 0,
               });
             }
