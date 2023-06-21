@@ -11,11 +11,24 @@ export class CommittingTransactionImpl<
     CacheKeyRegistry extends DefaultRegistry,
     Key extends keyof CacheKeyRegistry = keyof CacheKeyRegistry,
     $Debug = unknown,
-    UserExtensionData = unknown
+    UserExtensionData = unknown,
+    Context extends object = object
   >
-  extends CacheTransactionImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>
+  extends CacheTransactionImpl<
+    CacheKeyRegistry,
+    Key,
+    $Debug,
+    UserExtensionData,
+    Context
+  >
   implements
-    CommittingTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
+    CommittingTransaction<
+      CacheKeyRegistry,
+      Key,
+      $Debug,
+      UserExtensionData,
+      Context
+    >
 {
   #txRetainedEntryRevisions: Map<
     Key,
@@ -42,7 +55,13 @@ export class CommittingTransactionImpl<
   }
 
   constructor(
-    originalCache: Cache<CacheKeyRegistry, Key, $Debug, UserExtensionData>,
+    originalCache: Cache<
+      CacheKeyRegistry,
+      Key,
+      $Debug,
+      UserExtensionData,
+      Context
+    >,
     cacheRevisionsBeforeTransaction: Map<
       Key,
       CachedEntityRevision<CacheKeyRegistry, Key>[]

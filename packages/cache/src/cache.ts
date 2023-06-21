@@ -26,13 +26,14 @@ class CacheImpl<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry,
   $Debug = unknown,
-  UserExtensionData = unknown
-> implements Cache<CacheKeyRegistry, Key, $Debug, UserExtensionData>
+  UserExtensionData = unknown,
+  Context extends object = object
+> implements Cache<CacheKeyRegistry, Key, $Debug, UserExtensionData, Context>
 {
   #weakCache: Map<Key, WeakRef<CacheKeyRegistry[Key]>>;
   #entryRevisions: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>;
   #cacheOptions:
-    | CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData>
+    | CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData, Context>
     | undefined;
   #cacheEntryState: Map<Key, CacheEntryState<UserExtensionData> | undefined>;
   #lruCache: LruCacheImpl<CacheKeyRegistry, Key>;
@@ -61,7 +62,7 @@ class CacheImpl<
 
   constructor(
     options:
-      | CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData>
+      | CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData, Context>
       | undefined
   ) {
     this.#weakCache = new Map<Key, WeakRef<CacheKeyRegistry[Key]>>();
@@ -117,7 +118,7 @@ class CacheImpl<
   }
 
   getCacheOptions():
-    | CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData>
+    | CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData, Context>
     | undefined {
     return this.#cacheOptions;
   }
@@ -411,7 +412,9 @@ class CacheImpl<
     this.#cacheRevisionTransaction?.updateRevisions(localRevisionsMap);
   }
 
-  async beginTransaction(): Promise<
+  async beginTransaction(
+    context?: Context
+  ): Promise<
     LiveCacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
   > {
     const aquireTxCommitLock = (
@@ -491,12 +494,14 @@ class CacheImpl<
       CacheKeyRegistry,
       Key,
       $Debug,
-      UserExtensionData
+      UserExtensionData,
+      Context
     >(
       this,
       cacheEntriesBeforeTransaction,
       cacheRevisionsBeforeTransaction,
-      transactionOperations
+      transactionOperations,
+      context
     );
 
     return liveTx;
@@ -507,13 +512,24 @@ export function buildCache<
   CacheKeyRegistry extends DefaultRegistry = DefaultRegistry,
   Key extends keyof CacheKeyRegistry = keyof CacheKeyRegistry,
   $Debug = unknown,
-  UserExtensionData = unknown
+  UserExtensionData = unknown,
+  Context extends object = object
 >(
-  options?: CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData>
-): Cache<CacheKeyRegistry, Key, $Debug, UserExtensionData> {
-  return new CacheImpl<CacheKeyRegistry, Key, $Debug, UserExtensionData>(
-    options
-  );
+  options?: CacheOptions<
+    CacheKeyRegistry,
+    Key,
+    $Debug,
+    UserExtensionData,
+    Context
+  >
+): Cache<CacheKeyRegistry, Key, $Debug, UserExtensionData, Context> {
+  return new CacheImpl<
+    CacheKeyRegistry,
+    Key,
+    $Debug,
+    UserExtensionData,
+    Context
+  >(options);
 }
 
 class LruCacheImpl<

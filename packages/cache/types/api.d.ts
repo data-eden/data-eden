@@ -4,7 +4,8 @@ export interface Cache<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry,
   $Debug = unknown,
-  UserExtensionData = unknown
+  UserExtensionData = unknown,
+  Context extends object = object
 > {
   /**
     Evict all entries from the cache.
@@ -15,7 +16,7 @@ export interface Cache<
     Restuns all cache options passed
   */
   getCacheOptions():
-    | CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData>
+    | CacheOptions<CacheKeyRegistry, Key, $Debug, UserExtensionData, Context>
     | undefined;
 
   /**
@@ -82,7 +83,9 @@ export interface Cache<
   /**
     Creates a live transaction instance
   */
-  beginTransaction(): Promise<
+  beginTransaction(
+    context?: Context
+  ): Promise<
     LiveCacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
   >;
 }
@@ -91,7 +94,8 @@ export interface CacheTransaction<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry,
   $Debug = unknown,
-  UserExtensionData = unknown
+  UserExtensionData = unknown,
+  Context extends object = object
 > {
   /**
     Get the value of `cacheKey` in the cache.  If `key` has been modified in this
@@ -131,6 +135,8 @@ export interface CacheTransaction<
     cacheKey: Key
   ): AsyncIterableIterator<CachedEntityRevision<CacheKeyRegistry, Key>>;
 
+  context: Context;
+
   $debug?: $Debug & CacheTransactionDebugAPIs;
 }
 
@@ -141,8 +147,15 @@ export interface LiveCacheTransaction<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry,
   $Debug = unknown,
-  UserExtensionData = unknown
-> extends CacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData> {
+  UserExtensionData = unknown,
+  Context extends object = object
+> extends CacheTransaction<
+    CacheKeyRegistry,
+    Key,
+    $Debug,
+    UserExtensionData,
+    Context
+  > {
   /**
    * Merges cache entries based on merge strategy
    */
@@ -178,14 +191,23 @@ export interface LiveCacheTransaction<
    * Commits live transction entries.
    */
   commit(): Promise<void>;
+
+  context: Context;
 }
 
 export interface CommittingTransaction<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry = keyof CacheKeyRegistry,
   $Debug = unknown,
-  UserExtensionData = unknown
-> extends CacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData> {
+  UserExtensionData = unknown,
+  Context extends object = object
+> extends CacheTransaction<
+    CacheKeyRegistry,
+    Key,
+    $Debug,
+    UserExtensionData,
+    Context
+  > {
   cache: {
     clearRevisions(id: Key): void;
     appendRevisions(
@@ -294,7 +316,8 @@ export interface CacheOptions<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry,
   $Debug = unknown,
-  UserExtensionData = unknown
+  UserExtensionData = unknown,
+  Context = unknown
 > {
   hooks?: {
     /**
@@ -304,7 +327,13 @@ export interface CacheOptions<
     The default retention policies are all implementable in userland as commit hooks.
     */
     commit?: (
-      tx: CacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
+      tx: CacheTransaction<
+        CacheKeyRegistry,
+        Key,
+        $Debug,
+        UserExtensionData,
+        Context
+      >
     ) => Promise<void>;
 
     /**

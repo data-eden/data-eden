@@ -12,14 +12,17 @@ export class CacheTransactionImpl<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry,
   $Debug = unknown,
-  UserExtensionData = unknown
-> implements CacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData>
+  UserExtensionData = unknown,
+  Context extends object = object
+> implements
+    CacheTransaction<CacheKeyRegistry, Key, $Debug, UserExtensionData, Context>
 {
   #originalCacheReference: Cache<
     CacheKeyRegistry,
     Key,
     $Debug,
-    UserExtensionData
+    UserExtensionData,
+    Context
   >;
   #transactionalCache: Map<Key, CacheKeyRegistry[Key]>;
   #cacheEntriesBeforeTransaction: Map<Key, CacheKeyRegistry[Key]>;
@@ -32,9 +35,17 @@ export class CacheTransactionImpl<
   #userOptionExpirationPolicy: ExpirationPolicy;
   #localRevisionsMap: Map<Key, CachedEntityRevision<CacheKeyRegistry, Key>[]>;
   #cacheEntryState: Map<Key, CacheEntryState<UserExtensionData>>;
+  context: Context;
 
   constructor(
-    originalCache: Cache<CacheKeyRegistry, Key, $Debug, UserExtensionData>
+    originalCache: Cache<
+      CacheKeyRegistry,
+      Key,
+      $Debug,
+      UserExtensionData,
+      Context
+    >,
+    context: Context = {} as Context
   ) {
     this.#originalCacheReference = originalCache;
     this.#transactionalCache = new Map<Key, CacheKeyRegistry[Key]>();
@@ -44,6 +55,8 @@ export class CacheTransactionImpl<
     this.#userOptionExpirationPolicy =
       this.#originalCacheReference.getCacheOptions()?.expiration ||
       DEFAULT_EXPIRATION;
+
+    this.context = context;
 
     if (
       this.#userOptionExpirationPolicy &&

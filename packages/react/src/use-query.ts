@@ -124,7 +124,10 @@ export function useQuery<
         // if new variables were passed in, we use those, otherwise we execute with the original
         // set
         variables || vars,
-        options
+        {
+          ...options,
+          fetchMore: false,
+        }
       );
 
       setResult(data);
@@ -150,6 +153,7 @@ export function useQuery<
           variables || vars,
           {
             reload: true,
+            fetchMore: true,
           }
         );
 
