@@ -1,26 +1,9 @@
 # Changelog
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## v0.13.0 (2023-06-22)
 
 #### :rocket: Enhancement
-* `codegen`, `ember`
+* `athena`, `cache`, `codegen`, `ember`, `mocker`, `network`, `react`
   * [#162](https://github.com/data-eden/data-eden/pull/162) feat: migrate to typescript@5 ([@gabrielcsapo](https://github.com/gabrielcsapo))
 
 #### Committers: 1
