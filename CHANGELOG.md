@@ -16,6 +16,16 @@
 
 
 
+
+## v0.13.0 (2023-06-22)
+
+#### :rocket: Enhancement
+* `codegen`, `ember`
+  * [#162](https://github.com/data-eden/data-eden/pull/162) feat: migrate to typescript@5 ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
 ## v0.12.2 (2023-06-21)
 
 #### :rocket: Enhancement
