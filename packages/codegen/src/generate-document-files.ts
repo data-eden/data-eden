@@ -11,7 +11,7 @@ import type { DependencyGraph } from './gql/dependency-graph.js';
 import type { PrimaryKeyAlias } from './types.js';
 import { type Resolver } from './types.js';
 import { createDebug } from './debug.js';
-import { addPrimaryKeyAliasToGraphqlAST } from './utils.js';
+import { rewriteAst } from './utils.js';
 
 const debug = createDebug('generate-document-files');
 
@@ -48,7 +48,7 @@ export function generateDocumentFiles(
     }
   );
 
-  const files = handleGraphQLFiles(gqlFiles, primaryKeyAlias);
+  const files = handleGraphQLFiles(schema, gqlFiles, primaryKeyAlias);
   const { tags, dependencyGraph } = handleGraphQLTags(
     schema,
     gqlTags,
@@ -65,6 +65,7 @@ export function generateDocumentFiles(
 
 // TODO: resolver should be passed here to be able to resolve import paths
 function handleGraphQLFiles(
+  schema: GraphQLSchema,
   documentPaths: Array<string>,
   primaryKeyAlias: PrimaryKeyAlias | null
 ): Array<Types.DocumentFile> {
@@ -73,8 +74,9 @@ function handleGraphQLFiles(
 
     try {
       const contents = readFileSync(path, 'utf-8');
-      const parsed = addPrimaryKeyAliasToGraphqlAST(
+      const parsed = rewriteAst(
         parse(contents),
+        schema,
         primaryKeyAlias
       ) as DocumentNode;
 

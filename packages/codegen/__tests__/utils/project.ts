@@ -38,6 +38,7 @@ type Query {
   allUsers: [User]
   search(term: String!): [SearchResult!]!
   myChats: [Chat!]!
+  carsForDays(id: String!): [Car!]
 }
 
 enum Role {
@@ -50,6 +51,13 @@ interface Node {
 }
 
 union SearchResult = User | Chat | ChatMessage
+
+type Car implements Node {
+  id: ID!
+  make: String!
+  model: String!
+  owner: String!
+}
 
 type User implements Node {
   id: ID!

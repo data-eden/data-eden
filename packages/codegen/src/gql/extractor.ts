@@ -34,7 +34,7 @@ import { createHash } from 'crypto';
 import { existsSync } from 'node:fs';
 import type { PrimaryKeyAlias } from '../types.js';
 import { type Resolver } from '../types.js';
-import { addPrimaryKeyAliasToGraphqlAST } from '../utils.js';
+import { rewriteAst } from '../utils.js';
 
 const VALIDATION_RULES = [...specifiedRules].filter(
   // This rules will be applied once we have full depedency graph for the queries resolvedx
@@ -250,8 +250,9 @@ export function createExtractor(
         })
         .join('');
 
-      const documentNode = addPrimaryKeyAliasToGraphqlAST(
+      const documentNode = rewriteAst(
         graphqlParse(generatedDefinitionString),
+        schema,
         primaryKeyAlias
       ) as DocumentNode;
       const defAst = getDefinition(documentNode, filePath);

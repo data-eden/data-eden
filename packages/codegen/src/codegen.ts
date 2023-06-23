@@ -47,7 +47,9 @@ export async function athenaCodegen({
 
   const outputFiles: Array<OutputFile> = [];
   const persistedQueries: Record<string, string> = {};
-  const schemaPath = path.join(baseDir, schemaFile);
+  const schemaPath = path.isAbsolute(schemaFile)
+    ? schemaFile
+    : path.join(baseDir, schemaFile);
   // Read schema
   const rawSchema = await readFile(schemaPath, 'utf-8');
   const parsedSchema = parse(rawSchema);

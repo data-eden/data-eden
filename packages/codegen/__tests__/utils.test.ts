@@ -1,15 +1,16 @@
 import { describe, expect, test } from 'vitest';
 
-import { addPrimaryKeyAliasToGraphqlAST } from '../src/utils';
-import { parse, print } from 'graphql';
+import { graphqlFilesMap } from './utils/project';
+import { rewriteAst } from '../src/utils';
+import { buildASTSchema, parse, print } from 'graphql';
 
 describe('utils', () => {
-  describe('addPrimaryKeyAliasToGraphqlAST', () => {
+  describe('rewriteAst', () => {
     test('replace field value with primary key', async () => {
       expect(
         print(
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
-          addPrimaryKeyAliasToGraphqlAST(
+          rewriteAst(
             parse(`
               fragment car on Car {
                   make
@@ -17,6 +18,7 @@ describe('utils', () => {
                   owner
               }
             `),
+            buildASTSchema(parse(graphqlFilesMap['schema.graphql'])),
             {
               primaryKey: 'entityUrn',
               fields: {
@@ -26,22 +28,24 @@ describe('utils', () => {
           )
         )
       ).toMatchInlineSnapshot(`
-      "fragment car on Car {
-        make
-        model
-        owner
-        entityUrn: id
-      }"
-    `);
+        "fragment car on Car {
+          __typename
+          make
+          model
+          owner
+          entityUrn: id
+        }"
+      `);
     });
 
     test('replace fields within fragment, inline fragment and query value with primary key', async () => {
       expect(
         print(
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
-          addPrimaryKeyAliasToGraphqlAST(
+          rewriteAst(
             parse(`
               fragment car on Car {
+                  id
                   make
                   model
                   owner
@@ -56,6 +60,7 @@ describe('utils', () => {
                   }
               }
           `),
+            buildASTSchema(parse(graphqlFilesMap['schema.graphql'])),
             {
               primaryKey: 'entityUrn',
               fields: {
@@ -66,6 +71,8 @@ describe('utils', () => {
         )
       ).toMatchInlineSnapshot(`
         "fragment car on Car {
+          __typename
+          id
           make
           model
           owner
@@ -73,12 +80,16 @@ describe('utils', () => {
         }
 
         {
+          __typename
           carsForDays(id: 1234) {
+            __typename
             ...car
             ... on Car {
+              __typename
               make
               entityUrn: id
             }
+            entityUrn: id
           }
         }"
       `);
