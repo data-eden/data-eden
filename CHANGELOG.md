@@ -2,6 +2,16 @@
 
 
 
+
+## v0.14.0 (2023-06-23)
+
+#### :rocket: Enhancement
+* `athena`
+  * [#164](https://github.com/data-eden/data-eden/pull/164) feat: support non-managed entities ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
 ## v0.13.2 (2023-06-23)
 
 #### :bug: Bug Fix
