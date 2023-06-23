@@ -7,7 +7,16 @@ import { pathToFileURL } from 'url';
 import type { DependencyGraphNode } from './gql/dependency-graph.js';
 import type { Definition, UnresolvedFragment } from './gql/types.js';
 import type { CodegenConfig, PrimaryKeyAlias } from './types.js';
-import { visit, Kind, type ASTNode, type ASTVisitor } from 'graphql';
+import {
+  visit,
+  Kind,
+  type GraphQLSchema,
+  type ASTNode,
+  type ASTVisitor,
+  TypeInfo,
+  visitWithTypeInfo,
+  getNamedType,
+} from 'graphql';
 
 export function changeExtension(fileName: string, ext: string): string {
   const parts = parse(fileName);
@@ -61,99 +70,53 @@ export function extensionAwareResolver(
   );
 }
 
-export function addPrimaryKeyAliasToGraphqlAST(
+export function rewriteAst(
   ast: ASTNode,
+  schema: GraphQLSchema,
   primaryKeyAlias: PrimaryKeyAlias | null
 ): ASTNode {
   if (!primaryKeyAlias) return ast;
 
+  const typeInfo = new TypeInfo(schema);
+
   const visitor: ASTVisitor = {
-    FragmentDefinition(node, key, parent, path, ancestors) {
-      // Only modify the fields within the Car fragment
-      if (primaryKeyAlias.fields[node.typeCondition.name.value]) {
-        const selectionSet = node.selectionSet;
-        const fields = selectionSet.selections;
+    SelectionSet(node) {
+      const selectionType = typeInfo.getType();
+      const name = getNamedType(selectionType)?.name;
 
-        // Create a new FieldNode for the id field
-        const idField = {
+      const selections = [
+        {
           kind: Kind.FIELD,
           name: {
             kind: Kind.NAME,
-            value: primaryKeyAlias.fields[node.typeCondition.name.value],
+            value: '__typename',
+          },
+        },
+        ...node.selections,
+      ];
+
+      if (name && primaryKeyAlias.fields[name]) {
+        selections.push({
+          kind: Kind.FIELD,
+          name: {
+            kind: Kind.NAME,
+            value: primaryKeyAlias.fields[name],
           },
           alias: {
             kind: Kind.NAME,
             value: primaryKeyAlias.primaryKey,
           },
-        };
-
-        // Add the id field to the existing fields
-        const modifiedFields = [...fields, idField];
-
-        // Create a new SelectionSetNode with the modified fields
-        const modifiedSelectionSet = {
-          kind: Kind.SELECTION_SET,
-          selections: modifiedFields,
-        };
-
-        // Create a new FragmentDefinition node with the modified selection set
-        const modifiedNode = {
-          ...node,
-          selectionSet: modifiedSelectionSet,
-        };
-
-        return modifiedNode;
+        });
       }
 
-      // Continue visiting other nodes
-      return undefined;
-    },
-    InlineFragment(node, key, parent, path, ancestors) {
-      // Only modify the fields within the Car inline fragment
-      if (
-        node?.typeCondition?.name?.value &&
-        primaryKeyAlias.fields[node.typeCondition.name.value]
-      ) {
-        const selectionSet = node.selectionSet;
-        const fields = selectionSet.selections;
-
-        // Create a new FieldNode for the id field
-        const idField = {
-          kind: Kind.FIELD,
-          name: {
-            kind: Kind.NAME,
-            value: primaryKeyAlias.fields[node.typeCondition.name.value],
-          },
-          alias: {
-            kind: Kind.NAME,
-            value: primaryKeyAlias.primaryKey,
-          },
-        };
-
-        // Add the id field to the existing fields
-        const modifiedFields = [...fields, idField];
-
-        // Create a new SelectionSetNode with the modified fields
-        const modifiedSelectionSet = {
-          kind: Kind.SELECTION_SET,
-          selections: modifiedFields,
-        };
-
-        // Create a new InlineFragment node with the modified selection set
-        const modifiedNode = {
-          ...node,
-          selectionSet: modifiedSelectionSet,
-        };
-
-        return modifiedNode;
-      }
-
-      // Continue visiting other nodes
-      return undefined;
+      return {
+        ...node,
+        selections,
+      };
     },
   };
 
-  return visit(ast, visitor);
+  return visit(ast, visitWithTypeInfo(typeInfo, visitor));
 }
 
 // tracking mjs support https://github.com/cosmiconfig/cosmiconfig/issues/224
