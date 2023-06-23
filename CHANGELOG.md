@@ -1,5 +1,19 @@
 # Changelog
 
+
+## v0.13.1 (2023-06-23)
+
+#### :rocket: Enhancement
+* `codegen`
+  * [#163](https://github.com/data-eden/data-eden/pull/163) feat: adds __typename to all projections ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :bug: Bug Fix
+* `cache`
+  * [#165](https://github.com/data-eden/data-eden/pull/165) bug: integration into downstreams exposes type issue in cache ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
 ## v0.13.0 (2023-06-22)
 
 #### :rocket: Enhancement
