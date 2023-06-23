@@ -50,7 +50,7 @@ export class SignalCache {
   queryTTL: number;
   queryLinks = new Map<string, Link>();
   links = new Map<string, Link>();
-  records = new Map<string, Record<string, Scalar>>();
+  records = new Map<string, Record<string, Scalar> | WithSignal<Entity>>();
   signals = new Map<string, WeakRef<WithSignal<Entity>>>();
   private registry: FinalizationRegistry<string>;
 
@@ -141,11 +141,23 @@ export class SignalCache {
 
         if (Array.isArray(value)) {
           const arrayLink: Array<string> = [];
+          const recordArray: any[] = [];
           value.forEach((link) => {
             if (isLinkNode(link)) {
               arrayLink.push(link.__link);
+            } else {
+              // we don't have a link and we need to attach this to the value itself as the reactivity is owned by the parent
+              recordArray.push(link);
             }
           });
+          // We only want to update the array value on the entity if the record has an array value or if the record has a length
+          // This is to ensure we update the record with an empty array if had an original value
+          if (
+            recordArray.length > 0 ||
+            (record[entityKey] && Array.isArray(record[entityKey]))
+          ) {
+            record[entityKey] = recordArray;
+          }
           links[entityKey] = arrayLink;
         } else if (isLinkNode(value)) {
           links[entityKey] = value.__link;
@@ -231,7 +243,11 @@ export class SignalCache {
         // of entities). In that case, we make sure to remove the entity from the proxy's array
         // as well
         const toRemove = parentArray.filter((v) => {
-          return !value.includes(this.getCacheKey(v, parent));
+          const key = this.getCacheKey(v, parent);
+
+          // if there is no key we can't consistency manage it.
+          // it will get overriden when new values are returned on the parent object
+          return key && !value.includes(key);
         });
 
         for (let entity of toRemove) {
@@ -292,6 +308,10 @@ export class SignalCache {
         `@data-eden/athena - No entity found when attempting to resolve ${entityKey}`
       );
     }
+
+    // in order to get consistency updates on non managed field updates we set the signal if we have it
+    // so we can update it in storeEntity
+    this.records.set(entityKey, root);
 
     return root;
   }

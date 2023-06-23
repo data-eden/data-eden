@@ -1,8 +1,45 @@
-import { describe, test, expect, beforeEach } from 'vitest';
-import { AthenaClient } from '../src/client.js';
+import {
+  describe,
+  test,
+  expect,
+  beforeEach,
+  beforeAll,
+  afterAll,
+  afterEach,
+} from 'vitest';
+import http from 'http';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+import { createServer } from '@data-eden/shared-test-utilities';
 
 import { createSignal } from '@signalis/core';
+
+import { gql } from '@data-eden/codegen/gql';
+import { Mocker } from '@data-eden/mocker';
+
+import { type PeopleQuery } from './__generated/client.test.graphql';
+import { AthenaClient } from '../src/client.js';
 import type { ReactiveSignal } from '../src/types.js';
+
+const schema = readFileSync(
+  resolve(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    'internal-packages/react-graphql-test-app/src/graphql/schema.graphql'
+  ),
+  'utf8'
+);
+
+const peopleQuery = gql<PeopleQuery>`
+  query people {
+    people {
+      id
+      name
+    }
+  }
+`;
 
 function adapter<T>(v: T): ReactiveSignal<T> {
   return createSignal(v, false);
@@ -13,34 +50,26 @@ type Entity = {
   id: string;
 };
 
-function hashCode(str: string) {
-  let hash = 0;
-  for (let i = 0, len = str.length; i < len; i++) {
-    let chr = str.charCodeAt(i);
-    // eslint-disable-next-line no-bitwise
-    hash = (hash << 5) - hash + chr;
-    // eslint-disable-next-line no-bitwise
-    hash |= 0; // Convert to 32bit integer
-  }
-  return hash.toString();
-}
+const mocker = new Mocker({
+  schema,
+});
 
 describe('client', () => {
-  let client: AthenaClient;
-
-  beforeEach((test) => {
-    client = new AthenaClient({
-      url: '/example',
-      adapter: adapter,
-      getCacheKey: (v: Entity, parent: Entity) => {
-        return `${v.__typename}:${(
-          v?.id ?? hashCode(JSON.stringify({ ...v, parent: parent?.id }))
-        ).replace(/:/g, '&')}`;
-      },
-    });
-  });
-
   describe('processEntities', () => {
+    let client: AthenaClient;
+
+    beforeEach((test) => {
+      client = new AthenaClient({
+        url: '/example',
+        adapter: adapter,
+        getCacheKey: (v: Entity, parent: Entity) => {
+          if (v.id) {
+            return `${v.__typename}:${v?.id}`;
+          }
+        },
+      });
+    });
+
     test('parses a single entity', async () => {
       const document = {
         person: {
@@ -315,6 +344,171 @@ describe('client', () => {
             ],
             "id": "1",
           },
+        }
+      `);
+    });
+
+    test('should be able to handle entities with no cacheable nested values', async () => {
+      const document = {
+        paginatedCommentsPage: {
+          threadUrn: 'urn:li:activity:7070125034782027776',
+          id: 'urn:li:activity:7070125034782027776',
+          comments: [
+            {
+              socialMetadata: {
+                reactionSummaries: [
+                  {
+                    count: 1,
+                    type: 'APPRECIATION',
+                    __typename: 'ReactionSummary',
+                  },
+                ],
+                id: 'urn:li:comment:(activity:7070125034782027776,7071631601935249410)',
+                viewerReaction: {
+                  type: 'APPRECIATION',
+                },
+                commentSummary: {
+                  count: 0,
+                },
+                __typename: 'SocialMetadata',
+              },
+              createdAt: 1686008358464,
+              id: 'urn:li:comment:(urn:li:activity:7070125034782027776,7071631601935249410)',
+              author: {
+                firstName: 'Bob',
+                lastName: 'Bobberson',
+                profilePicture: {
+                  url: 'https://media.licdn.com/dms/image/C5603AQGjVp-oZT1bnw/profile-displayphoto-shrink_400_400/0/1561741260600?e=1692835200&v=beta&t=kUlBHG3Fe5z4ao2vgCyP8DVR6nERCy4fTXxAnCxo9F8',
+                },
+                id: 'urn:li:member:655184127',
+                profileCanonicalUrl: {
+                  url: 'https://www.linkedin.com/in/bob-bobberson',
+                },
+                __typename: 'Profile',
+                memberUrn: 'urn:li:member:655184127',
+                networkDistance: {
+                  distance: 'SELF',
+                },
+                headline: 'Code Janitor at LinkedIn',
+              },
+              __typename: 'Comment',
+              media: [],
+              message: [
+                {
+                  __typename: 'AttributedTextSegment',
+                  text: "hello again'",
+                },
+              ],
+            },
+          ],
+          __typename: 'PaginatedCommentsPage',
+        },
+      };
+
+      const result = await client.processEntities(document);
+
+      expect(
+        result.paginatedCommentsPage.comments[0].socialMetadata
+          .reactionSummaries[0].type
+      ).toEqual('APPRECIATION');
+      expect(
+        result.paginatedCommentsPage.comments[0].socialMetadata
+          .reactionSummaries[0].count
+      ).toEqual(1);
+      expect(
+        result.paginatedCommentsPage.comments[0].socialMetadata.viewerReaction
+          .type
+      ).toEqual('APPRECIATION');
+
+      await client.processEntities({
+        toggleSocialReaction: {
+          socialMetadata: {
+            reactionSummaries: [
+              {
+                count: 1,
+                type: 'INTEREST',
+                __typename: 'ReactionSummary',
+              },
+            ],
+            id: 'urn:li:comment:(activity:7070125034782027776,7071631601935249410)',
+            viewerReaction: {
+              type: 'INTEREST',
+              __typename: 'Reaction',
+            },
+            commentSummary: {
+              count: 0,
+              __typename: 'CommentSummary',
+            },
+            __typename: 'SocialMetadata',
+          },
+          __typename: 'ToggleSocialReactionResult',
+          responseCode: 'OK_200',
+        },
+      });
+
+      expect(
+        result.paginatedCommentsPage.comments[0].socialMetadata
+          .reactionSummaries[0].type
+      ).toEqual('INTEREST');
+      expect(
+        result.paginatedCommentsPage.comments[0].socialMetadata.viewerReaction
+          .type
+      ).toEqual('INTEREST');
+    });
+  });
+
+  describe('query', async () => {
+    const server = await createServer();
+
+    beforeAll(async () => await server.listen());
+    afterEach(() => server.reset());
+    afterAll(() => server.close());
+
+    test('should be able to query a basic endpoint', async () => {
+      const client = new AthenaClient({
+        url: server.buildUrl('/graphql'),
+        adapter: adapter,
+        getCacheKey: (v: Entity, parent: Entity) => {
+          if (v.id) {
+            return `${v.__typename}:${v?.id}`;
+          }
+        },
+      });
+
+      server.post(
+        '/graphql',
+        async (
+          request: http.IncomingMessage,
+          response: http.ServerResponse
+        ) => {
+          response.writeHead(200, { 'Content-Type': 'application/json' });
+          response.end(
+            JSON.stringify({
+              data: await mocker.mock(peopleQuery, {
+                people: [
+                  {
+                    id: 12,
+                    name: 'Bob',
+                  },
+                ],
+              }),
+            })
+          );
+        }
+      );
+
+      const { data, error } = await client.query(peopleQuery, {});
+
+      expect(error).toBeUndefined();
+      expect(data).toMatchInlineSnapshot(`
+        {
+          "people": [
+            {
+              "__typename": "Person",
+              "id": 12,
+              "name": "Bob",
+            },
+          ],
         }
       `);
     });

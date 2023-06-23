@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import graphql from '@rollup/plugin-graphql';
-import { rollupPlugin } from '../../packages/codegen/src/index';
+import { rollupPlugin } from '@data-eden/codegen';
 
 import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
