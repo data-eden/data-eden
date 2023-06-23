@@ -262,7 +262,7 @@ export interface CacheEntryState<UserExtensionData = unknown> {
 }
 
 export type CacheKeyValue =
-  | Record<string, object | string | number>
+  | Record<string, object | string | number | undefined>
   | string
   | number;
 

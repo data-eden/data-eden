@@ -635,8 +635,8 @@ function deepMerge(
 }
 
 function resolveConflict(
-  target: Record<string, object | string | number>,
-  source: Record<string, object | string | number>,
+  target: Record<string, object | string | number | undefined>,
+  source: Record<string, object | string | number | undefined>,
   property: string
 ): CacheKeyValue {
   return deepMerge(
