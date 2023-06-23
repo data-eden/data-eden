@@ -29,6 +29,9 @@
     "lodash-es": "^4.17.21"
   },
   "devDependencies": {
+    "@data-eden/codegen": "0.13.2",
+    "@data-eden/mocker": "0.13.2",
+    "@data-eden/shared-test-utilities": "0.13.2",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@signalis/core": "^0.1.0",
     "@types/lodash-es": "^4.17.6",

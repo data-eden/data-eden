@@ -199,6 +199,11 @@ export class AthenaClient {
       for (const { parent, prop, entity } of parsedEntities) {
         const key = this.getCacheKey(entity, parent);
 
+        if (!key) {
+          // if we don't have a key it is not cacheable and must be cached based on the parent
+          continue;
+        }
+
         // replace the entity object with the key we're using to store it in the cache so that we can
         // later replace the key with the reactive entity
         // e.g. { pet: { id: 1, name: hitch }} -> { pet: 'pet:1' }
