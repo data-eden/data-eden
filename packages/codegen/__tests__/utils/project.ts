@@ -52,11 +52,17 @@ interface Node {
 
 union SearchResult = User | Chat | ChatMessage
 
+type Owner implements Node {
+  id: ID!
+  name: String
+  cars: [Car]
+}
+
 type Car implements Node {
   id: ID!
   make: String!
   model: String!
-  owner: String!
+  owner: Owner!
 }
 
 type User implements Node {

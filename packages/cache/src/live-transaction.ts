@@ -151,10 +151,10 @@ export class LiveCacheTransactionImpl<
     const localRevisionsByEntry = this.getLocalRevisionsByEntry(cacheKey);
 
     let revisionNumber =
-      localRevisionsByEntry &&
-      localRevisionsByEntry[localRevisionsByEntry.length - 1].revision
-        ? localRevisionsByEntry[localRevisionsByEntry.length - 1].revision
-        : REVISION_COUNTER;
+      (localRevisionsByEntry &&
+      localRevisionsByEntry[localRevisionsByEntry.length - 1]?.revision
+        ? localRevisionsByEntry[localRevisionsByEntry.length - 1]?.revision
+        : REVISION_COUNTER) ?? 0;
 
     revisionNumber = ++revisionNumber;
 
@@ -223,10 +223,10 @@ export class LiveCacheTransactionImpl<
       const localRevisionsByEntry = this.getLocalRevisionsByEntry(cacheKey);
 
       let revisionNumber =
-        localRevisionsByEntry &&
-        localRevisionsByEntry[localRevisionsByEntry.length - 1].revision
-          ? localRevisionsByEntry[localRevisionsByEntry.length - 1].revision
-          : REVISION_COUNTER;
+        (localRevisionsByEntry &&
+        localRevisionsByEntry[localRevisionsByEntry.length - 1]?.revision
+          ? localRevisionsByEntry[localRevisionsByEntry.length - 1]?.revision
+          : REVISION_COUNTER) ?? 0;
 
       revisionNumber = ++revisionNumber;
 
