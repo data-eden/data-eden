@@ -1,6 +1,6 @@
 {
   "name": "@data-eden/react",
-  "version": "0.13.1",
+  "version": "0.13.2",
   "description": "",
   "homepage": "https://github.com/data-eden/data-eden#readme",
   "bugs": {
@@ -27,7 +27,7 @@
     "build": "vite build && tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@data-eden/athena": "^0.13.1",
+    "@data-eden/athena": "^0.13.2",
     "@signalis/core": "^0.1.0",
     "graphql": "^16.6.0"
   },

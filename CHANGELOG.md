@@ -1,6 +1,16 @@
 # Changelog
 
 
+
+## v0.13.2 (2023-06-23)
+
+#### :bug: Bug Fix
+* `cache`, `codegen`
+  * [#166](https://github.com/data-eden/data-eden/pull/166) bug: fixing live-transaction in implementation ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
 ## v0.13.1 (2023-06-23)
 
 #### :rocket: Enhancement
