@@ -15,7 +15,9 @@ describe('utils', () => {
               fragment car on Car {
                   make
                   model
-                  owner
+                  owner {
+                    __typename
+                  }
               }
             `),
             buildASTSchema(parse(graphqlFilesMap['schema.graphql'])),
@@ -32,7 +34,10 @@ describe('utils', () => {
           __typename
           make
           model
-          owner
+          owner {
+            __typename
+            __typename
+          }
           entityUrn: id
         }"
       `);
@@ -48,7 +53,9 @@ describe('utils', () => {
                   id
                   make
                   model
-                  owner
+                  owner {
+                    id
+                  }
               }
 
               query {
@@ -75,7 +82,10 @@ describe('utils', () => {
           id
           make
           model
-          owner
+          owner {
+            __typename
+            id
+          }
           entityUrn: id
         }
 
@@ -94,5 +104,88 @@ describe('utils', () => {
         }"
       `);
     });
+  });
+
+  test('replace fields within infintely nested scenario', async () => {
+    expect(
+      print(
+        rewriteAst(
+          parse(`
+              fragment car on Car {
+                  id
+                  make
+                  model
+                  owner {
+                    id
+                  }
+              }
+
+              query {
+                  carsForDays(id: 1234) {
+                      ...car
+                      ... on Car {
+                          make
+                          owner {
+                            ... on Owner {
+                              id
+                              cars {
+                                id
+                                make
+                              }
+                            }
+                          }
+                      }
+                  }
+              }
+          `),
+          buildASTSchema(parse(graphqlFilesMap['schema.graphql'])),
+          {
+            primaryKey: 'entityUrn',
+            fields: {
+              Car: 'id',
+            },
+          }
+        )
+      )
+    ).toMatchInlineSnapshot(`
+      "fragment car on Car {
+        __typename
+        id
+        make
+        model
+        owner {
+          __typename
+          id
+        }
+        entityUrn: id
+      }
+
+      {
+        __typename
+        carsForDays(id: 1234) {
+          __typename
+          ...car
+          ... on Car {
+            __typename
+            make
+            owner {
+              __typename
+              ... on Owner {
+                __typename
+                id
+                cars {
+                  __typename
+                  id
+                  make
+                  entityUrn: id
+                }
+              }
+            }
+            entityUrn: id
+          }
+          entityUrn: id
+        }
+      }"
+    `);
   });
 });
