@@ -13,14 +13,16 @@ import type {
   GraphQLOperation,
   GraphQLResponse,
   IdFetcher,
+  SyntheticIdFetcher,
   OperationResult,
   ReactiveAdapter,
 } from './types.js';
-import { prepareOperation } from './utils.js';
+import { defaultSyntheticKey, prepareOperation } from './utils.js';
 
 export interface ClientArgs {
   url: string;
   getCacheKey: IdFetcher;
+  getSyntheticKey?: SyntheticIdFetcher;
   fetch?: typeof fetch;
   buildRequest?: BuildRequest;
   adapter: ReactiveAdapter;
@@ -57,17 +59,20 @@ export class AthenaClient {
   private fetch: typeof fetch;
   private cache: Cache<DefaultRegistry, string, unknown, unknown, Context>;
   private getCacheKey: IdFetcher;
+  private getSyntheticKey: SyntheticIdFetcher;
   private signalCache: SignalCache;
   private buildRequest: BuildRequest;
 
   constructor(options: ClientArgs) {
     this.url = options.url;
     this.getCacheKey = options.getCacheKey;
+    this.getSyntheticKey = options.getSyntheticKey || defaultSyntheticKey;
     this.fetch = options.fetch || globalThis.fetch.bind(globalThis);
     this.buildRequest = options.buildRequest || defaultBuildRequest;
     this.signalCache = new SignalCache(
       options.adapter,
       options.getCacheKey,
+      this.getSyntheticKey,
       options.mergeResolvers,
       options.queryTTL
     );
@@ -197,11 +202,14 @@ export class AthenaClient {
 
     for (const parsedEntities of parsedEntitiesList) {
       for (const { parent, prop, entity } of parsedEntities) {
-        const key = this.getCacheKey(entity, parent);
+        let key = this.getCacheKey(entity);
 
         if (!key) {
-          // if we don't have a key it is not cacheable and must be cached based on the parent
-          continue;
+          // set a synthetic shallow cache key
+          key = this.getSyntheticKey(
+            { parent, prop, entity },
+            this.getCacheKey
+          );
         }
 
         // replace the entity object with the key we're using to store it in the cache so that we can

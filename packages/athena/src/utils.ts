@@ -10,6 +10,8 @@ import type {
   DefaultVariables,
   DocumentInput,
   GraphQLOperation,
+  IdFetcher,
+  ParsedEntity,
 } from './types.js';
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 
@@ -124,4 +126,32 @@ export function prepareOperation<
   op.fetchMore = !!fetchMore;
 
   return op;
+}
+
+function hashCode(str: string) {
+  let hash = 0;
+  for (let i = 0, len = str.length; i < len; i++) {
+    let chr = str.charCodeAt(i);
+    // eslint-disable-next-line no-bitwise
+    hash = (hash << 5) - hash + chr;
+    // eslint-disable-next-line no-bitwise
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash.toString();
+}
+
+// The purpose of this function is to generate a shallow key that you know only the fields that will not change if data is updated
+export function defaultSyntheticKey(
+  parsedEntity: ParsedEntity,
+  getCacheKey: IdFetcher
+): string {
+  const { entity, parent, prop } = parsedEntity;
+
+  return `${entity.__typename}:${hashCode(
+    JSON.stringify({
+      prop,
+      parentId: getCacheKey(parent),
+      entityType: entity.__typename,
+    })
+  )}`;
 }

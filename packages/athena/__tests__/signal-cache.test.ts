@@ -126,6 +126,7 @@ describe('signal cache', () => {
         (v) => createSignal(v, false),
         undefined,
         undefined,
+        undefined,
         250
       );
       cache.storeOperation(
