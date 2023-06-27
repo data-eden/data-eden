@@ -3,6 +3,20 @@
 
 
 
+
+## v0.15.0 (2023-06-27)
+
+#### :rocket: Enhancement
+* `athena`
+  * [#167](https://github.com/data-eden/data-eden/pull/167) feat: handle unmanaged objects with synthetic keys ([@cafreeman](https://github.com/cafreeman))
+
+#### :bug: Bug Fix
+* `athena`
+  * [#167](https://github.com/data-eden/data-eden/pull/167) feat: handle unmanaged objects with synthetic keys ([@cafreeman](https://github.com/cafreeman))
+
+#### Committers: 1
+- Chris Freeman ([@cafreeman](https://github.com/cafreeman))
+
 ## v0.14.0 (2023-06-23)
 
 #### :rocket: Enhancement
