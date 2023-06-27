@@ -10,8 +10,10 @@ import type {
   IdFetcher,
   ReactiveAdapter,
   Scalar,
+  SyntheticIdFetcher,
   WithSignal,
 } from './types.js';
+import { defaultSyntheticKey } from './utils.js';
 
 export type Link = Record<string, string | Array<string>>;
 
@@ -44,24 +46,27 @@ export type MergeResolvers = {
 export class SignalCache {
   signalAdapter: ReactiveAdapter;
   getCacheKey: IdFetcher;
+  getSyntheticKey: SyntheticIdFetcher;
   mergeResolvers?: MergeResolvers;
   queryLifetimes = new Map<string, number>();
   // TTL measured in milliseconds
   queryTTL: number;
   queryLinks = new Map<string, Link>();
   links = new Map<string, Link>();
-  records = new Map<string, Record<string, Scalar> | WithSignal<Entity>>();
+  records = new Map<string, Record<string, Scalar>>();
   signals = new Map<string, WeakRef<WithSignal<Entity>>>();
   private registry: FinalizationRegistry<string>;
 
   constructor(
     signalAdapter: ReactiveAdapter,
     getCacheKey: IdFetcher = defaultIdGetter,
+    getSyntheticKey: SyntheticIdFetcher = defaultSyntheticKey,
     mergeResolvers?: MergeResolvers,
     queryTTL = 60_000
   ) {
     this.signalAdapter = signalAdapter;
     this.getCacheKey = getCacheKey;
+    this.getSyntheticKey = getSyntheticKey;
     this.mergeResolvers = mergeResolvers;
     this.queryTTL = queryTTL;
     this.registry = new FinalizationRegistry((key) => {
@@ -150,14 +155,6 @@ export class SignalCache {
               recordArray.push(link);
             }
           });
-          // We only want to update the array value on the entity if the record has an array value or if the record has a length
-          // This is to ensure we update the record with an empty array if had an original value
-          if (
-            recordArray.length > 0 ||
-            (record[entityKey] && Array.isArray(record[entityKey]))
-          ) {
-            record[entityKey] = recordArray;
-          }
           links[entityKey] = arrayLink;
         } else if (isLinkNode(value)) {
           links[entityKey] = value.__link;
@@ -205,7 +202,14 @@ export class SignalCache {
       root = signal;
     } else {
       exploring.delete(entityKey);
-      root = createSignalProxy(this.signalAdapter({ id: '', __typename: '' }));
+      root = createSignalProxy(
+        // the id is the source of the truth for the signal's cache key
+        // it is import that this is set so that given a signal we know the cache key
+        this.signalAdapter({
+          id: entityKey,
+          __typename: '',
+        })
+      );
       this.signals.set(entityKey, new WeakRef(root));
       this.registry.register(root, entityKey);
     }
@@ -242,12 +246,24 @@ export class SignalCache {
         // that the entity no longer does (e.g. a mutation has removed an entity from an array
         // of entities). In that case, we make sure to remove the entity from the proxy's array
         // as well
-        const toRemove = parentArray.filter((v) => {
-          const key = this.getCacheKey(v, parent);
+        const toRemove = parentArray.filter((v, i) => {
+          let key = this.getCacheKey(v);
 
-          // if there is no key we can't consistency manage it.
-          // it will get overriden when new values are returned on the parent object
-          return key && !value.includes(key);
+          if (!key) {
+            key = this.getSyntheticKey(
+              // we know the prop is the key and value in the array as the second value
+              // i is a number and needs to be a string to match the same value as provided in the first getSyntheticKey in process entities
+              // TODO: props should be a function we can normalize to avoid this
+              {
+                entity: v,
+                parent: root,
+                prop: [parentKey as string, i.toString()],
+              },
+              this.getCacheKey
+            );
+          }
+
+          return !value.includes(key);
         });
 
         for (let entity of toRemove) {
@@ -271,6 +287,7 @@ export class SignalCache {
         }
       } else {
         parentKey = null;
+        parentArray = null;
       }
 
       // If this node is already being explored, we're in a cycle and need to bail
@@ -308,10 +325,6 @@ export class SignalCache {
         `@data-eden/athena - No entity found when attempting to resolve ${entityKey}`
       );
     }
-
-    // in order to get consistency updates on non managed field updates we set the signal if we have it
-    // so we can update it in storeEntity
-    this.records.set(entityKey, root);
 
     return root;
   }

@@ -66,4 +66,8 @@ export interface ParsedEntity {
   prop: string | number | Array<string | number>;
 }
 
-export type IdFetcher<T = any> = (v: T, parent: T) => string | undefined;
+export type IdFetcher<T = any> = (v: T) => string | undefined;
+export type SyntheticIdFetcher = (
+  parsedEntity: ParsedEntity,
+  getCacheKey: IdFetcher
+) => string;

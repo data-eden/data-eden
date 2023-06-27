@@ -62,8 +62,8 @@ describe('client', () => {
       client = new AthenaClient({
         url: '/example',
         adapter: adapter,
-        getCacheKey: (v: Entity, parent: Entity) => {
-          if (v.id) {
+        getCacheKey: (v: Entity) => {
+          if (v?.id) {
             return `${v.__typename}:${v?.id}`;
           }
         },
@@ -366,9 +366,11 @@ describe('client', () => {
                 id: 'urn:li:comment:(activity:7070125034782027776,7071631601935249410)',
                 viewerReaction: {
                   type: 'APPRECIATION',
+                  __typename: 'Reaction',
                 },
                 commentSummary: {
                   count: 0,
+                  __typename: 'CommentSummary',
                 },
                 __typename: 'SocialMetadata',
               },
@@ -436,7 +438,7 @@ describe('client', () => {
               __typename: 'Reaction',
             },
             commentSummary: {
-              count: 0,
+              count: 1,
               __typename: 'CommentSummary',
             },
             __typename: 'SocialMetadata',
@@ -454,6 +456,92 @@ describe('client', () => {
         result.paginatedCommentsPage.comments[0].socialMetadata.viewerReaction
           .type
       ).toEqual('INTEREST');
+
+      await client.processEntities({
+        toggleSocialReaction: {
+          socialMetadata: {
+            reactionSummaries: [],
+            id: 'urn:li:comment:(activity:7070125034782027776,7071631601935249410)',
+            commentSummary: {
+              count: 1,
+              __typename: 'CommentSummary',
+            },
+            __typename: 'SocialMetadata',
+          },
+          __typename: 'ToggleSocialReactionResult',
+          responseCode: 'OK_200',
+        },
+      });
+
+      expect(
+        result.paginatedCommentsPage.comments[0].socialMetadata
+          .reactionSummaries
+      ).toEqual([]);
+    });
+
+    test('should be able to handle nested entites that are managed on entites that are not managed', async () => {
+      const result = await client.processEntities({
+        reactionsPage: {
+          id: 'urn:li:reactions:12345678954',
+          reactions: [
+            {
+              actor: {
+                firstName: 'Bob',
+                lastName: 'Bobberson',
+                profilePicture: {
+                  url: 'https://media.licdn.com/dms/image/C5603AQGjVp-oZT1bnw/profile-displayphoto-shrink_400_400/0/1561741260600?e=1693440000&v=beta&t=YAiJc0lInvPXvlUuohhyC0oZJ9trFc3hfE8F21CIMkI',
+                  __typename: 'Asset',
+                },
+                id: 'urn:li:member:655184127',
+                profileCanonicalUrl: {
+                  url: 'https://www.linkedin.com/in/bob-bobberson',
+                  __typename: 'ProfileCanonicalUrl',
+                },
+                __typename: 'Profile',
+              },
+              type: 'EMPATHY',
+              __typename: 'Reaction',
+            },
+            {
+              actor: {
+                firstName: 'Chris',
+                lastName: 'Freeman',
+                profilePicture: {
+                  url: 'https://media.licdn.com/dms/image/D5603AQE1vYzjTXjiRA/profile-displayphoto-shrink_400_400/0/1664897400696?e=1693440000&v=beta&t=Lj5VkKd3h-6AQQSNeIPtPDfELpEMUE8QEdxT4D0ll8c',
+                  __typename: 'Asset',
+                },
+                id: 'urn:li:member:96146350',
+                profileCanonicalUrl: {
+                  url: 'https://www.linkedin.com/in/chris-freeman-2ba24828',
+                  __typename: 'ProfileCanonicalUrl',
+                },
+                __typename: 'Profile',
+              },
+              type: 'LIKE',
+              __typename: 'Reaction',
+            },
+          ],
+          socialMetadata: {
+            reactionSummaries: [
+              {
+                count: 1,
+                type: 'LIKE',
+                __typename: 'ReactionSummary',
+              },
+              {
+                count: 1,
+                type: 'EMPATHY',
+                __typename: 'ReactionSummary',
+              },
+            ],
+          },
+          __typename: 'ReactionsPage',
+        },
+      });
+
+      expect(result.reactionsPage.reactions[0].actor).not.toEqual({
+        __link: 'Profile:urn:li:member:655184127',
+      });
     });
   });
 
