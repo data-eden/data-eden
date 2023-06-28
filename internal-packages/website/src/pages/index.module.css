@@ -19,6 +19,12 @@
   }
 }
 
+html[data-theme='dark'] {
+  .heroBanner {
+    color: var(--ifm-color-white);
+  }
+}
+
 .buttons {
   display: flex;
   align-items: center;

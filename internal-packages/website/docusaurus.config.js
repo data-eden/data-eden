@@ -10,7 +10,8 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'data-eden',
-  tagline: '',
+  tagline:
+    'A group of libraries to handle data needs of an application managing data, caching, mocking, and reactivity',
   url: 'https://data-eden.github.io',
   baseUrl: '/data-eden/',
   onBrokenLinks: 'warn',
@@ -52,6 +53,9 @@ const config = {
           editUrl:
             'https://github.com/data-eden/data-eden/edit/main/website/blog/',
         },
+        theme: {
+          customCss: require.resolve('./src/css/custom.css'),
+        },
       }),
     ],
   ],
@@ -64,7 +68,7 @@ const config = {
         items: [
           {
             type: 'doc',
-            docId: 'intro',
+            docId: 'overview',
             position: 'left',
             label: 'Documentation',
           },
@@ -88,7 +92,7 @@ const config = {
             items: [
               {
                 label: 'Getting Started',
-                to: '/docs/intro',
+                to: '/docs/overview',
               },
             ],
           },
