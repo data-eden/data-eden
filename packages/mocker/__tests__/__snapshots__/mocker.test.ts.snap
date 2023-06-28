@@ -17,7 +17,7 @@ exports[`mocker > fragments > fragment with default data and fieldGenerator 1`] 
 exports[`mocker > fragments > fragment with default data and fieldGenerator with array of values 1`] = `
 {
   "car": {
-    "id": 1234,
+    "id": 1234557,
   },
   "id": 1234,
   "name": "whose nor",
@@ -43,22 +43,11 @@ exports[`mocker > fragments > fragment with enum values (with provided enum valu
 }
 `;
 
-exports[`mocker > fragments > fragment with union values 1`] = `
-{
-  "id": 1234,
-  "make": "whose nor",
-  "owner": {
-    "id": 1234,
-    "name": "tie",
-  },
-}
-`;
-
 exports[`mocker > mutations > should work with basic mutation (no overrides) 1`] = `
 {
   "createPet": {
     "__typename": "Pet",
-    "id": 1234,
+    "id": 1234557,
     "name": "whose nor",
   },
 }
@@ -68,7 +57,7 @@ exports[`mocker > queries > should work with basic query (no overrides) 1`] = `
 {
   "car": {
     "__typename": "Car",
-    "id": 1234,
+    "id": 1234557,
     "make": "Italian Car",
     "model": "whose nor",
   },

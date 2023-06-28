@@ -57,9 +57,9 @@ type FieldWithSelectionSet = SelectionNode & {
 };
 
 function assertHasSelectionSet(
-  field: SelectionNode
+  field: SelectionNode | undefined
 ): asserts field is FieldWithSelectionSet {
-  if (field.kind !== Kind.FRAGMENT_SPREAD && !field.selectionSet) {
+  if (field && field.kind !== Kind.FRAGMENT_SPREAD && !field.selectionSet) {
     const fieldName =
       (field.kind === Kind.INLINE_FRAGMENT
         ? field?.typeCondition?.name.value
@@ -143,15 +143,81 @@ export class Mocker {
       throw new Error(`Type ${typeName} not found in the schema`);
     }
 
+    if (type instanceof GraphQLUnionType) {
+      return this.generateMockDataForUnionFields<Document>(
+        definition as unknown as SelectionNode,
+        type,
+        mockData
+      );
+    }
+
     return this.generateMockDataForFields<Document>(selections, type, mockData);
   }
 
+  private generateMockDataForUnionFields<
+    Data extends JSONValue | undefined | null = JSONValue | undefined | null
+  >(
+    field: SelectionNode,
+    fieldType: GraphQLUnionType,
+    mockData: JSONObject | undefined | null
+  ): Data {
+    const possibleTypes = fieldType.getTypes();
+
+    // Check if mockData is provided for the union field
+    if (mockData) {
+      const mockDataUnionType = mockData.__typename;
+      const matchingType = possibleTypes.find(
+        (type) => type.name === mockDataUnionType
+      );
+      if (matchingType) {
+        assertHasSelectionSet(field);
+        const selectionSetForType = field.selectionSet.selections.find(
+          (selection) => {
+            // we need to return the selection set that matches this type
+            return (
+              selection.kind === Kind.INLINE_FRAGMENT &&
+              selection.typeCondition &&
+              selection.typeCondition.name.value === matchingType.name
+            );
+          }
+        );
+
+        assertHasSelectionSet(selectionSetForType);
+        return this.generateMockDataForFields(
+          selectionSetForType.selectionSet.selections,
+          matchingType,
+          mockData
+        );
+      }
+    }
+
+    assertHasSelectionSet(field);
+    const randomIndex = Math.floor(Math.random() * possibleTypes.length);
+    const randomType = possibleTypes[randomIndex];
+    const selectionSetForType = field.selectionSet.selections.find(
+      (selection) => {
+        // we need to return the selection set that matches this type
+        return (
+          selection.kind === Kind.INLINE_FRAGMENT &&
+          selection.typeCondition &&
+          selection.typeCondition.name.value === randomType.name
+        );
+      }
+    );
+    assertHasSelectionSet(selectionSetForType);
+    return this.generateMockDataForFields(
+      selectionSetForType.selectionSet.selections,
+      randomType,
+      mockData
+    );
+  }
+
   private generateMockDataForFields<
-    Data extends JSONValue | undefined = JSONValue | undefined
+    Data extends JSONValue | undefined | null = JSONValue | undefined | null
   >(
     fields: readonly SelectionNode[],
     type: GraphQLNamedType,
-    mockData: JSONObject | undefined
+    mockData: JSONObject | undefined | null
   ): Data {
     let result: JSONObject = {};
 
@@ -247,7 +313,7 @@ export class Mocker {
             result[fieldName] = this.generateMockDataForFields(
               field.selectionSet.selections,
               fieldType,
-              mockData
+              mockData && (mockData[fieldName] as JSONObject)
             );
           } else if (fieldType instanceof GraphQLEnumType) {
             // Handle enum types
@@ -258,36 +324,11 @@ export class Mocker {
               mockData && mockData[fieldName]
             );
           } else if (fieldType instanceof GraphQLUnionType) {
-            // Handle union types
-            const possibleTypes = fieldType.getTypes();
-
-            // Check if mockData is provided for the union field
-            if (mockData && mockData[fieldName]) {
-              const mockDataUnionType = (mockData[fieldName] as JSONObject)
-                .__typename;
-              const matchingType = possibleTypes.find(
-                (type) => type.name === mockDataUnionType
-              );
-              if (matchingType) {
-                assertHasSelectionSet(field);
-                result[fieldName] = this.generateMockDataForFields(
-                  field.selectionSet.selections,
-                  matchingType,
-                  mockData[fieldName] as JSONObject
-                );
-                return;
-              }
-            }
-
-            const randomIndex = Math.floor(
-              Math.random() * possibleTypes.length
-            );
-            const randomType = possibleTypes[randomIndex];
-            assertHasSelectionSet(field);
-            result[fieldName] = this.generateMockDataForFields(
-              field.selectionSet.selections,
-              randomType,
-              mockData
+            // Handle union types;
+            result[fieldName] = this.generateMockDataForUnionFields(
+              field,
+              fieldType,
+              mockData && (mockData[fieldName] as JSONObject)
             );
           } else {
             // Generate mock data for scalar fields
@@ -295,7 +336,7 @@ export class Mocker {
               type.name,
               fieldName,
               fieldType,
-              mockData && mockData[fieldName]
+              mockData && (mockData[fieldName] as JSONObject)
             );
           }
         }
@@ -371,7 +412,7 @@ export class Mocker {
         );
       } else {
         throw new Error(
-          `Value generation could not be done for type ${type.name}. Please provide an override to typeGenerators.`
+          `Value generation could not be done for type ${type.name} in ${className}. Please provide an override to typeGenerators.`
         );
       }
     }
