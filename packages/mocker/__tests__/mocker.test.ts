@@ -7,8 +7,10 @@ import { gql } from '@data-eden/codegen/gql';
 import { Mocker } from '@data-eden/mocker';
 import {
   CarOneFragment,
-  CarThreeFragment,
   CarTwoFragment,
+  CarThreeFragment,
+  CarFourFragment,
+  OwnerFragment,
   CreateOnePetMutation,
   PersonOneFragment,
   PetOneFragment,
@@ -101,17 +103,25 @@ describe('mocker', () => {
       ).toBeTruthy();
     });
 
-    test('fragment with union values', async () => {
+    test('fragment with union values (random)', async () => {
       const carThreeFragment = gql<CarThreeFragment>`
         fragment carThree on Car {
+          __typename
           id
           make
           owner {
             ... on Person {
+              __typename
               id
               name
+              car {
+                __typename
+                id
+                make
+              }
             }
             ... on Company {
+              __typename
               id
               name
             }
@@ -121,10 +131,141 @@ describe('mocker', () => {
 
       const mocker = new Mocker({
         schema,
+        typeGenerators: {
+          ID() {
+            return 1234;
+          },
+        },
       });
       const result = await mocker.mock(carThreeFragment, { id: 1234 });
 
-      expect(result).toMatchSnapshot();
+      // we know that this is going to be a random result because we are picking a random resolution everytime
+      // so the expects below are handling both cases for whatever union we mock out
+
+      // top level object should be a car
+      expect(Object.keys(result)).toEqual([
+        '__typename',
+        'id',
+        'make',
+        'owner',
+      ]);
+      // expect owner to be a specific type not all of the types as only one union can be projected
+      expect(Object.keys(result.owner)).toEqual(
+        result.owner.__typename === 'Company'
+          ? ['__typename', 'id', 'name']
+          : ['__typename', 'id', 'name', 'car']
+      );
+    });
+
+    test('fragment with union values (with match)', async () => {
+      const carFourFragment = gql<CarFourFragment>`
+        fragment carFour on Car {
+          __typename
+          id
+          make
+          owner {
+            ... on Person {
+              __typename
+              id
+              name
+              car {
+                __typename
+                id
+                make
+              }
+            }
+            ... on Company {
+              __typename
+              id
+              name
+            }
+          }
+        }
+      `;
+
+      const mocker = new Mocker({
+        schema,
+        typeGenerators: {
+          ID() {
+            return 123;
+          },
+        },
+      });
+
+      const result = await mocker.mock(carFourFragment, {
+        id: 1234,
+        owner: {
+          __typename: 'Person',
+          id: 123,
+          name: 'Bob',
+        },
+      });
+
+      expect(result).toEqual({
+        __typename: 'Car',
+        id: 1234,
+        make: 'whose nor',
+        owner: {
+          __typename: 'Person',
+          id: 123,
+          name: 'Bob',
+          car: {
+            __typename: 'Car',
+            id: 123,
+            make: 'imperfect offensively thwack',
+          },
+        },
+      });
+    });
+
+    test('should be able to mock union type fragment', async () => {
+      const ownerFragment = gql<OwnerFragment>`
+        fragment owner on Owner {
+          ... on Person {
+            __typename
+            id
+            name
+            car {
+              __typename
+              id
+              make
+            }
+          }
+          ... on Company {
+            __typename
+            id
+            name
+          }
+        }
+      `;
+
+      const mocker = new Mocker({
+        schema,
+        typeGenerators: {
+          ID: () => {
+            return 123;
+          },
+        },
+      });
+      const result = await mocker.mock(ownerFragment, {
+        __typename: 'Person',
+        id: 123,
+        name: 'Bob',
+        car: {
+          make: 'Accura',
+        },
+      });
+
+      expect(result).toEqual({
+        __typename: 'Person',
+        id: 123,
+        name: 'Bob',
+        car: {
+          __typename: 'Car',
+          id: 123,
+          make: 'Accura',
+        },
+      });
     });
 
     test('fragment with enum values (with provided enum value)', async () => {
