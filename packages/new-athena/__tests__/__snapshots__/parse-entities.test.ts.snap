@@ -1,0 +1,216 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`parseEntities > blah 1`] = `
+[
+  {
+    "entity": {
+      "__typename": "Foo",
+      "id": "1234",
+    },
+    "parent": {
+      "__typename": "Query",
+      "foo": {
+        "__typename": "Foo",
+        "id": "1234",
+      },
+    },
+    "prop": "foo",
+  },
+  {
+    "entity": {
+      "__typename": "Query",
+      "foo": {
+        "__typename": "Foo",
+        "id": "1234",
+      },
+    },
+    "parent": null,
+    "prop": "Query",
+  },
+]
+`;
+
+exports[`parseEntities > document with multiple levels 1`] = `
+[
+  {
+    "entity": {
+      "__typename": "Pet",
+      "id": "2",
+      "name": "Dre",
+      "owner": {
+        "__type": "Person",
+        "id": "1",
+        "name": "foo",
+      },
+    },
+    "parent": {
+      "__typename": "Person",
+      "id": "1",
+      "name": "foo",
+      "pets": [
+        {
+          "__typename": "Pet",
+          "id": "1",
+          "name": "Hitch",
+          "owner": {
+            "__type": "Person",
+            "id": "1",
+            "name": "foo",
+          },
+        },
+        {
+          "__typename": "Pet",
+          "id": "2",
+          "name": "Dre",
+          "owner": {
+            "__type": "Person",
+            "id": "1",
+            "name": "foo",
+          },
+        },
+      ],
+    },
+    "prop": [
+      "pets",
+      "1",
+    ],
+  },
+  {
+    "entity": {
+      "__typename": "Pet",
+      "id": "1",
+      "name": "Hitch",
+      "owner": {
+        "__type": "Person",
+        "id": "1",
+        "name": "foo",
+      },
+    },
+    "parent": {
+      "__typename": "Person",
+      "id": "1",
+      "name": "foo",
+      "pets": [
+        {
+          "__typename": "Pet",
+          "id": "1",
+          "name": "Hitch",
+          "owner": {
+            "__type": "Person",
+            "id": "1",
+            "name": "foo",
+          },
+        },
+        {
+          "__typename": "Pet",
+          "id": "2",
+          "name": "Dre",
+          "owner": {
+            "__type": "Person",
+            "id": "1",
+            "name": "foo",
+          },
+        },
+      ],
+    },
+    "prop": [
+      "pets",
+      "0",
+    ],
+  },
+  {
+    "entity": {
+      "__typename": "Person",
+      "id": "1",
+      "name": "foo",
+      "pets": [
+        {
+          "__typename": "Pet",
+          "id": "1",
+          "name": "Hitch",
+          "owner": {
+            "__type": "Person",
+            "id": "1",
+            "name": "foo",
+          },
+        },
+        {
+          "__typename": "Pet",
+          "id": "2",
+          "name": "Dre",
+          "owner": {
+            "__type": "Person",
+            "id": "1",
+            "name": "foo",
+          },
+        },
+      ],
+    },
+    "parent": {
+      "__typename": "Query",
+      "person": {
+        "__typename": "Person",
+        "id": "1",
+        "name": "foo",
+        "pets": [
+          {
+            "__typename": "Pet",
+            "id": "1",
+            "name": "Hitch",
+            "owner": {
+              "__type": "Person",
+              "id": "1",
+              "name": "foo",
+            },
+          },
+          {
+            "__typename": "Pet",
+            "id": "2",
+            "name": "Dre",
+            "owner": {
+              "__type": "Person",
+              "id": "1",
+              "name": "foo",
+            },
+          },
+        ],
+      },
+    },
+    "prop": "person",
+  },
+  {
+    "entity": {
+      "__typename": "Query",
+      "person": {
+        "__typename": "Person",
+        "id": "1",
+        "name": "foo",
+        "pets": [
+          {
+            "__typename": "Pet",
+            "id": "1",
+            "name": "Hitch",
+            "owner": {
+              "__type": "Person",
+              "id": "1",
+              "name": "foo",
+            },
+          },
+          {
+            "__typename": "Pet",
+            "id": "2",
+            "name": "Dre",
+            "owner": {
+              "__type": "Person",
+              "id": "1",
+              "name": "foo",
+            },
+          },
+        ],
+      },
+    },
+    "parent": null,
+    "prop": "Query",
+  },
+]
+`;
