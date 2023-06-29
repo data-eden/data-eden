@@ -41,7 +41,7 @@ describe('mocker', () => {
       `;
 
       const mocker = new Mocker({ schema });
-      const result = await mocker.mock(carOneFragment, { id: 1234 });
+      const result = mocker.mock(carOneFragment, { id: 1234 });
 
       expect(result).toMatchSnapshot();
     });
@@ -64,7 +64,7 @@ describe('mocker', () => {
           },
         },
       });
-      const result = await mocker.mock(carTwoFragment, {
+      const result = mocker.mock(carTwoFragment, {
         id: '1234',
       });
 
@@ -82,7 +82,7 @@ describe('mocker', () => {
       const mocker = new Mocker({
         schema,
       });
-      const result = await mocker.mock(petOneFragment, { id: 1234 });
+      const result = mocker.mock(petOneFragment, { id: 1234 });
 
       expect(Object.keys(result)).toMatchInlineSnapshot(`
         [
@@ -138,7 +138,7 @@ describe('mocker', () => {
           },
         },
       });
-      const result = await mocker.mock(carThreeFragment, { id: '1234' });
+      const result = mocker.mock(carThreeFragment, { id: '1234' });
 
       // we know that this is going to be a random result because we are picking a random resolution everytime
       // so the expects below are handling both cases for whatever union we mock out
@@ -193,7 +193,7 @@ describe('mocker', () => {
         },
       });
 
-      const result = await mocker.mock(carFourFragment, {
+      const result = mocker.mock(carFourFragment, {
         id: '1234',
         owner: {
           __typename: 'Person',
@@ -248,7 +248,7 @@ describe('mocker', () => {
           },
         },
       });
-      const result = await mocker.mock(ownerFragment, {
+      const result = mocker.mock(ownerFragment, {
         __typename: 'Person',
         id: '123',
         name: 'Bob',
@@ -280,7 +280,7 @@ describe('mocker', () => {
       const mocker = new Mocker({
         schema,
       });
-      const result = await mocker.mock(petTwoFragment, {
+      const result = mocker.mock(petTwoFragment, {
         id: '1234',
         breed: Breed.Shepard,
       });
@@ -300,9 +300,9 @@ describe('mocker', () => {
         schema,
       });
 
-      await expect(() =>
+      expect(() =>
         mocker.mock(petThreeFragment, { id: '1234', breed: 'SHARK' as any })
-      ).rejects.toMatchSnapshot();
+      ).toThrowErrorMatchingSnapshot();
     });
 
     test('fragment with default data and fieldGenerator with array of values', async () => {
@@ -328,7 +328,7 @@ describe('mocker', () => {
           },
         },
       });
-      const result = await mocker.mock(personOneFragment, {
+      const result = mocker.mock(personOneFragment, {
         id: '1234',
         pets: [{}, { id: '99999', name: 'Bob' }],
       });
@@ -364,7 +364,7 @@ describe('mocker', () => {
         },
       });
 
-      const result = await mocker.mock(carOneQuery, { id: '1234' });
+      const result = mocker.mock(carOneQuery, { id: '1234' });
 
       expect(result).toMatchSnapshot();
     });
@@ -390,7 +390,7 @@ describe('mocker', () => {
         },
       });
 
-      const result = await mocker.mock(createOnePetMutation, {
+      const result = mocker.mock(createOnePetMutation, {
         createPet: { id: '1234' },
       });
 
