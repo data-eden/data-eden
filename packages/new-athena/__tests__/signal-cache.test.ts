@@ -31,7 +31,7 @@ describe('SignalCache', () => {
         id: '1234',
       });
 
-      expect(key).toEqual('1234');
+      expect(key).toEqual('Bar:1234');
     });
 
     test('with a custom key', () => {
@@ -40,7 +40,7 @@ describe('SignalCache', () => {
         uuid: '1234',
       });
 
-      expect(key).toEqual('1234');
+      expect(key).toEqual('Foo:1234');
     });
 
     test('should return null when custom key exists but does not return anything', () => {
@@ -67,7 +67,7 @@ describe('SignalCache', () => {
       cache = new SignalCache();
     });
 
-    test('blah', () => {
+    test('basic document', () => {
       const document = {
         __typename: 'Query',
         foo: {
@@ -76,12 +76,13 @@ describe('SignalCache', () => {
         },
       };
 
-      const result = cache.parse(document.__typename, document);
+      const result = cache.parse(document);
 
       expect(result.length).toEqual(2);
       expect(result).toMatchInlineSnapshot(`
         [
           {
+            "cacheKey": "Foo:1234",
             "entity": {
               "__typename": "Foo",
               "id": "1234",
@@ -96,6 +97,7 @@ describe('SignalCache', () => {
             "prop": "foo",
           },
           {
+            "cacheKey": "Query",
             "entity": {
               "__typename": "Query",
               "foo": {
@@ -142,12 +144,13 @@ describe('SignalCache', () => {
         },
       };
 
-      const result = cache.parse(document.__typename, document);
+      const result = cache.parse(document);
 
       expect(result.length).toEqual(6);
       expect(result).toMatchInlineSnapshot(`
         [
           {
+            "cacheKey": "Person:1",
             "entity": {
               "__typename": "Person",
               "id": "1",
@@ -166,6 +169,7 @@ describe('SignalCache', () => {
             "prop": "owner",
           },
           {
+            "cacheKey": "Pet:2",
             "entity": {
               "__typename": "Pet",
               "id": "2",
@@ -209,6 +213,7 @@ describe('SignalCache', () => {
             ],
           },
           {
+            "cacheKey": "Person:1",
             "entity": {
               "__typename": "Person",
               "id": "1",
@@ -227,6 +232,7 @@ describe('SignalCache', () => {
             "prop": "owner",
           },
           {
+            "cacheKey": "Pet:1",
             "entity": {
               "__typename": "Pet",
               "id": "1",
@@ -270,6 +276,7 @@ describe('SignalCache', () => {
             ],
           },
           {
+            "cacheKey": "Person:1",
             "entity": {
               "__typename": "Person",
               "id": "1",
@@ -330,6 +337,7 @@ describe('SignalCache', () => {
             "prop": "person",
           },
           {
+            "cacheKey": "Query",
             "entity": {
               "__typename": "Query",
               "person": {
@@ -367,20 +375,93 @@ describe('SignalCache', () => {
       `);
     });
 
-    test('should account for multiple levels of unmanaged entity', () => {
+    test('with embedded entity', () => {
       const document = {
         foo: {
           id: '1',
           __typename: 'Foo',
           bar: {
-            baz: {
-              blah: 'blah',
-              owner: {
-                id: '1',
-                name: 'bob',
-                __typename: 'Owner',
+            blah: 'blah',
+            __typename: 'Bar',
+          },
+        },
+        __typename: 'Query',
+      };
+
+      const result = cache.parse(document);
+
+      expect(result).toMatchInlineSnapshot(`
+        [
+          {
+            "cacheKey": "Foo:1.bar",
+            "entity": {
+              "__typename": "Bar",
+              "blah": "blah",
+            },
+            "parent": {
+              "__typename": "Foo",
+              "bar": {
+                "__typename": "Bar",
+                "blah": "blah",
               },
-              __typename: 'Baz',
+              "id": "1",
+            },
+            "prop": "bar",
+          },
+          {
+            "cacheKey": "Foo:1",
+            "entity": {
+              "__typename": "Foo",
+              "bar": {
+                "__typename": "Bar",
+                "blah": "blah",
+              },
+              "id": "1",
+            },
+            "parent": {
+              "__typename": "Query",
+              "foo": {
+                "__typename": "Foo",
+                "bar": {
+                  "__typename": "Bar",
+                  "blah": "blah",
+                },
+                "id": "1",
+              },
+            },
+            "prop": "foo",
+          },
+          {
+            "cacheKey": "Query",
+            "entity": {
+              "__typename": "Query",
+              "foo": {
+                "__typename": "Foo",
+                "bar": {
+                  "__typename": "Bar",
+                  "blah": "blah",
+                },
+                "id": "1",
+              },
+            },
+            "parent": null,
+            "prop": "Query",
+          },
+        ]
+      `);
+    });
+
+    test('with embedded entity pointing to another entity', () => {
+      const document = {
+        foo: {
+          id: '1',
+          __typename: 'Foo',
+          bar: {
+            blah: 'blah',
+            owner: {
+              id: '1',
+              name: 'bob',
+              __typename: 'Owner',
             },
             __typename: 'Bar',
           },
@@ -388,9 +469,296 @@ describe('SignalCache', () => {
         __typename: 'Query',
       };
 
-      const result = cache.parse(document.__typename, document);
+      const result = cache.parse(document);
 
-      console.log(result);
+      expect(result).toMatchInlineSnapshot(`
+        [
+          {
+            "cacheKey": "Owner:1",
+            "entity": {
+              "__typename": "Owner",
+              "id": "1",
+              "name": "bob",
+            },
+            "parent": {
+              "__typename": "Bar",
+              "blah": "blah",
+              "owner": {
+                "__typename": "Owner",
+                "id": "1",
+                "name": "bob",
+              },
+            },
+            "prop": "owner",
+          },
+          {
+            "cacheKey": "Foo:1.bar",
+            "entity": {
+              "__typename": "Bar",
+              "blah": "blah",
+              "owner": {
+                "__typename": "Owner",
+                "id": "1",
+                "name": "bob",
+              },
+            },
+            "parent": {
+              "__typename": "Foo",
+              "bar": {
+                "__typename": "Bar",
+                "blah": "blah",
+                "owner": {
+                  "__typename": "Owner",
+                  "id": "1",
+                  "name": "bob",
+                },
+              },
+              "id": "1",
+            },
+            "prop": "bar",
+          },
+          {
+            "cacheKey": "Foo:1",
+            "entity": {
+              "__typename": "Foo",
+              "bar": {
+                "__typename": "Bar",
+                "blah": "blah",
+                "owner": {
+                  "__typename": "Owner",
+                  "id": "1",
+                  "name": "bob",
+                },
+              },
+              "id": "1",
+            },
+            "parent": {
+              "__typename": "Query",
+              "foo": {
+                "__typename": "Foo",
+                "bar": {
+                  "__typename": "Bar",
+                  "blah": "blah",
+                  "owner": {
+                    "__typename": "Owner",
+                    "id": "1",
+                    "name": "bob",
+                  },
+                },
+                "id": "1",
+              },
+            },
+            "prop": "foo",
+          },
+          {
+            "cacheKey": "Query",
+            "entity": {
+              "__typename": "Query",
+              "foo": {
+                "__typename": "Foo",
+                "bar": {
+                  "__typename": "Bar",
+                  "blah": "blah",
+                  "owner": {
+                    "__typename": "Owner",
+                    "id": "1",
+                    "name": "bob",
+                  },
+                },
+                "id": "1",
+              },
+            },
+            "parent": null,
+            "prop": "Query",
+          },
+        ]
+      `);
+    });
+
+    test('with embedded entity pointing to array of entities', () => {
+      const document = {
+        foo: {
+          id: '1',
+          __typename: 'Foo',
+          bar: {
+            blah: 'blah',
+            things: [
+              {
+                id: '1',
+                __typename: 'Thing',
+              },
+              {
+                id: '2',
+                __typename: 'Thing',
+              },
+            ],
+            __typename: 'Bar',
+          },
+        },
+        __typename: 'Query',
+      };
+
+      const result = cache.parse(document);
+
+      expect(result).toMatchInlineSnapshot(`
+        [
+          {
+            "cacheKey": "Thing:2",
+            "entity": {
+              "__typename": "Thing",
+              "id": "2",
+            },
+            "parent": {
+              "__typename": "Bar",
+              "blah": "blah",
+              "things": [
+                {
+                  "__typename": "Thing",
+                  "id": "1",
+                },
+                {
+                  "__typename": "Thing",
+                  "id": "2",
+                },
+              ],
+            },
+            "prop": [
+              "things",
+              "1",
+            ],
+          },
+          {
+            "cacheKey": "Thing:1",
+            "entity": {
+              "__typename": "Thing",
+              "id": "1",
+            },
+            "parent": {
+              "__typename": "Bar",
+              "blah": "blah",
+              "things": [
+                {
+                  "__typename": "Thing",
+                  "id": "1",
+                },
+                {
+                  "__typename": "Thing",
+                  "id": "2",
+                },
+              ],
+            },
+            "prop": [
+              "things",
+              "0",
+            ],
+          },
+          {
+            "cacheKey": "Foo:1.bar",
+            "entity": {
+              "__typename": "Bar",
+              "blah": "blah",
+              "things": [
+                {
+                  "__typename": "Thing",
+                  "id": "1",
+                },
+                {
+                  "__typename": "Thing",
+                  "id": "2",
+                },
+              ],
+            },
+            "parent": {
+              "__typename": "Foo",
+              "bar": {
+                "__typename": "Bar",
+                "blah": "blah",
+                "things": [
+                  {
+                    "__typename": "Thing",
+                    "id": "1",
+                  },
+                  {
+                    "__typename": "Thing",
+                    "id": "2",
+                  },
+                ],
+              },
+              "id": "1",
+            },
+            "prop": "bar",
+          },
+          {
+            "cacheKey": "Foo:1",
+            "entity": {
+              "__typename": "Foo",
+              "bar": {
+                "__typename": "Bar",
+                "blah": "blah",
+                "things": [
+                  {
+                    "__typename": "Thing",
+                    "id": "1",
+                  },
+                  {
+                    "__typename": "Thing",
+                    "id": "2",
+                  },
+                ],
+              },
+              "id": "1",
+            },
+            "parent": {
+              "__typename": "Query",
+              "foo": {
+                "__typename": "Foo",
+                "bar": {
+                  "__typename": "Bar",
+                  "blah": "blah",
+                  "things": [
+                    {
+                      "__typename": "Thing",
+                      "id": "1",
+                    },
+                    {
+                      "__typename": "Thing",
+                      "id": "2",
+                    },
+                  ],
+                },
+                "id": "1",
+              },
+            },
+            "prop": "foo",
+          },
+          {
+            "cacheKey": "Query",
+            "entity": {
+              "__typename": "Query",
+              "foo": {
+                "__typename": "Foo",
+                "bar": {
+                  "__typename": "Bar",
+                  "blah": "blah",
+                  "things": [
+                    {
+                      "__typename": "Thing",
+                      "id": "1",
+                    },
+                    {
+                      "__typename": "Thing",
+                      "id": "2",
+                    },
+                  ],
+                },
+                "id": "1",
+              },
+            },
+            "parent": null,
+            "prop": "Query",
+          },
+        ]
+      `);
     });
   });
 });

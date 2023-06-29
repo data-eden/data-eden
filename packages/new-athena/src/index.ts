@@ -56,7 +56,7 @@ export interface ParsedEntity {
   entity: Entity;
   parent: Entity | null;
   prop: string | number | Array<string | number>;
-  id: string;
+  cacheKey: string;
 }
 
 export function isEntity(obj: unknown): obj is Entity {
@@ -123,6 +123,8 @@ export class SignalCache {
     this.cache = buildCache();
   }
 
+  async writeQuery(op: Operation) {}
+
   async store(op: Operation) {
     const { result } = op;
 
@@ -177,10 +179,7 @@ export class SignalCache {
   // DFS through each top-level element in document.data because it's possible that a gql operation
   // can return sibling entities and we need to treat each of them as root entities for the sake
   // of finding child entities
-  parse(
-    prop: string | number | Array<string | number>,
-    entry: DataField
-  ): Array<ParsedEntity> {
+  parse(entity: Entity): Array<ParsedEntity> {
     const result: Array<ParsedEntity> = [];
 
     // This tracks the property we're in if we are currently traversing through an array
@@ -193,24 +192,24 @@ export class SignalCache {
     let root: Entity | undefined = undefined;
 
     // This is the root level operation
-    if (isEntity(entry)) {
-      const key = this.getKey(entry);
+    if (isEntity(entity)) {
+      const key = this.getKey(entity);
       if (!key) {
         throw new Error(
-          `@data-eden/athena: We couldn't find a key for ${entry.__typename} and could not generate a synthetic one since this is a top level object. Provide a key generator in \`keys\` for ${entry.__typename}.`
+          `@data-eden/athena: We couldn't find a key for ${entity.__typename} and could not generate a synthetic one since this is a top level object. Provide a key generator in \`keys\` for ${entity.__typename}.`
         );
       }
 
-      root = entry;
+      root = entity;
       result.push({
-        id: key,
-        entity: entry,
+        cacheKey: key,
+        entity: entity,
         parent: null,
-        prop: prop,
+        prop: entity.__typename,
       });
     }
 
-    traverse(entry, (key, value, parent) => {
+    traverse(entity, (key, value, parent) => {
       let parentEntity: Entity | null = null;
 
       if (isEntity(value)) {
@@ -227,14 +226,16 @@ export class SignalCache {
         } else {
           if (isEntity(parent)) {
             parentEntity = parent;
+          } else {
+            parentEntity = null;
           }
           currentArrayProp = null;
         }
 
         if (result.length === 0) {
-          const key = this.getKey(value);
+          const entityId = this.getKey(value);
 
-          if (!key) {
+          if (!entityId) {
             throw new Error(
               `@data-eden/athena: We couldn't find a key for ${value.__typename} and could not generate a synthetic one since this is a top level object. Provide a key generator in \`keys\` for ${value.__typename}.`
             );
@@ -243,7 +244,7 @@ export class SignalCache {
           // if the result array is empty, then this is the first entity we've found, and is therefore
           // the root entity, so we special-case it and set the parent and prop
           result.push({
-            id: key,
+            cacheKey: entityId,
             entity: value,
             parent: null,
             prop: key,
@@ -251,12 +252,41 @@ export class SignalCache {
         } else {
           const prop = currentArrayProp ? [currentArrayProp, key] : key;
 
-          result.push({
-            id: this.getKey(value) ?? `${parentEntity.id}:${prop}`,
-            entity: value,
-            parent: parentEntity,
-            prop,
-          });
+          let entityId = this.getKey(value);
+
+          // If we can pull a key off the entity itself, we go with that and move on
+          if (entityId) {
+            result.push({
+              cacheKey: entityId,
+              entity: value,
+              parent: parentEntity,
+              prop,
+            });
+          } else if (parentEntity) {
+            // If we can't generate a key from the entity itself, we check to see if the parent exists. If it does,
+            // this means we're working with an embedded type and therefore need to derive a synthetic key using
+            // the parent's key
+            const parentId = this.getKey(parentEntity);
+
+            if (!parentId) {
+              throw new Error(
+                `@data-eden/athena: Unable to generate a key for embedded type ${value.__typename}. All embedded types must belong to a non-embedded type.`
+              );
+            }
+
+            if (parentId) {
+              result.push({
+                cacheKey: `${parentId}.${key}`,
+                entity: value,
+                parent: parentEntity,
+                prop,
+              });
+            } else {
+              throw new Error(
+                `@data-eden/athena: Unable to generate a key for ${value.__typename}. Please provide a key generator in \`keys\`.`
+              );
+            }
+          }
         }
 
         return true;
@@ -300,17 +330,23 @@ export class SignalCache {
       return typename;
     }
 
+    let key: string | null = null;
+
     if (this.keys[typename]) {
-      return this.keys[typename](entity) ?? null;
+      key = this.keys[typename](entity) ?? null;
     } else if (entity.id) {
-      return entity.id;
+      key = entity.id;
     } else {
       console.warn(
         `@data-eden/athena: no key derived for ${typename}. If this is intentional please provide a key generator in \`keys\` for ${typename} that always returns null.`
       );
-
-      return null;
     }
+
+    if (key) {
+      return `${typename}:${key}`;
+    }
+
+    return null;
   }
 
   computeCacheKey(entity: Entity): string;
