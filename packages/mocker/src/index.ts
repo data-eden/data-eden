@@ -76,6 +76,17 @@ type QueryOrMutationWrapped<T> = {
   };
 };
 
+type IsObject<T> = T extends object
+  ? T extends any[]
+    ? never
+    : keyof T extends never
+    ? never
+    : true
+  : never;
+type DeepPartial<T> = IsObject<T> extends true
+  ? { [P in keyof T]?: DeepPartial<T[P]> }
+  : T;
+
 export class Mocker {
   private faker: Faker;
   private fieldGenerators: FieldGenerators;
@@ -108,7 +119,7 @@ export class Mocker {
     documentNode:
       | TypedDocumentNode<Document>
       | QueryOrMutationWrapped<Document>,
-    mockData: JSONObject
+    mockData: DeepPartial<Document>
   ): Promise<Document> {
     const definition =
       '__meta__' in documentNode

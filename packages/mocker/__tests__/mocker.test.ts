@@ -17,6 +17,7 @@ import {
   PetThreeFragment,
   PetTwoFragment,
 } from './__generated/mocker.test.graphql';
+import { Breed } from '../../../internal-packages/react-graphql-test-app/src/graphql/schema.graphql.js';
 
 const schema = readFileSync(
   resolve(
@@ -64,7 +65,7 @@ describe('mocker', () => {
         },
       });
       const result = await mocker.mock(carTwoFragment, {
-        id: 1234,
+        id: '1234',
       });
 
       expect(result).toMatchSnapshot();
@@ -133,11 +134,11 @@ describe('mocker', () => {
         schema,
         typeGenerators: {
           ID() {
-            return 1234;
+            return '1234';
           },
         },
       });
-      const result = await mocker.mock(carThreeFragment, { id: 1234 });
+      const result = await mocker.mock(carThreeFragment, { id: '1234' });
 
       // we know that this is going to be a random result because we are picking a random resolution everytime
       // so the expects below are handling both cases for whatever union we mock out
@@ -187,31 +188,31 @@ describe('mocker', () => {
         schema,
         typeGenerators: {
           ID() {
-            return 123;
+            return '123';
           },
         },
       });
 
       const result = await mocker.mock(carFourFragment, {
-        id: 1234,
+        id: '1234',
         owner: {
           __typename: 'Person',
-          id: 123,
+          id: '123',
           name: 'Bob',
         },
       });
 
       expect(result).toEqual({
         __typename: 'Car',
-        id: 1234,
+        id: '1234',
         make: 'whose nor',
         owner: {
           __typename: 'Person',
-          id: 123,
+          id: '123',
           name: 'Bob',
           car: {
             __typename: 'Car',
-            id: 123,
+            id: '123',
             make: 'imperfect offensively thwack',
           },
         },
@@ -243,13 +244,13 @@ describe('mocker', () => {
         schema,
         typeGenerators: {
           ID: () => {
-            return 123;
+            return '123';
           },
         },
       });
       const result = await mocker.mock(ownerFragment, {
         __typename: 'Person',
-        id: 123,
+        id: '123',
         name: 'Bob',
         car: {
           make: 'Accura',
@@ -258,11 +259,11 @@ describe('mocker', () => {
 
       expect(result).toEqual({
         __typename: 'Person',
-        id: 123,
+        id: '123',
         name: 'Bob',
         car: {
           __typename: 'Car',
-          id: 123,
+          id: '123',
           make: 'Accura',
         },
       });
@@ -280,8 +281,8 @@ describe('mocker', () => {
         schema,
       });
       const result = await mocker.mock(petTwoFragment, {
-        id: 1234,
-        breed: 'SHEPARD',
+        id: '1234',
+        breed: Breed.Shepard,
       });
 
       expect(result).toMatchSnapshot();
@@ -300,7 +301,7 @@ describe('mocker', () => {
       });
 
       await expect(() =>
-        mocker.mock(petThreeFragment, { id: 1234, breed: 'SHARK' })
+        mocker.mock(petThreeFragment, { id: '1234', breed: 'SHARK' as any })
       ).rejects.toMatchSnapshot();
     });
 
@@ -323,13 +324,13 @@ describe('mocker', () => {
         schema,
         typeGenerators: {
           ID() {
-            return 1234557;
+            return '1234557';
           },
         },
       });
       const result = await mocker.mock(personOneFragment, {
-        id: 1234,
-        pets: [{}, { id: 99999, name: 'Bob' }],
+        id: '1234',
+        pets: [{}, { id: '99999', name: 'Bob' }],
       });
 
       expect(result).toMatchSnapshot();
@@ -351,7 +352,7 @@ describe('mocker', () => {
         schema,
         typeGenerators: {
           ID() {
-            return 1234557;
+            return '1234557';
           },
         },
         fieldGenerators: {
@@ -363,7 +364,7 @@ describe('mocker', () => {
         },
       });
 
-      const result = await mocker.mock(carOneQuery, { id: 1234 });
+      const result = await mocker.mock(carOneQuery, { id: '1234' });
 
       expect(result).toMatchSnapshot();
     });
@@ -384,12 +385,14 @@ describe('mocker', () => {
         schema,
         typeGenerators: {
           ID() {
-            return 1234557;
+            return '1234557';
           },
         },
       });
 
-      const result = await mocker.mock(createOnePetMutation, { id: 1234 });
+      const result = await mocker.mock(createOnePetMutation, {
+        createPet: { id: '1234' },
+      });
 
       expect(result).toMatchSnapshot();
     });
