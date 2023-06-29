@@ -1,85 +1,26 @@
-import { describe, expect, test, beforeEach } from 'vitest';
-import { SignalCache } from '../src/index.js';
+import { beforeEach, describe, expect, test } from 'vitest';
+import { SignalCache } from '../../src/index.js';
 
-describe('SignalCache', () => {
+describe('SignalCache#parse', () => {
   let cache: SignalCache;
 
-  describe('#getKey', () => {
-    beforeEach(() => {
-      cache = new SignalCache({
-        keys: {
-          Foo: (data) => data.uuid as string,
-        },
-      });
-    });
-
-    test('with root type', () => {
-      const key = cache.getKey({
-        __typename: 'Query',
-        foo: {
-          __typename: 'Foo',
-          uuid: '1234',
-        },
-      });
-
-      expect(key).toEqual('Query');
-    });
-
-    test('falls back to id when no custom key is found', () => {
-      const key = cache.getKey({
-        __typename: 'Bar',
-        id: '1234',
-      });
-
-      expect(key).toEqual('Bar:1234');
-    });
-
-    test('with a custom key', () => {
-      const key = cache.getKey({
-        __typename: 'Foo',
-        uuid: '1234',
-      });
-
-      expect(key).toEqual('Foo:1234');
-    });
-
-    test('should return null when custom key exists but does not return anything', () => {
-      const key = cache.getKey({
-        __typename: 'Foo',
-        id: '1234',
-      });
-
-      expect(key).toEqual(null);
-    });
-
-    test('when no key is found', () => {
-      const key = cache.getKey({
-        __typename: 'Baz',
-        uuid: '1234',
-      });
-
-      expect(key).toEqual(null);
-    });
+  beforeEach(() => {
+    cache = new SignalCache();
   });
 
-  describe('#parse', () => {
-    beforeEach(() => {
-      cache = new SignalCache();
-    });
+  test('basic document', () => {
+    const document = {
+      __typename: 'Query',
+      foo: {
+        __typename: 'Foo',
+        id: '1234',
+      },
+    };
 
-    test('basic document', () => {
-      const document = {
-        __typename: 'Query',
-        foo: {
-          __typename: 'Foo',
-          id: '1234',
-        },
-      };
+    const result = cache.parse(document);
 
-      const result = cache.parse(document);
-
-      expect(result.length).toEqual(2);
-      expect(result).toMatchInlineSnapshot(`
+    expect(result.length).toEqual(2);
+    expect(result).toMatchInlineSnapshot(`
         [
           {
             "cacheKey": "Foo:1234",
@@ -110,44 +51,44 @@ describe('SignalCache', () => {
           },
         ]
       `);
-    });
+  });
 
-    test('document with multiple levels', () => {
-      const document = {
-        __typename: 'Query',
-        person: {
-          id: '1',
-          name: 'foo',
-          __typename: 'Person',
-          pets: [
-            {
+  test('document with multiple levels', () => {
+    const document = {
+      __typename: 'Query',
+      person: {
+        id: '1',
+        name: 'foo',
+        __typename: 'Person',
+        pets: [
+          {
+            id: '1',
+            name: 'Hitch',
+            owner: {
               id: '1',
-              name: 'Hitch',
-              owner: {
-                id: '1',
-                name: 'foo',
-                __typename: 'Person',
-              },
-              __typename: 'Pet',
+              name: 'foo',
+              __typename: 'Person',
             },
-            {
-              id: '2',
-              name: 'Dre',
-              owner: {
-                id: '1',
-                name: 'foo',
-                __typename: 'Person',
-              },
-              __typename: 'Pet',
+            __typename: 'Pet',
+          },
+          {
+            id: '2',
+            name: 'Dre',
+            owner: {
+              id: '1',
+              name: 'foo',
+              __typename: 'Person',
             },
-          ],
-        },
-      };
+            __typename: 'Pet',
+          },
+        ],
+      },
+    };
 
-      const result = cache.parse(document);
+    const result = cache.parse(document);
 
-      expect(result.length).toEqual(6);
-      expect(result).toMatchInlineSnapshot(`
+    expect(result.length).toEqual(6);
+    expect(result).toMatchInlineSnapshot(`
         [
           {
             "cacheKey": "Person:1",
@@ -373,24 +314,24 @@ describe('SignalCache', () => {
           },
         ]
       `);
-    });
+  });
 
-    test('with embedded entity', () => {
-      const document = {
-        foo: {
-          id: '1',
-          __typename: 'Foo',
-          bar: {
-            blah: 'blah',
-            __typename: 'Bar',
-          },
+  test('with embedded entity', () => {
+    const document = {
+      foo: {
+        id: '1',
+        __typename: 'Foo',
+        bar: {
+          blah: 'blah',
+          __typename: 'Bar',
         },
-        __typename: 'Query',
-      };
+      },
+      __typename: 'Query',
+    };
 
-      const result = cache.parse(document);
+    const result = cache.parse(document);
 
-      expect(result).toMatchInlineSnapshot(`
+    expect(result).toMatchInlineSnapshot(`
         [
           {
             "cacheKey": "Foo:1.bar",
@@ -449,29 +390,29 @@ describe('SignalCache', () => {
           },
         ]
       `);
-    });
+  });
 
-    test('with embedded entity pointing to another entity', () => {
-      const document = {
-        foo: {
-          id: '1',
-          __typename: 'Foo',
-          bar: {
-            blah: 'blah',
-            owner: {
-              id: '1',
-              name: 'bob',
-              __typename: 'Owner',
-            },
-            __typename: 'Bar',
+  test('with embedded entity pointing to another entity', () => {
+    const document = {
+      foo: {
+        id: '1',
+        __typename: 'Foo',
+        bar: {
+          blah: 'blah',
+          owner: {
+            id: '1',
+            name: 'bob',
+            __typename: 'Owner',
           },
+          __typename: 'Bar',
         },
-        __typename: 'Query',
-      };
+      },
+      __typename: 'Query',
+    };
 
-      const result = cache.parse(document);
+    const result = cache.parse(document);
 
-      expect(result).toMatchInlineSnapshot(`
+    expect(result).toMatchInlineSnapshot(`
         [
           {
             "cacheKey": "Owner:1",
@@ -573,34 +514,34 @@ describe('SignalCache', () => {
           },
         ]
       `);
-    });
+  });
 
-    test('with embedded entity pointing to array of entities', () => {
-      const document = {
-        foo: {
-          id: '1',
-          __typename: 'Foo',
-          bar: {
-            blah: 'blah',
-            things: [
-              {
-                id: '1',
-                __typename: 'Thing',
-              },
-              {
-                id: '2',
-                __typename: 'Thing',
-              },
-            ],
-            __typename: 'Bar',
-          },
+  test('with embedded entity pointing to array of entities', () => {
+    const document = {
+      foo: {
+        id: '1',
+        __typename: 'Foo',
+        bar: {
+          blah: 'blah',
+          things: [
+            {
+              id: '1',
+              __typename: 'Thing',
+            },
+            {
+              id: '2',
+              __typename: 'Thing',
+            },
+          ],
+          __typename: 'Bar',
         },
-        __typename: 'Query',
-      };
+      },
+      __typename: 'Query',
+    };
 
-      const result = cache.parse(document);
+    const result = cache.parse(document);
 
-      expect(result).toMatchInlineSnapshot(`
+    expect(result).toMatchInlineSnapshot(`
         [
           {
             "cacheKey": "Thing:2",
@@ -759,6 +700,139 @@ describe('SignalCache', () => {
           },
         ]
       `);
-    });
+  });
+
+  test('entity with array of embedded entities', () => {
+    const document = {
+      foo: {
+        id: '1',
+        __typename: 'Foo',
+        things: [
+          {
+            message: 'blah',
+            __typename: 'Thing',
+          },
+          {
+            message: 'more blah',
+            __typename: 'Thing',
+          },
+        ],
+      },
+      __typename: 'Query',
+    };
+
+    const result = cache.parse(document);
+
+    expect(result).toMatchInlineSnapshot(`
+      [
+        {
+          "cacheKey": "Foo:1.things.1",
+          "entity": {
+            "__typename": "Thing",
+            "message": "more blah",
+          },
+          "parent": {
+            "__typename": "Foo",
+            "id": "1",
+            "things": [
+              {
+                "__typename": "Thing",
+                "message": "blah",
+              },
+              {
+                "__typename": "Thing",
+                "message": "more blah",
+              },
+            ],
+          },
+          "prop": [
+            "things",
+            "1",
+          ],
+        },
+        {
+          "cacheKey": "Foo:1.things.0",
+          "entity": {
+            "__typename": "Thing",
+            "message": "blah",
+          },
+          "parent": {
+            "__typename": "Foo",
+            "id": "1",
+            "things": [
+              {
+                "__typename": "Thing",
+                "message": "blah",
+              },
+              {
+                "__typename": "Thing",
+                "message": "more blah",
+              },
+            ],
+          },
+          "prop": [
+            "things",
+            "0",
+          ],
+        },
+        {
+          "cacheKey": "Foo:1",
+          "entity": {
+            "__typename": "Foo",
+            "id": "1",
+            "things": [
+              {
+                "__typename": "Thing",
+                "message": "blah",
+              },
+              {
+                "__typename": "Thing",
+                "message": "more blah",
+              },
+            ],
+          },
+          "parent": {
+            "__typename": "Query",
+            "foo": {
+              "__typename": "Foo",
+              "id": "1",
+              "things": [
+                {
+                  "__typename": "Thing",
+                  "message": "blah",
+                },
+                {
+                  "__typename": "Thing",
+                  "message": "more blah",
+                },
+              ],
+            },
+          },
+          "prop": "foo",
+        },
+        {
+          "cacheKey": "Query",
+          "entity": {
+            "__typename": "Query",
+            "foo": {
+              "__typename": "Foo",
+              "id": "1",
+              "things": [
+                {
+                  "__typename": "Thing",
+                  "message": "blah",
+                },
+                {
+                  "__typename": "Thing",
+                  "message": "more blah",
+                },
+              ],
+            },
+          },
+          "parent": null,
+          "prop": "Query",
+        },
+      ]
+    `);
   });
 });
