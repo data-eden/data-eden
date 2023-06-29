@@ -1,5 +1,23 @@
 # Changelog
 
+
+## v0.16.0 (2023-06-29)
+
+#### :rocket: Enhancement
+* `mocker`
+  * [#169](https://github.com/data-eden/data-eden/pull/169) feat: support union fragments mocking top level ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :bug: Bug Fix
+* `mocker`
+  * [#169](https://github.com/data-eden/data-eden/pull/169) feat: support union fragments mocking top level ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :house: Internal
+* [#168](https://github.com/data-eden/data-eden/pull/168) chore: cleans up design and moves data around ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+
 ## v0.15.0 (2023-06-27)
 
 #### :rocket: Enhancement
