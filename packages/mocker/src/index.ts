@@ -115,12 +115,12 @@ export class Mocker {
     this.faker.seed(2345678);
   }
 
-  async mock<Document extends JSONObject = JSONObject>(
+  mock<Document extends JSONObject = JSONObject>(
     documentNode:
       | TypedDocumentNode<Document>
       | QueryOrMutationWrapped<Document>,
     mockData: DeepPartial<Document>
-  ): Promise<Document> {
+  ): Document {
     const definition =
       '__meta__' in documentNode
         ? documentNode.__meta__.$DEBUG.ast.definitions[0]

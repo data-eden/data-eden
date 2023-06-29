@@ -34,7 +34,7 @@ exports[`mocker > fragments > fragment with default data and fieldGenerator with
 }
 `;
 
-exports[`mocker > fragments > fragment with enum values (with provided enum value that doesn't match, this should throw) 1`] = `[Error: Trying to mock Breed with enum value SHARK does not match known enum values "[SHEPARD,BULLDOG,POODLE,GERMAN_SHEPHERD,LABRADOR_RETRIEVER,GOLDEN_RETRIEVER]"]`;
+exports[`mocker > fragments > fragment with enum values (with provided enum value that doesn't match, this should throw) 1`] = `"Trying to mock Breed with enum value SHARK does not match known enum values \\"[SHEPARD,BULLDOG,POODLE,GERMAN_SHEPHERD,LABRADOR_RETRIEVER,GOLDEN_RETRIEVER]\\""`;
 
 exports[`mocker > fragments > fragment with enum values (with provided enum value) 1`] = `
 {

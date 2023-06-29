@@ -24,7 +24,7 @@ const mocker = new Mocker({
   schema,
 });
 
-const result = await mocker.mock(carTwoFragment, { id: 1234 });
+const result = mocker.mock(carTwoFragment, { id: 1234 });
 /**
 {
   "id": 1234,

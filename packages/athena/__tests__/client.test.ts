@@ -572,7 +572,7 @@ describe('client', () => {
           response.writeHead(200, { 'Content-Type': 'application/json' });
           response.end(
             JSON.stringify({
-              data: await mocker.mock(peopleQuery, {
+              data: mocker.mock(peopleQuery, {
                 people: [
                   {
                     id: 12,
