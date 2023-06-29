@@ -1,6 +1,6 @@
 {
   "name": "@data-eden/athena",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/data-eden/data-eden.git",
@@ -24,14 +24,14 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@data-eden/cache": "^0.16.0",
+    "@data-eden/cache": "^0.16.1",
     "date-fns": "^2.30.0",
     "lodash-es": "^4.17.21"
   },
   "devDependencies": {
-    "@data-eden/codegen": "0.16.0",
-    "@data-eden/mocker": "0.16.0",
-    "@data-eden/shared-test-utilities": "0.16.0",
+    "@data-eden/codegen": "0.16.1",
+    "@data-eden/mocker": "0.16.1",
+    "@data-eden/shared-test-utilities": "0.16.1",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@signalis/core": "^0.1.0",
     "@types/lodash-es": "^4.17.6",

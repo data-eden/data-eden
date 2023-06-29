@@ -1,6 +1,16 @@
 # Changelog
 
 
+
+## v0.16.1 (2023-06-29)
+
+#### :bug: Bug Fix
+* [#170](https://github.com/data-eden/data-eden/pull/170) bug: ensure we build @data-eden/mocker before publishing ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+
 ## v0.16.0 (2023-06-29)
 
 #### :rocket: Enhancement

@@ -1,6 +1,6 @@
 {
   "name": "react-graphql-test-app",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,17 +10,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@data-eden/athena": "0.16.0",
-    "@data-eden/cache": "0.16.0",
-    "@data-eden/network": "0.16.0",
-    "@data-eden/react": "^0.16.0",
+    "@data-eden/athena": "0.16.1",
+    "@data-eden/cache": "0.16.1",
+    "@data-eden/network": "0.16.1",
+    "@data-eden/react": "^0.16.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.13.0",
     "tsconfig-paths": "^4.2.0"
   },
   "devDependencies": {
-    "@data-eden/codegen": "0.16.0",
+    "@data-eden/codegen": "0.16.1",
     "@rollup/plugin-graphql": "^2.0.3",
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
