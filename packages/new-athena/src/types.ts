@@ -1,5 +1,6 @@
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import type { DocumentNode, GraphQLError } from 'graphql';
+import type { SIGNAL } from './signal-proxy.js';
 
 export type Primitive =
   | null
@@ -87,3 +88,12 @@ export type Link = Record<string, string | Array<string>>;
 export type KeyConfig = {
   [typeName: string]: KeyGetter;
 };
+
+export type WithSignal<T> = T & {
+  [SIGNAL]: ReactiveSignal<T>;
+};
+export interface ReactiveSignal<T> {
+  value: T;
+}
+
+export type ReactiveAdapter = <T>(value: T) => ReactiveSignal<T>;
