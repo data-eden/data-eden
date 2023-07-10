@@ -27,7 +27,7 @@ export const client = createClient({
     PetsForAdoption: {
       pets: (currentValue = [], newValue = []) => {
         return [
-          ...currentValue.map((p) => {
+          ...(currentValue as any[]).map((p) => {
             return {
               __link: p,
             };

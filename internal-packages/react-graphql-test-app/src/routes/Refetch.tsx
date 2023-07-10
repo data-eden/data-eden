@@ -1,10 +1,10 @@
 import { useQuery } from '@data-eden/react';
 import DisplayCar from '../components/DisplayCar';
-import { CarQuery } from './QueryEffect';
+import { carQuery } from './QueryEffect';
 import { useState } from 'react';
 
 export default function Refetch() {
-  const { data, loading, refetch } = useQuery(CarQuery, { id: '1' });
+  const { data, loading, refetch } = useQuery(carQuery, { id: '1' });
 
   const [shouldReload, setShouldReload] = useState(false);
 

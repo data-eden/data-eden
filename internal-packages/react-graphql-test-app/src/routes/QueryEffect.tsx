@@ -7,7 +7,7 @@ import type {
   CarQueryVariables,
 } from './__generated/QueryEffect.graphql';
 
-export const CarQuery = gql<CarQuery, CarQueryVariables>`
+export const carQuery = gql<CarQuery, CarQueryVariables>`
   query Car($id: ID!) {
     car(id: $id) {
       id
@@ -26,7 +26,7 @@ export const CarQuery = gql<CarQuery, CarQueryVariables>`
 
 function QueryCar({ carId }: { carId: string }) {
   console.log('carId', carId);
-  const { data } = useQuery(CarQuery, { id: carId });
+  const { data } = useQuery(carQuery, { id: carId });
 
   if (data) {
     console.log('data', data);

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { gql } from '@data-eden/codegen/gql';
 import { useQuery } from '@data-eden/react';
+import { PetsForAdoptionQuery } from './__generated/FetchMore.graphql';
 
-const petsForAdoptionQuery = gql`
+const petsForAdoptionQuery = gql<PetsForAdoptionQuery>`
   query PetsForAdoption {
     petsForAdoption {
       __typename
@@ -20,7 +21,7 @@ const petsForAdoptionQuery = gql`
   }
 `;
 
-const BoxedItems = ({ items, rangesMap }) => {
+const BoxedItems = ({ items, rangesMap }: { items: any; rangesMap: any }) => {
   const sortedKeys = Object.keys(rangesMap).sort(
     (a, b) => parseInt(a, 10) - parseInt(b, 10)
   );
@@ -34,7 +35,11 @@ const BoxedItems = ({ items, rangesMap }) => {
     return color;
   };
 
-  const renderBox = (currentIndex, keyIndex, sortedKeys) => {
+  const renderBox = (
+    currentIndex: number,
+    keyIndex: number,
+    sortedKeys: Record<string, any>
+  ) => {
     if (keyIndex >= sortedKeys.length) {
       return null;
     }
@@ -59,8 +64,8 @@ const BoxedItems = ({ items, rangesMap }) => {
       >
         <p>Request {requestNumber}</p>
         <ul>
-          {itemsInRange.map((item, itemIndex) => (
-            <li key={itemIndex}>
+          {itemsInRange.map((item: any) => (
+            <li key={item.id}>
               {item.id} - {item.name}
             </li>
           ))}
@@ -73,25 +78,6 @@ const BoxedItems = ({ items, rangesMap }) => {
   return <div>{renderBox(0, 0, sortedKeys)}</div>;
 };
 
-function unwrapObject(obj) {
-  if (typeof obj !== 'object' || obj === null) {
-    return obj; // Base case: if obj is not an object, return it as is
-  }
-
-  if ('_value' in obj) {
-    return obj._value; // If obj has _value property, return its value
-  }
-
-  // Recursively unwrap nested properties
-  const unwrappedObj = Array.isArray(obj) ? [] : {}; // Create an empty array or object
-
-  for (const key in obj) {
-    unwrappedObj[key] = unwrapObject(obj[key]); // Recursively unwrap nested properties
-  }
-
-  return unwrappedObj;
-}
-
 export default function FetchMore() {
   const { data, loading, refetch, fetchMore } = useQuery(
     petsForAdoptionQuery,
@@ -99,6 +85,7 @@ export default function FetchMore() {
     {
       lazy: true,
       initialData: {
+        __typename: 'Query',
         petsForAdoption: {
           __typename: 'PetsForAdoption',
           id: '1234',
@@ -138,7 +125,10 @@ export default function FetchMore() {
 
             await fetchMore();
 
-            if (data?.petsForAdoption?.pets?.length > 0) {
+            if (
+              data?.petsForAdoption?.pets &&
+              data?.petsForAdoption?.pets?.length > 0
+            ) {
               setAmountToRequest({
                 ...amountToRequest,
                 [data?.petsForAdoption?.pets.length]: currentRequest,
@@ -162,7 +152,10 @@ export default function FetchMore() {
               }
             );
 
-            if (data?.petsForAdoption?.pets?.length > 0) {
+            if (
+              data?.petsForAdoption?.pets &&
+              data?.petsForAdoption?.pets?.length > 0
+            ) {
               setAmountToRequest({
                 [data?.petsForAdoption?.pets.length]: 0,
               });
