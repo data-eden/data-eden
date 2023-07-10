@@ -2,6 +2,23 @@
 
 
 
+
+## v0.16.2 (2023-07-10)
+
+#### :rocket: Enhancement
+* `athena`, `mocker`
+  * [#172](https://github.com/data-eden/data-eden/pull/172) feat: make mocker.mock synchronous ([@gabrielcsapo](https://github.com/gabrielcsapo))
+* `mocker`
+  * [#171](https://github.com/data-eden/data-eden/pull/171) feat: thread types through to get autcomplete for mockData ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :bug: Bug Fix
+* `codegen`
+  * [#173](https://github.com/data-eden/data-eden/pull/173) bug: fix missing fragment docs for gql tags in codegen ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+
 ## v0.16.1 (2023-06-29)
 
 #### :bug: Bug Fix
