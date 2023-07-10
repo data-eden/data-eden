@@ -132,15 +132,27 @@ export function outputOperations(
       def.type === 'operation' || def.type === 'fragment'
   );
 
-  return operations.map((operation) => {
+  const operationsByFilePath: Record<string, string[]> = {};
+
+  operations.map((operation) => {
     const opStr = generateFinalOperationString(
       dependencyGraph.fragments,
       operation,
       outputStringsByDefinition
     );
 
+    if (!operationsByFilePath[operation.filePath]) {
+      operationsByFilePath[operation.filePath] = [];
+    }
+
+    operationsByFilePath[operation.filePath].push(opStr);
+  });
+
+  return Object.keys(operationsByFilePath).map((filePath) => {
+    const opStr = operationsByFilePath[filePath].join('\n');
+
     return {
-      location: operation.filePath,
+      location: filePath,
       rawSDL: opStr,
       document: parse(opStr),
     };

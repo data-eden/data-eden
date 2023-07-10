@@ -4,7 +4,6 @@ import {
   type PersonQuery,
   type PersonQueryVariables,
   type CarFieldsFragment,
-  type CarFieldsSharedFragment,
 } from './__generated/DisplayPerson.graphql.js';
 import { PersonFieldsSharedFragment } from './DisplayOwner.js';
 import DisplayCar from './DisplayCar';
