@@ -176,12 +176,12 @@ export class SignalCache {
         if (Array.isArray(value)) {
           const arrayLink: Array<string> = [];
           const recordArray: any[] = [];
-          value.forEach((link) => {
-            if (isLinkNode(link)) {
-              arrayLink.push(link.__link);
+          value.forEach((member) => {
+            if (isLinkNode(member)) {
+              arrayLink.push(member.__link);
             } else {
               // we don't have a link and we need to attach this to the value itself as the reactivity is owned by the parent
-              recordArray.push(link);
+              recordArray.push(member);
             }
           });
           links[entityKey] = arrayLink;
@@ -331,6 +331,14 @@ export class SignalCache {
 
       // If this node is already being explored, we're in a cycle and need to bail
       if (exploring.has(value)) {
+        // Once we know we're going to bail on this particular traversal, we remove the key
+        // from `exploring` so that it won't block subsequent traversals from ever resolving the
+        // value. This comes up in the case where you have an array of entities that
+        // each point to a common entity, e.g. an array of comment posts that each contain a link
+        // to the same author. When traversing an individual comment, we don't want to traverse
+        // infinitely, but we also don't want to prevent subsequent comment traversal from being
+        // able to materialize their author field.
+        exploring.delete(value);
         return false;
       }
 
