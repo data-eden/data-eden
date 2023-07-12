@@ -357,4 +357,63 @@ describe('SignalCache#resolve', () => {
       }
     `);
   });
+
+  test('with embedded field', async () => {
+    cache = new SignalCache();
+    const op: Operation = {
+      name: 'getPerson',
+      queryId: '1234',
+      type: 'query',
+      args: {
+        id: '1',
+      },
+      result: {
+        data: {
+          __typename: 'Query',
+          person: {
+            id: '1',
+            name: 'Bob',
+            __typename: 'Person',
+            pet: {
+              name: 'Dre',
+              __typename: 'Pet',
+            },
+          },
+        },
+      },
+    };
+
+    await cache.writeQuery(op);
+
+    expect(cache.links).toMatchInlineSnapshot(`
+      Map {
+        "Person:1.pet" => {},
+        "Person:1" => {
+          "pet": "Person:1.pet",
+        },
+        "query:1234({\\"id\\":\\"1\\"})" => {
+          "person": "Person:1",
+        },
+      }
+    `);
+
+    delete op.result;
+
+    const result = cache.readQuery(op);
+
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "__typename": "Query",
+        "person": {
+          "__typename": "Person",
+          "id": "1",
+          "name": "Bob",
+          "pet": {
+            "__typename": "Pet",
+            "name": "Dre",
+          },
+        },
+      }
+    `);
+  });
 });
