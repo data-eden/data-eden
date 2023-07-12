@@ -1,5 +1,6 @@
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import type { DocumentNode, GraphQLError } from 'graphql';
+import type { SignalCache } from './signal-cache.js';
 import type { SIGNAL } from './signal-proxy.js';
 
 export type Primitive =
@@ -69,11 +70,11 @@ export interface BaseFields {
   __typename: string;
 }
 
-export type Scalar = string | number | boolean | null;
+export type Scalar = string | number | boolean | null | undefined;
 
 export type DataField = Scalar | Data | Array<Scalar> | Array<Data>;
 
-interface DataFields {
+export interface DataFields {
   [fieldName: string]: DataField;
 }
 
@@ -88,6 +89,19 @@ export type Link = Record<string, string | Array<string>>;
 export type KeyConfig = {
   [typeName: string]: KeyGetter;
 };
+
+export type ResolverResult = DataField | null | undefined;
+
+export type Resolver<ParentData = DataFields, Result = ResolverResult> = (
+  parent: ParentData,
+  cache: SignalCache
+) => Result;
+
+export interface ResolverConfig {
+  [typeName: string]: {
+    [fieldName: string]: Resolver;
+  };
+}
 
 export type WithSignal<T> = T & {
   [SIGNAL]: ReactiveSignal<T>;

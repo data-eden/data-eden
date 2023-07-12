@@ -1,8 +1,11 @@
 import type { DefaultRegistry } from '@data-eden/cache';
 import { buildCache, type Cache } from '@data-eden/cache';
+import { createSignal } from '@signalis/core';
 import { set } from 'lodash-es';
 import type { Entries } from 'type-fest';
 import { parse } from './parse.js';
+import { createSignalProxy } from './signal-proxy.js';
+import { traverse } from './traverse.js';
 import type {
   Data,
   Entity,
@@ -13,19 +16,18 @@ import type {
   ParsedEntity,
   ReactiveAdapter,
   ReactiveSignal,
+  ResolverConfig,
   Scalar,
   WithSignal,
 } from './types.js';
 import { createLinkNode, isLinkNode, isQuery, keyForQuery } from './utils.js';
-import { createSignalProxy } from './signal-proxy.js';
-import { traverse } from './traverse.js';
-import { createSignal } from '@signalis/core';
 
 export interface SignalCacheConfig {
   keys?: {
     [key: string]: KeyGetter;
   };
   signalAdapter?: ReactiveAdapter;
+  resolvers?: ResolverConfig;
 }
 
 function defaultAdapter<T>(v: T): ReactiveSignal<T> {
@@ -35,11 +37,13 @@ function defaultAdapter<T>(v: T): ReactiveSignal<T> {
 const DEFAULT_CONFIG: SignalCacheConfig = {
   keys: {},
   signalAdapter: defaultAdapter,
+  resolvers: {},
 };
 
 export class SignalCache {
   signalAdapter: ReactiveAdapter;
   keys: KeyConfig;
+  resolvers: ResolverConfig;
   cache: Cache<DefaultRegistry, string, unknown, unknown>;
   links = new Map<string, Link>();
   records = new Map<string, Record<string, Scalar>>();
@@ -48,6 +52,7 @@ export class SignalCache {
 
   constructor(config: SignalCacheConfig = DEFAULT_CONFIG) {
     this.keys = config.keys ?? {};
+    this.resolvers = config.resolvers ?? {};
     this.cache = buildCache();
     this.signalAdapter = config.signalAdapter ?? defaultAdapter;
 
@@ -371,6 +376,14 @@ export class SignalCache {
       throw new Error(
         `@data-eden/athena - No entity found when attempting to resolve ${entityKey}`
       );
+    }
+
+    const resolverForType = this.resolvers[root.__typename];
+
+    if (resolverForType) {
+      Object.entries(resolverForType).forEach(([key, resolver]) => {
+        root[key] = resolver(root, this);
+      });
     }
 
     return root;
