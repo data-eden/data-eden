@@ -2,6 +2,8 @@ import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
+import { print } from 'graphql';
+
 import { gql } from '@data-eden/codegen/gql';
 
 import { Mocker } from '@data-eden/mocker';
@@ -16,6 +18,7 @@ import {
   PetOneFragment,
   PetThreeFragment,
   PetTwoFragment,
+  OwnerOneFragment,
 } from './__generated/mocker.test.graphql';
 import { Breed } from '../../../internal-packages/react-graphql-test-app/src/graphql/schema.graphql.js';
 
@@ -249,6 +252,62 @@ describe('mocker', () => {
         },
       });
       const result = mocker.mock(ownerFragment, {
+        __typename: 'Person',
+        id: '123',
+        name: 'Bob',
+        car: {
+          make: 'Accura',
+        },
+      });
+
+      expect(result).toEqual({
+        __typename: 'Person',
+        id: '123',
+        name: 'Bob',
+        car: {
+          __typename: 'Car',
+          id: '123',
+          make: 'Accura',
+        },
+      });
+    });
+
+    test('should be able to mock union type fragment (from other references)', async () => {
+      const personNestedFragment = gql`
+        fragment personNested on Person {
+          __typename
+          id
+          name
+          car {
+            __typename
+            id
+            make
+          }
+        }
+      `;
+      const companyNestedFragment = gql`
+        fragment companyNested on Company {
+          __typename
+          id
+          name
+        }
+      `;
+      const ownerOneFragment = gql<OwnerOneFragment>`
+        fragment ownerOne on Owner {
+          ${personNestedFragment}
+          ${companyNestedFragment}
+        }
+      `;
+
+      const mocker = new Mocker({
+        schema,
+        typeGenerators: {
+          ID: () => {
+            return '123';
+          },
+        },
+      });
+      const result = mocker.mock(ownerOneFragment, {
         __typename: 'Person',
         id: '123',
         name: 'Bob',

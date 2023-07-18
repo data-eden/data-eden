@@ -19,6 +19,8 @@ import {
 import type { Faker } from '@faker-js/faker';
 import { faker as defaultFaker } from '@faker-js/faker';
 
+import { inlineAllFragments } from './inline-all-fragments.js';
+
 type JSONPrimitive = string | number | boolean | null;
 type JSONArray = JSONValue[];
 type JSONObject = { [key in string]: JSONValue | undefined };
@@ -31,6 +33,36 @@ const defaultTypeGenerators: TypeGenerators = {
   Int(faker: Faker) {
     return faker.number.int();
   },
+  Long(faker: Faker) {
+    let _min = BigInt(0n);
+    let _max = BigInt(9223372036854775807n);
+
+    return (_min +
+      BigInt(
+        Math.floor(Math.random() * Number(_max - _min + 1n))
+      )) as unknown as JSONValue;
+  },
+  Float(faker: Faker) {
+    const randomNum = faker.datatype.number({
+      min: 0,
+      max: 92233720368547,
+      precision: 0.01,
+    });
+
+    return parseFloat(randomNum.toFixed(2));
+  },
+};
+
+type DeepPartial<T> = T extends any[]
+  ? DeepPartialArray<T[number]>
+  : T extends object
+  ? DeepPartialObject<T>
+  : T;
+
+type DeepPartialArray<T> = Array<DeepPartial<T>>;
+
+type DeepPartialObject<T> = {
+  [P in keyof T]?: DeepPartial<T[P]>;
 };
 
 type FieldGenerators = {
@@ -76,17 +108,6 @@ type QueryOrMutationWrapped<T> = {
   };
 };
 
-type IsObject<T> = T extends object
-  ? T extends any[]
-    ? never
-    : keyof T extends never
-    ? never
-    : true
-  : never;
-type DeepPartial<T> = IsObject<T> extends true
-  ? { [P in keyof T]?: DeepPartial<T[P]> }
-  : T;
-
 export class Mocker {
   private faker: Faker;
   private fieldGenerators: FieldGenerators;
@@ -121,10 +142,17 @@ export class Mocker {
       | QueryOrMutationWrapped<Document>,
     mockData: DeepPartial<Document>
   ): Document {
-    const definition =
+    const definitionNode =
       '__meta__' in documentNode
         ? documentNode.__meta__.$DEBUG.ast.definitions[0]
         : documentNode.definitions[0];
+
+    const definition = inlineAllFragments(
+      definitionNode,
+      '__meta__' in documentNode
+        ? documentNode.__meta__.$DEBUG.ast
+        : documentNode
+    );
 
     let typeName: string;
     let selections: readonly SelectionNode[];
@@ -194,6 +222,7 @@ export class Mocker {
         );
 
         assertHasSelectionSet(selectionSetForType);
+
         return this.generateMockDataForFields(
           selectionSetForType.selectionSet.selections,
           matchingType,
