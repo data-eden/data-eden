@@ -3,6 +3,20 @@
 
 
 
+
+## v0.16.3 (2023-07-19)
+
+#### :rocket: Enhancement
+* `mocker`
+  * [#174](https://github.com/data-eden/data-eden/pull/174) feat: inlines fragments to simplify use cases and fixes DeepPartial type ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :bug: Bug Fix
+* `mocker`
+  * [#174](https://github.com/data-eden/data-eden/pull/174) feat: inlines fragments to simplify use cases and fixes DeepPartial type ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
 ## v0.16.2 (2023-07-10)
 
 #### :rocket: Enhancement
