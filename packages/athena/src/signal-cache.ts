@@ -76,8 +76,11 @@ export class SignalCache {
 
   // Associate an operation with its root entities. This method does *not* also store the actual
   // entities, it is intended solely tracking the top-level links for a given operation
-  storeOperation(
-    operation: GraphQLOperation,
+  storeOperation<
+    Data extends object = object,
+    Variables extends DefaultVariables = DefaultVariables
+  >(
+    operation: GraphQLOperation<Data, Variables>,
     links?: Map<PropertyPath, CacheKey>
   ) {
     const linksObj: Link = links

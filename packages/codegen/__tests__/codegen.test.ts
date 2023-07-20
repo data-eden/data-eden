@@ -114,12 +114,21 @@ describe('codegen', () => {
         export const ChatsDocument = {\\"__meta__\\":{\\"queryId\\":\\"a0cd151991e13b081cc250bf42218547f2c8e340282b90c1f7fe36c332de3416\\"}} as unknown as DocumentNode<ChatsQuery, ChatsQueryVariables>;"
       `);
 
-    expect(await read('query-identifiers.json')).toMatchInlineSnapshot(`
-      "{
-        \\"d17490e4b9ac1f7c227df3da6e5c5cdc6686b24d7194c0cb1bc29a8189a58f5c\\": \\"fragment UserFields on User { id role username } query findUser($userId: ID!) { user(id: $userId) { __typename ...UserFields } }\\",
-        \\"a0cd151991e13b081cc250bf42218547f2c8e340282b90c1f7fe36c332de3416\\": \\"fragment ChatFields on Chat { id messages { content id user { id username } } users { ...UserFields } } fragment UserFields on User { id role username } query chats($userId: ID!) { myChats { __typename ...ChatFields } }\\"
-      }"
-    `);
+    const cwdRegex = new RegExp(process.cwd(), 'g');
+
+    expect((await read('query-identifiers.json')).replace(cwdRegex, ''))
+      .toMatchInlineSnapshot(`
+        "{
+          \\"d17490e4b9ac1f7c227df3da6e5c5cdc6686b24d7194c0cb1bc29a8189a58f5c\\": {
+            \\"fileSource\\": \\"fragment UserFields on User { id role username } query findUser($userId: ID!) { user(id: $userId) { __typename ...UserFields } }\\",
+            \\"filePath\\": \\"/__tests__/__graphql-project/queries/find-user.graphql\\"
+          },
+          \\"a0cd151991e13b081cc250bf42218547f2c8e340282b90c1f7fe36c332de3416\\": {
+            \\"fileSource\\": \\"fragment ChatFields on Chat { id messages { content id user { id username } } users { ...UserFields } } fragment UserFields on User { id role username } query chats($userId: ID!) { myChats { __typename ...ChatFields } }\\",
+            \\"filePath\\": \\"/__tests__/__graphql-project/queries/my-chats.graphql\\"
+          }
+        }"
+      `);
 
     expect(await read('schema.graphql.ts')).toMatchSnapshot();
   });

@@ -1,6 +1,6 @@
 import type { Types } from '@graphql-codegen/plugin-helpers';
 import type { DocumentNode, GraphQLSchema } from 'graphql';
-import { parse } from 'graphql';
+import { Source, parse } from 'graphql';
 import { readFileSync } from 'node:fs';
 import { extractDefinitions } from './gql/extract-definitions.js';
 import { resolveForeignReferences } from './gql/foreign-ref-resolver.js';
@@ -75,7 +75,7 @@ function handleGraphQLFiles(
     try {
       const contents = readFileSync(path, 'utf-8');
       const parsed = rewriteAst(
-        parse(contents),
+        parse(new Source(contents, path)),
         schema,
         primaryKeyAlias
       ) as DocumentNode;

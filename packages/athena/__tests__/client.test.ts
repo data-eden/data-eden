@@ -20,6 +20,7 @@ import { Mocker } from '@data-eden/mocker';
 import { type PeopleQuery } from './__generated/client.test.graphql';
 import { AthenaClient } from '../src/client.js';
 import type { ReactiveSignal } from '../src/types.js';
+import { prepareOperation } from '../src/utils';
 
 const schema = readFileSync(
   resolve(
@@ -545,6 +546,154 @@ describe('client', () => {
     });
   });
 
+  describe('prepareOperation', async () => {
+    test('should be able to prepare a dev operation', async () => {
+      expect(prepareOperation(peopleQuery, {})).toMatchInlineSnapshot(`
+              {
+                "fetchMore": false,
+                "query": {
+                  "definitions": [
+                    {
+                      "directives": [],
+                      "kind": "OperationDefinition",
+                      "loc": {
+                        "end": 46,
+                        "start": 0,
+                      },
+                      "name": {
+                        "kind": "Name",
+                        "loc": {
+                          "end": 12,
+                          "start": 6,
+                        },
+                        "value": "people",
+                      },
+                      "operation": "query",
+                      "selectionSet": {
+                        "kind": "SelectionSet",
+                        "loc": {
+                          "end": 46,
+                          "start": 13,
+                        },
+                        "selections": [
+                          {
+                            "alias": undefined,
+                            "arguments": [],
+                            "directives": [],
+                            "kind": "Field",
+                            "loc": {
+                              "end": 44,
+                              "start": 15,
+                            },
+                            "name": {
+                              "kind": "Name",
+                              "loc": {
+                                "end": 21,
+                                "start": 15,
+                              },
+                              "value": "people",
+                            },
+                            "selectionSet": {
+                              "kind": "SelectionSet",
+                              "loc": {
+                                "end": 44,
+                                "start": 22,
+                              },
+                              "selections": [
+                                {
+                                  "alias": undefined,
+                                  "arguments": [],
+                                  "directives": [],
+                                  "kind": "Field",
+                                  "loc": {
+                                    "end": 34,
+                                    "start": 24,
+                                  },
+                                  "name": {
+                                    "kind": "Name",
+                                    "loc": {
+                                      "end": 34,
+                                      "start": 24,
+                                    },
+                                    "value": "__typename",
+                                  },
+                                  "selectionSet": undefined,
+                                },
+                                {
+                                  "alias": undefined,
+                                  "arguments": [],
+                                  "directives": [],
+                                  "kind": "Field",
+                                  "loc": {
+                                    "end": 37,
+                                    "start": 35,
+                                  },
+                                  "name": {
+                                    "kind": "Name",
+                                    "loc": {
+                                      "end": 37,
+                                      "start": 35,
+                                    },
+                                    "value": "id",
+                                  },
+                                  "selectionSet": undefined,
+                                },
+                                {
+                                  "alias": undefined,
+                                  "arguments": [],
+                                  "directives": [],
+                                  "kind": "Field",
+                                  "loc": {
+                                    "end": 42,
+                                    "start": 38,
+                                  },
+                                  "name": {
+                                    "kind": "Name",
+                                    "loc": {
+                                      "end": 42,
+                                      "start": 38,
+                                    },
+                                    "value": "name",
+                                  },
+                                  "selectionSet": undefined,
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                      "variableDefinitions": [],
+                    },
+                  ],
+                  "kind": "Document",
+                  "loc": {
+                    "end": 46,
+                    "start": 0,
+                  },
+                },
+                "variables": {},
+              }
+            `);
+    });
+
+    test('should be able to prepare a dev operation (when we do not have debug when doing a prod build)', async () => {
+      const prodOperation = JSON.parse(JSON.stringify(peopleQuery)) as any;
+      delete prodOperation.__meta__.$DEBUG;
+      expect(prepareOperation(prodOperation, {})).toMatchInlineSnapshot(`
+        {
+          "extensions": {
+            "persistedQuery": {
+              "sha256Hash": "d7b9cf6b8c7aa35f23d42a522f0af780a5768c142ea16ae7f37aa95a741b970d",
+              "version": 1,
+            },
+          },
+          "fetchMore": false,
+          "variables": {},
+        }
+      `);
+    });
+  });
+
   describe('query', async () => {
     const server = await createServer();
 
@@ -556,7 +705,7 @@ describe('client', () => {
       const client = new AthenaClient({
         url: server.buildUrl('/graphql'),
         adapter: adapter,
-        getCacheKey: (v: Entity, parent: Entity) => {
+        getCacheKey: (v: Entity) => {
           if (v.id) {
             return `${v.__typename}:${v?.id}`;
           }
