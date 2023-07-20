@@ -240,8 +240,8 @@ describe('@data-eden/network: settled-tracking-middleware', async function () {
         "hasPendingRequests: false",
         "hasPendingRequests: true",
         "hasPendingRequests: true",
-        "requests completed",
         "hasPendingRequests: false",
+        "requests completed",
       ]
     `);
   });
