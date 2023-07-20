@@ -451,10 +451,12 @@ describe('@data-eden/network: settled-tracking-middleware', async function () {
   test('should work when options.coerce() is in action', async () => {
     const fetch = buildFetch([SettledTrackingMiddleware], {
       debug: true,
-      coerce: function(nativePromise: Promise<Response>) {
+      coerce: function (nativePromise: Promise<Response>) {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        return new RSVP.Promise((resolve, reject) => nativePromise.then(resolve, reject));
-      }
+        return new RSVP.Promise((resolve, reject) =>
+          nativePromise.then(resolve, reject)
+        );
+      },
     }) as FetchWithDebug;
 
     const promise = fetch(server.buildUrl('/resource'));

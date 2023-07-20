@@ -596,14 +596,15 @@ describe('@data-eden/fetch', async function () {
   test('allows manipulating of the native promise via options.coerce()', async () => {
     const fetch = buildFetch([noopMiddleware], {
       debug: false,
-      coerce: function(nativePromise: Promise<Response>) {
+      coerce: function (nativePromise: Promise<Response>) {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        return new RSVP.Promise((resolve, reject) => nativePromise.then(resolve, reject));
-      }
+        return new RSVP.Promise((resolve, reject) =>
+          nativePromise.then(resolve, reject)
+        );
+      },
     }) as FetchWithDebug;
 
     const promise = fetch('https://www.example.com');
     expect(promise instanceof RSVP.Promise).toBeTruthy();
   });
-
 });
