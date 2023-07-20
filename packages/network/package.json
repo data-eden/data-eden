@@ -30,7 +30,8 @@
   "dependencies": {},
   "devDependencies": {
     "@data-eden/shared-test-utilities": "0.16.3",
-    "cross-fetch": "^3.1.5"
+    "cross-fetch": "^3.1.5",
+    "rsvp": "^4.8.5"
   },
   "volta": {
     "extends": "../../package.json"
