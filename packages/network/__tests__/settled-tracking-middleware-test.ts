@@ -26,6 +26,8 @@ import {
   sanitizeStacktrace,
 } from '@data-eden/shared-test-utilities';
 
+import RSVP from 'rsvp';
+
 describe('@data-eden/network: settled-tracking-middleware', async function () {
   const server = await createServer();
 
@@ -444,5 +446,21 @@ describe('@data-eden/network: settled-tracking-middleware', async function () {
     expect(fetch.$debug).toBeUndefined();
 
     await fetch1;
+  });
+
+  test('should work when options.coerce() is in action', async () => {
+    const fetch = buildFetch([SettledTrackingMiddleware], {
+      debug: true,
+      coerce: function(nativePromise: Promise<Response>) {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        return new RSVP.Promise((resolve, reject) => nativePromise.then(resolve, reject));
+      }
+    }) as FetchWithDebug;
+
+    const promise = fetch(server.buildUrl('/resource'));
+    expect(hasPendingRequests(fetch)).toBeTruthy();
+
+    await promise;
+    expect(hasPendingRequests(fetch)).toBeFalsy();
   });
 });
