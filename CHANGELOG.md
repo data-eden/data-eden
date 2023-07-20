@@ -5,6 +5,20 @@
 
 
 
+
+## v0.17.0 (2023-07-20)
+
+#### :boom: Breaking Change
+* `athena`, `codegen`, `ember`, `react`
+  * [#175](https://github.com/data-eden/data-eden/pull/175) feat: enable persisted or raw query execution ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :rocket: Enhancement
+* `athena`, `codegen`, `ember`, `react`
+  * [#175](https://github.com/data-eden/data-eden/pull/175) feat: enable persisted or raw query execution ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
 ## v0.16.4 (2023-07-20)
 
 #### :rocket: Enhancement

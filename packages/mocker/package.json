@@ -1,6 +1,6 @@
 {
   "name": "@data-eden/mocker",
-  "version": "0.16.4",
+  "version": "0.17.0",
   "description": "",
   "homepage": "https://github.com/data-eden/data-eden#readme",
   "bugs": {
@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.22.5",
-    "@data-eden/codegen": "^0.16.4",
+    "@data-eden/codegen": "^0.17.0",
     "vitest": "^0.32.0"
   },
   "volta": {
