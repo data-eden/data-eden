@@ -55,11 +55,27 @@ export interface BuildFetchOptions {
    * debug information.
    */
   debug?: boolean;
+
+  /**
+   * Gives consumers an opportunity to manipulate the Promise object before
+   * handing it over to downstream for further processing.
+   *
+   * One use case is in Ember distribution whereas the fetch needs to return a
+   * RSVP.Promise instance instead of the native promise.
+   */
+  coerce?: (promise: Promise<Response>) => Promise<Response>;
 }
 
 function globalFetch(request: Request): Promise<Response> {
   return fetch(request);
 }
+
+/**
+ * Default coercer
+ * @param p the native Promise returned from fetch.
+ * @returns A promise that's duck-type compatible to Promise<Response>
+ */
+const defaultCoercer = (p: Promise<Response>) => p;
 
 /**
  * Builds a `fetch`-compatible function that runs `middleware`s on each
@@ -81,6 +97,7 @@ export function buildFetch(
   const _fetch: NormalizedFetch = options?.fetch || globalFetch;
 
   let result: typeof fetch;
+  const coerce = options?.coerce ?? defaultCoercer;
 
   const curriedMiddlewares: NormalizedFetch = [...middlewares]
     .reverse()
@@ -97,9 +114,10 @@ export function buildFetch(
       _fetch
     );
 
-  result = async (rawRequest: RequestInfo | URL, init?: RequestInit) => {
+  result = (rawRequest: RequestInfo | URL, init?: RequestInit) => {
     const normalizedRequest = new Request(rawRequest, init);
-    return curriedMiddlewares(normalizedRequest);
+    const nativePromise = curriedMiddlewares(normalizedRequest);
+    return coerce(nativePromise);
   };
 
   if (options?.debug !== false) {
