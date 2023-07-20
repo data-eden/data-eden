@@ -7,6 +7,7 @@
     "build": "rm -rf dist && tsc && vite build",
     "codegen": "athena-codegen",
     "dev": "vite",
+    "dev:prod": "NODE_ENV=production vite",
     "preview": "vite preview"
   },
   "dependencies": {

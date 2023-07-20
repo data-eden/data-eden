@@ -1,4 +1,4 @@
-import { parse, print, visit } from 'graphql';
+import { Source, parse, print, visit } from 'graphql';
 import type { FragmentDefinitionNode } from 'graphql/language/index.js';
 import type { Types } from '@graphql-codegen/plugin-helpers';
 
@@ -154,7 +154,7 @@ export function outputOperations(
     return {
       location: filePath,
       rawSDL: opStr,
-      document: parse(opStr),
+      document: parse(new Source(opStr, filePath)),
     };
   });
 }

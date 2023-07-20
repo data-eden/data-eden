@@ -1,6 +1,7 @@
 import type { Cache } from '@data-eden/cache';
 import { buildCache, type DefaultRegistry } from '@data-eden/cache';
 import { set } from 'lodash-es';
+import { print } from 'graphql';
 import { isEntity, parseEntities } from './parse-entities.js';
 import {
   createLinkNode,
@@ -9,13 +10,13 @@ import {
 } from './signal-cache.js';
 import type {
   DefaultVariables,
-  DocumentInput,
   GraphQLOperation,
   GraphQLResponse,
   IdFetcher,
   SyntheticIdFetcher,
   OperationResult,
   ReactiveAdapter,
+  DocumentInput,
 } from './types.js';
 import { defaultSyntheticKey, prepareOperation } from './utils.js';
 
@@ -35,7 +36,11 @@ export interface QueryOptions {
   fetchMore?: boolean;
 }
 
-export type BuildRequest = (request: GraphQLOperation) => RequestInit;
+export type BuildRequest<
+  Data extends object = object,
+  Variables extends DefaultVariables = DefaultVariables
+> = (request: GraphQLOperation<Data, Variables>) => RequestInit;
+
 export type CacheKey = string;
 export type PropertyPath = string | number | Array<string | number>;
 export type AthenaClientOptions = Omit<ClientArgs, 'adapter'>;
@@ -46,7 +51,10 @@ function defaultBuildRequest(request: GraphQLOperation): RequestInit {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(request),
+    body: JSON.stringify({
+      ...request,
+      ...(request.query ? { query: print(request.query) } : {}),
+    }),
   };
 }
 
@@ -61,7 +69,7 @@ export class AthenaClient {
   private getCacheKey: IdFetcher;
   private getSyntheticKey: SyntheticIdFetcher;
   private signalCache: SignalCache;
-  private buildRequest: BuildRequest;
+  private buildRequest: BuildRequest<any, any>;
 
   constructor(options: ClientArgs) {
     this.url = options.url;
@@ -100,7 +108,7 @@ export class AthenaClient {
     Variables extends DefaultVariables = DefaultVariables
   >(
     operation: DocumentInput<Data, Variables>,
-    variables?: Variables,
+    variables?: Variables | NonNullable<Variables> | undefined,
     options?: QueryOptions
   ): Promise<OperationResult<Data>> {
     const prepared = prepareOperation<Data, Variables>(
@@ -145,34 +153,38 @@ export class AthenaClient {
     try {
       response = await this.fetch(
         this.url,
-        this.buildRequest({ ...operation, fetchMore: undefined })
+        this.buildRequest({
+          ...operation,
+          fetchMore: undefined,
+        })
       );
+
+      const json = (await response.json()) as GraphQLResponse<Data>;
+
+      const { errors, data } = json;
+
+      if (errors !== undefined) {
+        result.error = { graphql: errors };
+      }
+
+      if (data) {
+        result.data = await this.processEntities(data, operation);
+      }
     } catch (err) {
       result.error = {
         network: err,
       };
-
-      return result;
-    }
-
-    const json = (await response.json()) as GraphQLResponse<Data>;
-
-    const { errors, data } = json;
-
-    if (errors !== undefined) {
-      result.error = { graphql: errors };
-    }
-
-    if (data) {
-      result.data = await this.processEntities(data, operation);
     }
 
     return result;
   }
 
-  async processEntities<Data extends { [key: string]: any }>(
+  async processEntities<
+    Data extends { [key: string]: any },
+    Variables extends DefaultVariables = DefaultVariables
+  >(
     response: Data,
-    operation?: GraphQLOperation<Data>
+    operation?: GraphQLOperation<Data, Variables>
   ): Promise<Data> {
     const parsedEntitiesList = parseEntities(response);
 

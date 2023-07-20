@@ -67,14 +67,14 @@ export function useQuery<
   query: DocumentInput<Data, Variables>,
   variables?: Variables,
   options: UseQueryOptions<Data> = {}
-): QueryResponse<Data> {
+): QueryResponse<Data, Variables> {
   const client = useAthenaClient();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Data | undefined>(options.initialData);
   const [error, setError] = useState<ClientError>();
   const [, forceUpdate] = useReducer(safeIncrement, 0);
   const reactionRef = useRef<Reaction>();
-  const vars = useVariables(variables);
+  const vars = useVariables<Variables>(variables);
   const { initialData } = options;
 
   const trackDeps = useCallback(
@@ -113,13 +113,14 @@ export function useQuery<
     }, EMPTY);
   }
 
-  const refetch = useCallback(async function <
-    Variables extends DefaultVariables = DefaultVariables
-  >(variables?: Variables, options?: QueryOptions) {
+  const refetch = useCallback(async function (
+    variables?: Variables,
+    options?: QueryOptions
+  ) {
     setLoading(true);
 
     try {
-      const { data, error } = await client.query<Data>(
+      const { data, error } = await client.query<Data, Variables>(
         query,
         // if new variables were passed in, we use those, otherwise we execute with the original
         // set
@@ -141,13 +142,11 @@ export function useQuery<
   EMPTY);
 
   const fetchMore = useCallback(
-    async function <Variables extends DefaultVariables = DefaultVariables>(
-      variables?: Variables
-    ) {
+    async function (variables?: Variables) {
       setLoading(true);
 
       try {
-        const { data, error } = await client.query<Data>(
+        const { data, error } = await client.query<Data, Variables>(
           query,
           // if new variables were passed in, we use those, otherwise we execute with the original
           // set

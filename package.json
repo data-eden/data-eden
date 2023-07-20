@@ -18,7 +18,7 @@
   ],
   "scripts": {
     "clean": "find ./packages -name 'tsconfig.build.tsbuildinfo' -delete && find ./packages \\( -name 'node_modules' -prune \\) -o \\( -name 'dist' -type d -prune -exec rm -rf '{}' + \\)",
-    "build": "npm run clean && npm run build -w @data-eden/shared-test-utilities -w @data-eden/cache -w @data-eden/network -w @data-eden/athena -w @data-eden/react -w @data-eden/codegen -w @data-eden/mocker",
+    "build": "npm run clean && npm run build -w @data-eden/shared-test-utilities -w @data-eden/cache -w @data-eden/network -w @data-eden/codegen -w @data-eden/athena -w @data-eden/react -w @data-eden/mocker",
     "build:watch": "npm run build --- --watch",
     "prepublish": "npm run build",
     "postinstall": "patch-package",

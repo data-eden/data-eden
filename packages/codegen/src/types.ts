@@ -1,5 +1,10 @@
 import type { DocumentNode, GraphQLSchema } from 'graphql';
 
+export interface CodegenDocument {
+  queryId: string;
+  $DEBUG?: { contents: string; ast: DocumentNode };
+}
+
 export interface Source {
   document?: DocumentNode;
   schema?: GraphQLSchema;
