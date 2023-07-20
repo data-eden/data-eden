@@ -18,7 +18,7 @@ export default defineConfig({
       documents: ['**/*.graphql', '**/*.tsx'],
       extension: '.graphql.ts',
       disableSchemaTypesGeneration: false,
-      production: true,
+      production: process.env.NODE_ENV === 'production',
       resolver: function resolver(path) {
         const extensions = ['.tsx', '.jsx', '.js', '.ts'];
 

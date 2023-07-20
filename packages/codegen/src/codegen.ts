@@ -9,12 +9,17 @@ import { hrtime } from 'node:process';
 import { readFile } from 'fs/promises';
 import { globby } from 'globby';
 import type { DocumentNode, FragmentDefinitionNode } from 'graphql';
-import { buildSchema, parse } from 'graphql';
+import { Kind, buildSchema, parse } from 'graphql';
 import * as path from 'node:path';
 import { defaultHash } from './default-hash.js';
 import { generateDocumentFiles } from './generate-document-files.js';
 import { generateSchemaTypes } from './generate-schema-types.js';
-import type { CodegenConfig, OutputFile, Resolver } from './types.js';
+import type {
+  CodegenConfig,
+  CodegenDocument,
+  OutputFile,
+  Resolver,
+} from './types.js';
 import { changeExtension, extensionAwareResolver } from './utils.js';
 import { enable as enableDebugging } from './debug.js';
 
@@ -46,7 +51,13 @@ export async function athenaCodegen({
   }
 
   const outputFiles: Array<OutputFile> = [];
-  const persistedQueries: Record<string, string> = {};
+  const persistedQueries: Record<
+    string,
+    {
+      fileSource: string;
+      filePath?: string;
+    }
+  > = {};
   const schemaPath = path.isAbsolute(schemaFile)
     ? schemaFile
     : path.join(baseDir, schemaFile);
@@ -109,16 +120,38 @@ export async function athenaCodegen({
     };
   });
 
-  function onExecutableDocumentNode(documentNode: DocumentNode) {
+  function onExecutableDocumentNode(
+    documentNode: DocumentNode
+  ): CodegenDocument {
     const materializedDocumentString =
       printExecutableGraphQLDocument(documentNode);
 
     const queryId = hashFn(documentNode);
+    const fileSource = materializedDocumentString.replaceAll(/_\d+/g, '');
 
-    persistedQueries[queryId] = materializedDocumentString.replaceAll(
-      /_\d+/g,
-      ''
-    );
+    const potentialDocumentFound = [
+      ...gqlTagDocuments,
+      ...gqlFileDocuments,
+    ].find((potentialDocument) => {
+      // we want to check that the operation is contained in the rawSDL.
+      // we can't check the documentNode.location as this is the internal representation of the document and is stripped of location data
+      // we can check the existing operations to get where the original source is
+      const operationName =
+        documentNode.definitions[0].kind === Kind.OPERATION_DEFINITION &&
+        documentNode.definitions[0].name &&
+        `${documentNode.definitions[0].operation} ${documentNode.definitions[0].name.value}`;
+
+      return (
+        operationName &&
+        potentialDocument.document &&
+        potentialDocument.rawSDL?.includes(operationName)
+      );
+    });
+
+    persistedQueries[queryId] = {
+      fileSource,
+      filePath: potentialDocumentFound?.location,
+    };
 
     if (production) {
       return {

@@ -5,10 +5,10 @@ import type {
   OperationDefinitionNode,
   SelectionNode,
 } from 'graphql';
-import { parse, visit, print } from 'graphql';
+import { parse, visit } from 'graphql';
 import type {
-  DefaultVariables,
   DocumentInput,
+  DefaultVariables,
   GraphQLOperation,
   IdFetcher,
   ParsedEntity,
@@ -85,12 +85,6 @@ export function addTypenameToDocument<
   });
 }
 
-interface AthenaDocumentNode extends TypedDocumentNode {
-  __meta__?: {
-    queryId: string;
-  };
-}
-
 // Given an operation (query or mutation in the form of a string or document node), we construct
 // the actual payload that will be sent to the graphql server. This allows us to do things like
 // send a pre-registered query if we find that a hash is present, or automatically add `__typename`
@@ -103,22 +97,22 @@ export function prepareOperation<
   variables?: Variables,
   fetchMore?: boolean
 ): GraphQLOperation<Data, Variables> {
-  const parsed = (
-    typeof operation === 'string' ? parse(operation) : operation
-  ) as AthenaDocumentNode;
-
   const op: GraphQLOperation<Data, Variables> = {};
 
-  if (parsed.__meta__) {
-    op.extensions = {
-      persistedQuery: {
-        version: 1,
-        sha256Hash: parsed.__meta__.queryId,
-      },
-    };
-  } else {
-    const withTypename = addTypenameToDocument<Data, Variables>(parsed);
-    op.query = print(withTypename);
+  if ('__meta__' in operation && operation?.__meta__ !== undefined) {
+    if (operation.__meta__.$DEBUG) {
+      const withTypename = addTypenameToDocument<Data, Variables>(
+        parse(operation.__meta__.$DEBUG.contents)
+      );
+      op.query = withTypename;
+    } else {
+      op.extensions = {
+        persistedQuery: {
+          version: 1,
+          sha256Hash: operation.__meta__.queryId,
+        },
+      };
+    }
   }
 
   op.variables = variables;

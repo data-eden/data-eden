@@ -1,8 +1,9 @@
 import type { buildCache } from '@data-eden/cache';
 import type { SIGNAL } from './signal-proxy.js';
-import type { DocumentNode, GraphQLError } from 'graphql';
+import type { GraphQLError } from 'graphql';
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import type { Primitive } from 'type-fest';
+import type { CodegenDocument } from '@data-eden/codegen';
 
 export type DataEdenCache = ReturnType<typeof buildCache>;
 
@@ -12,8 +13,9 @@ export type DefaultRecord = Record<string, object>;
 export type DocumentInput<
   Data = Record<string, any>,
   Variables = DefaultVariables
-> = string | DocumentNode | TypedDocumentNode<Data, Variables>;
-
+> = TypedDocumentNode<Data, Variables> & {
+  __meta__?: CodegenDocument;
+};
 export interface ReactiveSignal<T> {
   value: T;
 }
@@ -38,7 +40,7 @@ export interface GraphQLOperation<
       sha256Hash: string;
     };
   };
-  fetchMore?: boolean;
+  fetchMore?: boolean | undefined;
 }
 
 export interface GraphQLResponse<Data extends object = object> {

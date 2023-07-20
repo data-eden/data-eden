@@ -2,6 +2,9 @@
   "files": [],
   "references": [
     {
+      "path": "./packages/codegen"
+    },
+    {
       "path": "./packages/athena"
     },
     {
@@ -12,9 +15,6 @@
     },
     {
       "path": "./packages/ember"
-    },
-    {
-      "path": "./packages/codegen"
     },
     {
       "path": "./packages/mocker"

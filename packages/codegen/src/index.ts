@@ -1,5 +1,5 @@
 export { athenaCodegen } from './codegen.js';
-export type { OutputFile, Source, Resolver } from './types.js';
+export type { OutputFile, Source, Resolver, CodegenDocument } from './types.js';
 export { generateDocumentFiles } from './generate-document-files.js';
 export { generateSchemaTypes } from './generate-schema-types.js';
 export { binMain } from './bin.js';
