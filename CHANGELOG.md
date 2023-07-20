@@ -4,6 +4,18 @@
 
 
 
+
+## v0.16.4 (2023-07-20)
+
+#### :rocket: Enhancement
+* `network`
+  * [#176](https://github.com/data-eden/data-eden/pull/176) Support manipulating the promise returned by fetch ([@larry-x-yu](https://github.com/larry-x-yu))
+
+#### Committers: 1
+- Larry Yu ([@larry-x-yu](https://github.com/larry-x-yu))
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+
+
 ## v0.16.3 (2023-07-19)
 
 #### :rocket: Enhancement
