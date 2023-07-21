@@ -43,7 +43,7 @@ const defaultTypeGenerators: TypeGenerators = {
       )) as unknown as JSONValue;
   },
   Float(faker: Faker) {
-    const randomNum = faker.datatype.number({
+    const randomNum = faker.number.float({
       min: 0,
       max: 92233720368547,
       precision: 0.01,
