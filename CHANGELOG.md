@@ -6,6 +6,22 @@
 
 
 
+
+## v0.17.1 (2023-07-26)
+
+#### :rocket: Enhancement
+* `mocker`
+  * [#178](https://github.com/data-eden/data-eden/pull/178) feat: handle field alias mocking ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :bug: Bug Fix
+* `mocker`
+  * [#177](https://github.com/data-eden/data-eden/pull/177) Fix faker float deprecation warning ([@nlfurniss](https://github.com/nlfurniss))
+
+#### Committers: 2
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+- Nathaniel Furniss ([@nlfurniss](https://github.com/nlfurniss))
+
+
 ## v0.17.0 (2023-07-20)
 
 #### :boom: Breaking Change
