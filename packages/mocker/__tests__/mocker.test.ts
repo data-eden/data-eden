@@ -2,13 +2,12 @@ import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
-import { print } from 'graphql';
-
 import { gql } from '@data-eden/codegen/gql';
 
 import { Mocker } from '@data-eden/mocker';
 import {
   CarOneFragment,
+  CarOneHalfFragment,
   CarTwoFragment,
   CarThreeFragment,
   CarFourFragment,
@@ -44,7 +43,24 @@ describe('mocker', () => {
       `;
 
       const mocker = new Mocker({ schema });
-      const result = mocker.mock(carOneFragment, { id: 1234 });
+      const result = mocker.mock(carOneFragment, { id: '1234' });
+
+      expect(result).toMatchSnapshot();
+    });
+
+    test('fragment with aliased data', async () => {
+      const carOneHalfFragment = gql<CarOneHalfFragment>`
+        fragment carOneHalf on Car {
+          id
+          carMake: make
+        }
+      `;
+
+      const mocker = new Mocker({ schema });
+      const result = mocker.mock(carOneHalfFragment, {
+        id: '1234',
+        carMake: 'accura tsx',
+      });
 
       expect(result).toMatchSnapshot();
     });
