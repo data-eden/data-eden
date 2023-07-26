@@ -8,7 +8,14 @@
 
 
 ## v0.17.2 (2023-07-26)
+#### :bug: Bug Fix
+* `athena`
+  * [#179](https://github.com/data-eden/data-eden/pull/179) bug: fix transaction merging  ([@cafreeman](https://github.com/cafreeman), [@gabrielcsapo](https://github.com/gabrielcsapo))
 
+#### Committers: 2
+
+- Chris Freeman ([@cafreeman](https://github.com/cafreeman))
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
 
 ## v0.17.1 (2023-07-26)
 
