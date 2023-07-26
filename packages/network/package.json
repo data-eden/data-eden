@@ -1,6 +1,6 @@
 {
   "name": "@data-eden/network",
-  "version": "0.17.1",
+  "version": "0.17.2",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/data-eden/data-eden.git",
@@ -29,7 +29,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@data-eden/shared-test-utilities": "0.17.1",
+    "@data-eden/shared-test-utilities": "0.17.2",
     "cross-fetch": "^3.1.5",
     "rsvp": "^4.8.5"
   },
