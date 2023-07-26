@@ -1,8 +1,15 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`mocker > fragments > fragment with aliased data 1`] = `
+{
+  "carMake": "accura tsx",
+  "id": "1234",
+}
+`;
+
 exports[`mocker > fragments > fragment with default data 1`] = `
 {
-  "id": 1234,
+  "id": "1234",
   "make": "whose nor",
 }
 `;

@@ -283,8 +283,9 @@ export class Mocker {
         throw new Error(
           'Fragment spreads are not supported, please resolve all fragments spreads before trying to mock.'
         );
-      } else {
-        const fieldName = field.name.value;
+      } else if (field.kind === 'Field') {
+        const fieldName = field.alias ? field.alias.value : field.name.value;
+        const originalFieldName = field.name.value;
 
         if (fieldName === '__typename') {
           result[fieldName] = type.name;
@@ -293,14 +294,14 @@ export class Mocker {
             !type ||
             !('getFields' in type) ||
             !type.getFields ||
-            !type.getFields()[fieldName]
+            !type.getFields()[originalFieldName]
           ) {
             throw new Error(
-              `Field ${fieldName} does not exist in the schema for type ${type?.name}`
+              `Field ${originalFieldName} does not exist in the schema for type ${type?.name}`
             );
           }
 
-          let fieldType = type.getFields()[fieldName].type;
+          let fieldType = type.getFields()[originalFieldName].type;
 
           // If it's a NonNull type, unwrap it
           if (fieldType instanceof GraphQLNonNull) {
@@ -339,7 +340,7 @@ export class Mocker {
                   (item) =>
                     this.generateMockDataForType(
                       type.name,
-                      fieldName,
+                      originalFieldName,
                       elementType,
                       item
                     )
