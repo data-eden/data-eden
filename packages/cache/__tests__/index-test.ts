@@ -281,6 +281,10 @@ describe('@data-eden/cache', function () {
 
       await tx.merge('book:3', { 'book:3': { title: 'New Merged book' } });
       await tx.merge('book:1', { 'book:1': { title: 'Conflict', sub: 'j3' } });
+      await tx.merge('book:4', {
+        'book:4': { title: 'New book', sub: 'wat', newField: 'blah' },
+      });
+      await tx.merge('book:4', { 'book:4': { title: 'New book', sub: 'foo' } });
 
       // Validate Transactional entries
       expect(await tx.get('book:1')).toEqual({
@@ -316,6 +320,10 @@ describe('@data-eden/cache', function () {
       });
       expect(await cache.get('book:3')).toEqual({
         'book:3': { title: 'New Merged book' },
+      });
+
+      expect(await cache.get('book:4')).toEqual({
+        'book:4': { title: 'New book', sub: 'foo', newField: 'blah' },
       });
     });
 

@@ -29,6 +29,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@data-eden/athena': resolve(__dirname, './src'),
+      '@data-eden/cache': resolve(__dirname, '../cache/src'),
       '@data-eden/mocker': resolve(__dirname, '../mocker/src'),
     },
   },

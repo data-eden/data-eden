@@ -586,7 +586,7 @@ const defaultRetensionStrategy = async function retainAllRevisions<
   commitingRevisionTx.cache.appendRevisions(id, [...revisions]);
 };
 
-const defaultMergeStrategy = function deepMergeStratey<
+const defaultMergeStrategy = function deepMergeStrategy<
   CacheKeyRegistry extends DefaultRegistry,
   Key extends keyof CacheKeyRegistry
 >(

@@ -146,8 +146,12 @@ export class LiveCacheTransactionImpl<
     this.#revisionContext = options?.revisionContext;
     const mergeStrategy = this.#getMergeStrategy(options?.entityMergeStrategy);
 
-    // get current cache value within this transaction
-    const currentValue = await this.#originalCacheReference.get(cacheKey);
+    // get current cache value within this transaction, and fall back to underlying cache if no
+    // value exists in the current transaction
+    const currentValue =
+      (await this.get(cacheKey)) ||
+      (await this.#originalCacheReference.get(cacheKey));
+
     const localRevisionsByEntry = this.getLocalRevisionsByEntry(cacheKey);
 
     let revisionNumber =
