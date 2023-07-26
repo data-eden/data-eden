@@ -1,26 +1,26 @@
+import { createServer } from '@data-eden/shared-test-utilities';
+import { readFileSync } from 'fs';
+import http from 'http';
+import { resolve } from 'path';
 import {
-  describe,
-  test,
-  expect,
-  beforeEach,
-  beforeAll,
   afterAll,
   afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
 } from 'vitest';
-import http from 'http';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
-import { createServer } from '@data-eden/shared-test-utilities';
 
 import { createSignal } from '@signalis/core';
 
 import { gql } from '@data-eden/codegen/gql';
 import { Mocker } from '@data-eden/mocker';
 
-import { type PeopleQuery } from './__generated/client.test.graphql';
 import { AthenaClient } from '../src/client.js';
 import type { ReactiveSignal } from '../src/types.js';
 import { prepareOperation } from '../src/utils';
+import { type PeopleQuery } from './__generated/client.test.graphql';
 
 const schema = readFileSync(
   resolve(
@@ -202,6 +202,75 @@ describe('client', () => {
             "__typename": "Person",
             "id": "1",
             "name": "foo",
+          },
+        }
+      `);
+    });
+
+    test('multiple occurrences of the same entity should deep merge their properties', async () => {
+      const document = {
+        foo: {
+          id: '1',
+          __typename: 'Foo',
+          comments: [
+            {
+              id: '1',
+              __typename: 'Comment',
+              message: 'first comment',
+              author: {
+                id: '1',
+                __typename: 'Author',
+                name: 'Foo',
+              },
+            },
+            {
+              id: '2',
+              __typename: 'Comment',
+              message: 'first comment',
+              author: {
+                id: '1',
+                __typename: 'Author',
+                name: 'Foo',
+                // This property does not exist on the prior instance of Author:1, but should
+                // exist on both versions that get written out
+                age: 10,
+              },
+            },
+          ],
+        },
+      };
+
+      const result = await client.processEntities(document);
+
+      expect(result).toMatchInlineSnapshot(`
+        {
+          "foo": {
+            "__typename": "Foo",
+            "comments": [
+              {
+                "__typename": "Comment",
+                "author": {
+                  "__typename": "Author",
+                  "age": 10,
+                  "id": "1",
+                  "name": "Foo",
+                },
+                "id": "1",
+                "message": "first comment",
+              },
+              {
+                "__typename": "Comment",
+                "author": {
+                  "__typename": "Author",
+                  "age": 10,
+                  "id": "1",
+                  "name": "Foo",
+                },
+                "id": "2",
+                "message": "first comment",
+              },
+            ],
+            "id": "1",
           },
         }
       `);
