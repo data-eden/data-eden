@@ -67,7 +67,7 @@ type DeepPartialObject<T> = {
 
 type FieldGenerators = {
   [className: string]: {
-    [key: string]: () => JSONValue;
+    [key: string]: (potentialValue?: any) => JSONValue;
   };
 };
 
@@ -432,16 +432,14 @@ export class Mocker {
       );
     }
 
-    // Use input mock data if provided
-    if (inputMockData !== undefined) {
-      return inputMockData;
-    }
-
     if (
       this.fieldGenerators[className] &&
       this.fieldGenerators[className][fieldName]
     ) {
-      return this.fieldGenerators[className][fieldName]();
+      return this.fieldGenerators[className][fieldName](inputMockData);
+    } else if (inputMockData !== undefined) {
+      // Use input mock data if provided
+      return inputMockData;
     }
 
     if (!isNonNullType(type) && this.typeGenerators[type.name]) {
