@@ -9,6 +9,7 @@ import {
   CarOneFragment,
   CarOneHalfFragment,
   CarTwoFragment,
+  CarTwoHalfFragment,
   CarThreeFragment,
   CarFourFragment,
   OwnerFragment,
@@ -88,6 +89,46 @@ describe('mocker', () => {
       });
 
       expect(result).toMatchSnapshot();
+    });
+
+    test('fragment with default data and fieldGenerator with validation', async () => {
+      const carTwoHalfFragment = gql<CarTwoHalfFragment>`
+        fragment carTwoHalf on Car {
+          id
+          make
+        }
+      `;
+
+      const mocker = new Mocker({
+        schema,
+        fieldGenerators: {
+          Car: {
+            make(potentialValue) {
+              const allowedMakes = ['Accura', 'Ford', 'GMC'];
+              if (
+                potentialValue &&
+                typeof potentialValue === 'string' &&
+                allowedMakes.indexOf(potentialValue) === -1
+              ) {
+                throw new Error(
+                  `"${potentialValue}" is not a valid make (${allowedMakes.join(
+                    ','
+                  )})`
+                );
+              }
+              return potentialValue ?? 'Acura';
+            },
+          },
+        },
+      });
+      expect(() => {
+        mocker.mock(carTwoHalfFragment, {
+          id: '1234',
+          make: 'Tesla',
+        });
+      }).toThrowErrorMatchingInlineSnapshot(
+        '"\\"Tesla\\" is not a valid make (Accura,Ford,GMC)"'
+      );
     });
 
     test('fragment with enum values', async () => {
