@@ -7,6 +7,18 @@
 
 
 
+
+## v0.17.3 (2023-07-28)
+
+#### :rocket: Enhancement
+* `mocker`
+  * [#180](https://github.com/data-eden/data-eden/pull/180) feat: field generators should be able to validate mocked content ([@gabrielcsapo](https://github.com/gabrielcsapo))
+* `codegen`
+  * [#181](https://github.com/data-eden/data-eden/pull/181) feat: enable field injection for special cases in codegen ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
 ## v0.17.2 (2023-07-26)
 #### :bug: Bug Fix
 * `athena`
