@@ -225,6 +225,47 @@ describe('codegen', () => {
     `);
   });
 
+  test('with gql tags and fieldInjection', async () => {
+    project = await createFixtures(gqlFilesMap);
+
+    await athenaCodegen({
+      schemaPath: 'schema.graphql',
+      documents: [`${project.baseDir}/**/*.tsx`],
+      baseDir: project.baseDir,
+      extension: '.graphql.ts',
+      disableSchemaTypesGeneration: false,
+      fieldInjection: {
+        User: {
+          name: 'role',
+          alias: 'userRole',
+        },
+      },
+      production: false,
+    });
+
+    expect(await read('schema.graphql.ts')).toMatchSnapshot();
+
+    expect(await read('__generated/User.graphql.ts')).toMatchInlineSnapshot(`
+      "import type * as Types from '../schema.graphql.js';
+
+      import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+      export type UserFieldsFragment = { __typename: 'User', id: string, username: string, role: Types.Role, userRole: Types.Role };
+
+      export type FindUserQueryVariables = Types.Exact<{
+        userId: Types.Scalars['ID'];
+      }>;
+
+
+      export type FindUserQuery = { __typename: 'Query', user?: (
+          { __typename: 'User', userRole: Types.Role }
+          & UserFieldsFragment
+        ) | null };
+
+      export const UserFieldsFragmentDoc = {\\"kind\\":\\"Document\\",\\"definitions\\":[{\\"kind\\":\\"FragmentDefinition\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"UserFields\\"},\\"typeCondition\\":{\\"kind\\":\\"NamedType\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"User\\"}},\\"selectionSet\\":{\\"kind\\":\\"SelectionSet\\",\\"selections\\":[{\\"kind\\":\\"Field\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"__typename\\"}},{\\"kind\\":\\"Field\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"id\\"}},{\\"kind\\":\\"Field\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"username\\"}},{\\"kind\\":\\"Field\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"role\\"}},{\\"kind\\":\\"Field\\",\\"alias\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"userRole\\"},\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"role\\"}}]}}]} as unknown as DocumentNode<UserFieldsFragment, unknown>;
+      export const FindUserDocument = {\\"__meta__\\":{\\"queryId\\":\\"3a9f3082d5081da4492ebd6b21557e04a19accc62db2d158c4675fb54bd3b619\\",\\"$DEBUG\\":{\\"contents\\":\\"fragment UserFields on User { __typename id role userRole: role username } query findUser($userId: ID!) { __typename user(id: $userId) { __typename userRole: role ...UserFields } }\\",\\"ast\\":{\\"kind\\":\\"Document\\",\\"definitions\\":[{\\"kind\\":\\"OperationDefinition\\",\\"operation\\":\\"query\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"findUser\\"},\\"variableDefinitions\\":[{\\"kind\\":\\"VariableDefinition\\",\\"variable\\":{\\"kind\\":\\"Variable\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"userId\\"}},\\"type\\":{\\"kind\\":\\"NonNullType\\",\\"type\\":{\\"kind\\":\\"NamedType\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"ID\\"}}}}],\\"selectionSet\\":{\\"kind\\":\\"SelectionSet\\",\\"selections\\":[{\\"kind\\":\\"Field\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"__typename\\"}},{\\"kind\\":\\"Field\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"user\\"},\\"arguments\\":[{\\"kind\\":\\"Argument\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"id\\"},\\"value\\":{\\"kind\\":\\"Variable\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"userId\\"}}}],\\"selectionSet\\":{\\"kind\\":\\"SelectionSet\\",\\"selections\\":[{\\"kind\\":\\"Field\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"__typename\\"}},{\\"kind\\":\\"FragmentSpread\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"UserFields\\"}},{\\"kind\\":\\"Field\\",\\"alias\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"userRole\\"},\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"role\\"}}]}}]}},{\\"kind\\":\\"FragmentDefinition\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"UserFields\\"},\\"typeCondition\\":{\\"kind\\":\\"NamedType\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"User\\"}},\\"selectionSet\\":{\\"kind\\":\\"SelectionSet\\",\\"selections\\":[{\\"kind\\":\\"Field\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"__typename\\"}},{\\"kind\\":\\"Field\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"id\\"}},{\\"kind\\":\\"Field\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"username\\"}},{\\"kind\\":\\"Field\\",\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"role\\"}},{\\"kind\\":\\"Field\\",\\"alias\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"userRole\\"},\\"name\\":{\\"kind\\":\\"Name\\",\\"value\\":\\"role\\"}}]}}]}}}} as unknown as DocumentNode<FindUserQuery, FindUserQueryVariables>;"
+    `);
+  });
+
   test('with gql tags (production)', async () => {
     project = await createFixtures(gqlFilesMap);
 

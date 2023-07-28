@@ -28,6 +28,13 @@ export type PrimaryKeyAlias = {
   };
 };
 
+export type FieldInjection = {
+  [key: string]: {
+    name: string;
+    alias?: string;
+  };
+};
+
 export type CodegenConfig = {
   schemaPath: string;
   documents: Array<string>;
@@ -39,6 +46,7 @@ export type CodegenConfig = {
   hash?: (document: DocumentNode) => string;
   resolver?: Resolver;
   primaryKeyAlias?: PrimaryKeyAlias;
+  fieldInjection?: FieldInjection;
 };
 
 export type OutputFile = {

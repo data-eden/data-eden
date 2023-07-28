@@ -6,7 +6,11 @@ import { pathToFileURL } from 'url';
 
 import type { DependencyGraphNode } from './gql/dependency-graph.js';
 import type { Definition, UnresolvedFragment } from './gql/types.js';
-import type { CodegenConfig, PrimaryKeyAlias } from './types.js';
+import type {
+  CodegenConfig,
+  FieldInjection,
+  PrimaryKeyAlias,
+} from './types.js';
 import {
   visit,
   Kind,
@@ -73,16 +77,17 @@ export function extensionAwareResolver(
 export function rewriteAst(
   ast: ASTNode,
   schema: GraphQLSchema,
-  primaryKeyAlias: PrimaryKeyAlias | null
+  primaryKeyAlias: PrimaryKeyAlias | null,
+  fieldInjection: FieldInjection | null
 ): ASTNode {
-  if (!primaryKeyAlias) return ast;
+  if (!primaryKeyAlias && !fieldInjection) return ast;
 
   const typeInfo = new TypeInfo(schema);
 
   const visitor: ASTVisitor = {
     SelectionSet(node) {
       const selectionType = typeInfo.getType();
-      const name = getNamedType(selectionType)?.name;
+      const typeName = getNamedType(selectionType)?.name;
 
       const selections = [
         {
@@ -95,18 +100,51 @@ export function rewriteAst(
         ...node.selections,
       ];
 
-      if (name && primaryKeyAlias.fields[name]) {
+      if (
+        typeName &&
+        primaryKeyAlias &&
+        primaryKeyAlias.fields &&
+        primaryKeyAlias.fields[typeName]
+      ) {
         selections.push({
           kind: Kind.FIELD,
           name: {
             kind: Kind.NAME,
-            value: primaryKeyAlias.fields[name],
+            value: primaryKeyAlias.fields[typeName],
           },
           alias: {
             kind: Kind.NAME,
             value: primaryKeyAlias.primaryKey,
           },
         });
+      }
+
+      if (typeName && fieldInjection && fieldInjection[typeName]) {
+        const { name, alias } = fieldInjection[typeName];
+
+        if (name) {
+          if (alias) {
+            selections.push({
+              kind: Kind.FIELD,
+              name: {
+                kind: Kind.NAME,
+                value: name,
+              },
+              alias: {
+                kind: Kind.NAME,
+                value: alias,
+              },
+            });
+          } else {
+            selections.push({
+              kind: Kind.FIELD,
+              name: {
+                kind: Kind.NAME,
+                value: name,
+              },
+            });
+          }
+        }
       }
 
       return {

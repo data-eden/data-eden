@@ -32,7 +32,7 @@ import type {
 } from './types.js';
 import { createHash } from 'crypto';
 import { existsSync } from 'node:fs';
-import type { PrimaryKeyAlias } from '../types.js';
+import type { FieldInjection, PrimaryKeyAlias } from '../types.js';
 import { type Resolver } from '../types.js';
 import { rewriteAst } from '../utils.js';
 
@@ -176,7 +176,8 @@ export function createExtractor(
   filePath: string,
   definitions: Array<Definition>,
   resolver: Resolver,
-  primaryKeyAlias: PrimaryKeyAlias | null
+  primaryKeyAlias: PrimaryKeyAlias | null,
+  fieldInjection: FieldInjection | null
 ) {
   const localDefinitionDeclaratorMap = new Map<
     NodePath<VariableDeclarator>,
@@ -253,7 +254,8 @@ export function createExtractor(
       const documentNode = rewriteAst(
         graphqlParse(generatedDefinitionString),
         schema,
-        primaryKeyAlias
+        primaryKeyAlias,
+        fieldInjection
       ) as DocumentNode;
       const defAst = getDefinition(documentNode, filePath);
       let def: Definition;

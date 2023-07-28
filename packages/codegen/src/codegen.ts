@@ -43,6 +43,7 @@ export async function athenaCodegen({
   production,
   resolver,
   primaryKeyAlias,
+  fieldInjection,
 }: CodegenConfig): Promise<void> {
   const startTime = hrtime.bigint();
 
@@ -105,6 +106,7 @@ export async function athenaCodegen({
       graphqlSchema,
       paths,
       primaryKeyAlias ?? null,
+      fieldInjection ?? null,
       defaultResolver
     );
 

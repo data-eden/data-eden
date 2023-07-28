@@ -8,7 +8,7 @@ import { outputOperations } from './gql/output-operations.js';
 import type { ExtractedDefinitions } from './gql/types.js';
 import * as path from 'node:path';
 import type { DependencyGraph } from './gql/dependency-graph.js';
-import type { PrimaryKeyAlias } from './types.js';
+import type { FieldInjection, PrimaryKeyAlias } from './types.js';
 import { type Resolver } from './types.js';
 import { createDebug } from './debug.js';
 import { rewriteAst } from './utils.js';
@@ -24,6 +24,7 @@ export function generateDocumentFiles(
   schema: GraphQLSchema,
   documentPaths: Array<string>,
   primaryKeyAlias: PrimaryKeyAlias | null,
+  fieldInjection: FieldInjection | null,
   resolver: Resolver
 ): {
   gqlFileDocuments: Array<Types.DocumentFile>;
@@ -48,12 +49,18 @@ export function generateDocumentFiles(
     }
   );
 
-  const files = handleGraphQLFiles(schema, gqlFiles, primaryKeyAlias);
+  const files = handleGraphQLFiles(
+    schema,
+    gqlFiles,
+    primaryKeyAlias,
+    fieldInjection
+  );
   const { tags, dependencyGraph } = handleGraphQLTags(
     schema,
     gqlTags,
     resolver,
-    primaryKeyAlias
+    primaryKeyAlias,
+    fieldInjection
   );
 
   return {
@@ -67,7 +74,8 @@ export function generateDocumentFiles(
 function handleGraphQLFiles(
   schema: GraphQLSchema,
   documentPaths: Array<string>,
-  primaryKeyAlias: PrimaryKeyAlias | null
+  primaryKeyAlias: PrimaryKeyAlias | null,
+  fieldInjection: FieldInjection | null
 ): Array<Types.DocumentFile> {
   return documentPaths.map((path) => {
     debug(`compile .graphql: ${path}`);
@@ -77,7 +85,8 @@ function handleGraphQLFiles(
       const parsed = rewriteAst(
         parse(new Source(contents, path)),
         schema,
-        primaryKeyAlias
+        primaryKeyAlias,
+        fieldInjection
       ) as DocumentNode;
 
       return {
@@ -98,7 +107,8 @@ function handleGraphQLTags(
   schema: GraphQLSchema,
   documentPaths: Array<string>,
   resolver: Resolver,
-  primaryKeyAlias: PrimaryKeyAlias | null
+  primaryKeyAlias: PrimaryKeyAlias | null,
+  fieldInjection: FieldInjection | null
 ): {
   tags: Array<Types.DocumentFile>;
   dependencyGraph: DependencyGraph;
@@ -112,7 +122,8 @@ function handleGraphQLTags(
         schema,
         filePath,
         resolver,
-        primaryKeyAlias
+        primaryKeyAlias,
+        fieldInjection
       );
       if (extractedQueries.definitions.length > 0) {
         extractedQueriesMap.set(filePath, extractedQueries);
