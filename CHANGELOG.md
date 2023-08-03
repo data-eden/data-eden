@@ -8,6 +8,20 @@
 
 
 
+
+## v0.18.0 (2023-08-03)
+
+#### :boom: Breaking Change
+* `mocker`
+  * [#182](https://github.com/data-eden/data-eden/pull/182) feat: support boolean type and allow typeGenerators to validate data similar to fieldGenerators ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :rocket: Enhancement
+* `mocker`
+  * [#182](https://github.com/data-eden/data-eden/pull/182) feat: support boolean type and allow typeGenerators to validate data similar to fieldGenerators ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### Committers: 1
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
 ## v0.17.3 (2023-07-28)
 
 #### :rocket: Enhancement
