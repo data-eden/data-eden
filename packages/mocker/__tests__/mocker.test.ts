@@ -6,6 +6,7 @@ import { gql } from '@data-eden/codegen/gql';
 
 import { Mocker } from '@data-eden/mocker';
 import {
+  AdoptionOneFragment,
   CarOneFragment,
   CarOneHalfFragment,
   CarTwoFragment,
@@ -103,7 +104,7 @@ describe('mocker', () => {
         schema,
         fieldGenerators: {
           Car: {
-            make(potentialValue) {
+            make(faker, potentialValue) {
               const allowedMakes = ['Accura', 'Ford', 'GMC'];
               if (
                 potentialValue &&
@@ -193,7 +194,8 @@ describe('mocker', () => {
       const mocker = new Mocker({
         schema,
         typeGenerators: {
-          ID() {
+          ID(faker, potentialValue) {
+            if (potentialValue) return potentialValue;
             return '1234';
           },
         },
@@ -247,7 +249,8 @@ describe('mocker', () => {
       const mocker = new Mocker({
         schema,
         typeGenerators: {
-          ID() {
+          ID(faker, potentialValue) {
+            if (potentialValue) return potentialValue;
             return '123';
           },
         },
@@ -404,6 +407,37 @@ describe('mocker', () => {
       expect(result).toMatchSnapshot();
     });
 
+    test('fragment with auto mocked boolean values', async () => {
+      const adoptionOneFragment = gql<AdoptionOneFragment>`
+        fragment adoptionOne on Adoption {
+          id
+          pet {
+            id
+            name
+            breed
+          }
+          isAdopted
+        }
+      `;
+
+      const mocker = new Mocker({
+        schema,
+        typeGenerators: {
+          ID: (faker, potentialValue) => {
+            if (potentialValue) {
+              return potentialValue;
+            }
+            return '1234567';
+          },
+        },
+      });
+      const result = mocker.mock(adoptionOneFragment, {
+        id: '1234',
+      });
+
+      console.log(result);
+    });
+
     test("fragment with enum values (with provided enum value that doesn't match, this should throw)", async () => {
       const petThreeFragment = gql<PetThreeFragment>`
         fragment petThree on Pet {
@@ -439,7 +473,8 @@ describe('mocker', () => {
       const mocker = new Mocker({
         schema,
         typeGenerators: {
-          ID() {
+          ID(faker, potentialValue) {
+            if (potentialValue) return potentialValue;
             return '1234557';
           },
         },
@@ -500,7 +535,8 @@ describe('mocker', () => {
       const mocker = new Mocker({
         schema,
         typeGenerators: {
-          ID() {
+          ID(faker, potentialValue) {
+            if (potentialValue) return potentialValue;
             return '1234557';
           },
         },

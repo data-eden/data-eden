@@ -27,13 +27,16 @@ type JSONObject = { [key in string]: JSONValue | undefined };
 type JSONValue = JSONPrimitive | JSONArray | JSONObject;
 
 const defaultTypeGenerators: TypeGenerators = {
-  String(faker: Faker) {
+  String(faker: Faker, potentialValue: JSONValue) {
+    if (potentialValue) return potentialValue;
     return faker.word.words();
   },
-  Int(faker: Faker) {
+  Int(faker: Faker, potentialValue: JSONValue) {
+    if (potentialValue) return potentialValue;
     return faker.number.int();
   },
-  Long(faker: Faker) {
+  Long(faker: Faker, potentialValue: JSONValue) {
+    if (potentialValue) return potentialValue;
     let _min = BigInt(0n);
     let _max = BigInt(9223372036854775807n);
 
@@ -42,7 +45,8 @@ const defaultTypeGenerators: TypeGenerators = {
         Math.floor(Math.random() * Number(_max - _min + 1n))
       )) as unknown as JSONValue;
   },
-  Float(faker: Faker) {
+  Float(faker: Faker, potentialValue: JSONValue) {
+    if (potentialValue) return potentialValue;
     const randomNum = faker.number.float({
       min: 0,
       max: 92233720368547,
@@ -50,6 +54,10 @@ const defaultTypeGenerators: TypeGenerators = {
     });
 
     return parseFloat(randomNum.toFixed(2));
+  },
+  Boolean(faker: Faker, potentialValue: JSONValue) {
+    if (potentialValue) return potentialValue;
+    return faker.datatype.boolean();
   },
 };
 
@@ -67,12 +75,12 @@ type DeepPartialObject<T> = {
 
 type FieldGenerators = {
   [className: string]: {
-    [key: string]: (potentialValue?: any) => JSONValue;
+    [key: string]: (faker: Faker, potentialValue?: any) => JSONValue;
   };
 };
 
 type TypeGenerators = {
-  [key: string]: (faker: Faker) => JSONValue;
+  [key: string]: (faker: Faker, potentialValue?: any) => JSONValue;
 };
 
 interface MockerOptions {
@@ -436,7 +444,17 @@ export class Mocker {
       this.fieldGenerators[className] &&
       this.fieldGenerators[className][fieldName]
     ) {
-      return this.fieldGenerators[className][fieldName](inputMockData);
+      return this.fieldGenerators[className][fieldName](
+        this.faker,
+        inputMockData
+      );
+    } else if (
+      inputMockData !== undefined &&
+      !isNonNullType(type) &&
+      this.typeGenerators[type.name]
+    ) {
+      // If we have a type generator for this and we have a provided value we should pass it to the type generator for validation
+      return this.typeGenerators[type.name](this.faker, inputMockData);
     } else if (inputMockData !== undefined) {
       // Use input mock data if provided
       return inputMockData;
